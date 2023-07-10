@@ -9,3 +9,74 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id            String          @id @default(cuid()) @map("_id")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  email         String          @unique
+  name          String
+  image         String?
+  uploadedSongs Song[]
+  playlists     Playlist[]
+  playHistories PlayHistory[]
+  searchHistory SearchHistory[]
+}
+
+model Playlist {
+  id            String         @id @default(cuid()) @map("_id")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  title         String
+  creator       User           @relation(fields: [creatorId], references: [id])
+  creatorId     String         @map("userId")
+  songs         PlaylistSong[]
+  playHistories PlayHistory[]
+}
+
+model PlaylistSong {
+  id         String   @id @default(cuid()) @map("_id")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  position   Int
+  playlist   Playlist @relation(fields: [playlistId], references: [id])
+  playlistId String   @map("playlistId")
+  song       Song     @relation(fields: [songId], references: [id])
+  songId     String   @map("songId")
+}
+
+model Song {
+  id            String         @id @default(cuid()) @map("_id")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  title         String
+  artist        String?
+  album         String?
+  albumCover    String?
+  duration      Int
+  url           String
+  playlistId    String
+  uploader      User           @relation(fields: [uploaderId], references: [id])
+  uploaderId    String         @map("uploaderId")
+  playlists     PlaylistSong[]
+  playHistories PlayHistory[]
+}
+
+model PlayHistory {
+  id         String    @id @default(cuid()) @map("_id")
+  playedAt   DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id])
+  userId     String    @map("userId")
+  song       Song      @relation(fields: [songId], references: [id])
+  songId     String    @map("songId")
+  playlist   Playlist? @relation(fields: [playlistId], references: [id])
+  playlistId String?   @map("playlistId")
+}
+
+model SearchHistory {
+  id        String   @id @default(cuid()) @map("_id")
+  createdAt DateTime @default(now())
+  query     String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @map("userId")
+}
