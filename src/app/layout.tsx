@@ -1,7 +1,8 @@
 import SessionProvider from '@/components/SessionProvider';
 import './globals.css';
 import type { Metadata } from 'next';
-import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
+import { getServerSession } from '@/lib/auth';
 
 export const metadata: Metadata = {
   title: 'ClickToPlay',
@@ -18,6 +19,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession();
+
+  if (session === null) {
+    return redirect('/api/auth/signin');
+  }
 
   return (
     <html lang="en">
