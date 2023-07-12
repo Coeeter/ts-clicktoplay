@@ -1,6 +1,7 @@
 'use client';
 
-import { useToast } from '@/components/ToastProvider';
+import { Button } from '@/components/Button';
+import { useToast } from '@/components/providers/ToastProvider';
 import { signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -77,39 +78,9 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
               <div className="text-red-600 text-sm">{errors.email.message}</div>
             )}
           </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="bg-blue-700 p-3 rounded-md text-slate-300 hover:bg-blue-800 transition-all duration-150 relative disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-slate-300  disabled:transition-none disabled:duration-0"
-          >
-            {isLoading && (
-              <div className=" absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <svg
-                  className="animate-spin h-5 w-5 text-slate-300"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-              </div>
-            )}
-            <div className={isLoading ? 'opacity-0' : 'opacity-100'}>
-              Sign in using email
-            </div>
-          </button>
+          <Button type="submit" isLoading={isLoading}>
+            Sign in using email
+          </Button>
         </form>
       </div>
     </div>

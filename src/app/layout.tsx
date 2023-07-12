@@ -1,5 +1,5 @@
-import { SessionProvider } from '@/components/SessionProvider';
-import { ToastProvider } from '@/components/ToastProvider';
+import { SessionProvider } from '@/components/providers/SessionProvider';
+import { ToastProvider } from '@/components/providers/ToastProvider';
 import type { Metadata } from 'next';
 import './globals.css';
 
