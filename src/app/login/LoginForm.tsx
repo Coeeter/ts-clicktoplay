@@ -3,7 +3,6 @@
 import { useToast } from '@/components/ToastProvider';
 import { signIn } from 'next-auth/react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
@@ -11,10 +10,14 @@ type SignInWithEmailValues = {
   email: string;
 };
 
-export default function LoginForm() {
+type LoginFormProps = {
+  callbackUrl: string | null;
+};
+
+export default function LoginForm({ callbackUrl }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { createToast } = useToast();
-  const router = useRouter();
+  const callback = callbackUrl ?? '/';
 
   const {
     register,
@@ -25,7 +28,7 @@ export default function LoginForm() {
   const onSubmit: SubmitHandler<SignInWithEmailValues> = async ({ email }) => {
     try {
       setIsLoading(true);
-      signIn('email', { email });
+      await signIn('email', { email, callbackUrl: callback });
     } catch (e) {
       createToast(
         'An error occurred while sending the email. Please try again later.',
@@ -40,7 +43,10 @@ export default function LoginForm() {
         className="flex flex-col gap-5 bg-slate-800 p-6 rounded-md max-w-md w-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         onSubmit={handleSubmit(onSubmit)}
       >
-        <button className="bg-slate-200 p-3 rounded-md text-slate-800 hover:bg-slate-300 transition-all duration-150 flex justify-center gap-2">
+        <button
+          onClick={() => signIn('google', { callbackUrl: callback })}
+          className="bg-slate-200 p-3 rounded-md text-slate-800 hover:bg-slate-300 transition-all duration-150 flex justify-center gap-2"
+        >
           <Image
             src="/google-logo.png"
             alt="Google Logo"

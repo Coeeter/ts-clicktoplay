@@ -37,6 +37,9 @@ export const authOptions: AuthOptions = {
       };
     },
   },
+  pages: {
+    signIn: '/login',
+  },
 };
 
 export const getServerSession = () => getSession(authOptions);

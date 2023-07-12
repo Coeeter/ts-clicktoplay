@@ -7,8 +7,9 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { MdCheck, MdClose, MdError, MdWarning } from 'react-icons/md';
 
-type ToastMode = 'error' | 'warning' | 'normal';
+type ToastMode = 'error' | 'warning' | 'normal' | 'success';
 
 type Toast = {
   id: string;
@@ -51,15 +52,37 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const hideAll = () => {
-    setToasts([]);
+    setToastsToAnimateOut(toastsToAnimateOut => [
+      ...toasts.map(toast => ({
+        ...toast,
+        animating: true,
+      })),
+      ...toastsToAnimateOut,
+    ]);
   };
 
   const hideLatest = () => {
-    setToasts(toasts => toasts.slice(0, -1));
+    setToastsToAnimateOut(toastsToAnimateOut => [
+      ...toastsToAnimateOut,
+      {
+        ...toasts[toasts.length - 1],
+        animating: true,
+      },
+    ]);
   };
 
   const hideToast = (id: string) => {
-    setToasts(toasts => toasts.filter(toast => toast.id != id));
+    setToastsToAnimateOut(toastsToAnimateOut => {
+      const toast = toasts.find(toast => toast.id == id);
+      if (!toast) return toastsToAnimateOut;
+      return [
+        ...toastsToAnimateOut,
+        {
+          ...toast,
+          animating: true,
+        },
+      ];
+    });
   };
 
   const toastHandler = {
@@ -94,11 +117,56 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
         setToastsToAnimateOut(toastsToAnimateOut => {
           return toastsToAnimateOut.filter(t => t.id != toast.id);
         });
-      }, 500);
+      }, 300);
     });
 
     return () => timeouts.forEach(timeout => clearTimeout(timeout));
   }, [toastsToAnimateOut]);
+
+  const icon = (toast: Toast) => {
+    switch (toast.mode) {
+      case 'error':
+        return (
+          <div className="bg-red-700 rounded-xl p-2">
+            <MdError className="text-white" />
+          </div>
+        );
+      case 'warning':
+        return (
+          <div className="bg-yellow-700 rounded-xl p-2">
+            <MdWarning className="text-white" />
+          </div>
+        );
+      case 'success':
+        return (
+          <div className="bg-green-700 rounded-xl p-2">
+            <MdCheck className="text-white" />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const backgroundColor = (toast: Toast) => {
+    switch (toast.mode) {
+      case 'error':
+        return 'bg-red-600';
+      case 'warning':
+        return 'bg-yellow-600';
+      case 'success':
+        return 'bg-green-600';
+      default:
+        return 'bg-slate-800';
+    }
+  };
+
+  const animation = (toast: Toast) => {
+    if (toastsToAnimateOut.find(t => t.id == toast.id)) {
+      return 'animate-slide-out';
+    }
+    return 'animate-slide-in';
+  };
 
   return (
     <ToastContext.Provider value={toastHandler}>
@@ -106,34 +174,14 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
       {toasts.map(toast => (
         <div
           key={toast.id}
-          className={`${
-            toastsToAnimateOut.find(t => t.id == toast.id)
-              ? 'animate-slide-out'
-              : 'animate-slide-in'
-          } absolute bottom-10 right-10 ${
-            toast.mode == 'error'
-              ? 'bg-red-600'
-              : toast.mode == 'warning'
-              ? 'bg-yellow-600'
-              : 'bg-slate-800'
-          } text-slate-200 p-4 rounded-md shadow-md flex gap-4 transition-all duration-500`}
+          className={`absolute bottom-10 right-10 text-slate-200 p-4 rounded-md shadow-md flex gap-4 transition-all duration-50 w-64 items-center ${backgroundColor(
+            toast
+          )} ${animation(toast)}`}
         >
+          <div className="flex-none">{icon(toast)}</div>
           <div className="flex-1">{toast.message}</div>
           <button className="flex-none" onClick={() => hideToast(toast.id)}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-slate-200 hover:text-slate-100 transition-all duration-150"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.5"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <MdClose className="text-slate-200" size={18} />
           </button>
         </div>
       ))}
