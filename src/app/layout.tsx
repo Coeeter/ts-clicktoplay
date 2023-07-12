@@ -1,8 +1,7 @@
-import SessionProvider from '@/components/SessionProvider';
-import './globals.css';
+import { SessionProvider } from '@/components/SessionProvider';
+import { ToastProvider } from '@/components/ToastProvider';
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
-import { getServerSession } from '@/lib/auth';
+import './globals.css';
 
 export const metadata: Metadata = {
   title: 'ClickToPlay',
@@ -18,16 +17,12 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession();
-
-  if (session === null) {
-    return redirect('/api/auth/signin');
-  }
-
   return (
     <html lang="en">
-      <body>
-        <SessionProvider session={session}>{children}</SessionProvider>
+      <body className="bg-slate-900 antialiased text-slate-400">
+        <SessionProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </SessionProvider>
       </body>
     </html>
   );
