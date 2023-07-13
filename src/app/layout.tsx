@@ -1,3 +1,4 @@
+import { Navbar } from '@/components';
 import './globals.css';
 import { SessionProvider, ToastProvider } from '@/components/providers';
 import type { Metadata } from 'next';
@@ -18,9 +19,12 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-slate-900 antialiased text-slate-400">
+      <body className="bg-slate-900 antialiased text-slate-400 min-h-screen">
         <SessionProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <Navbar />
+            {children}
+          </ToastProvider>
         </SessionProvider>
       </body>
     </html>
