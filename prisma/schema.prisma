@@ -36,6 +36,7 @@ model Playlist {
   creatorId     String         @map("userId")
   songs         PlaylistSong[]
   playHistories PlayHistory[]
+  Queue         Queue[]
 }
 
 model PlaylistSong {
@@ -64,6 +65,19 @@ model Song {
   uploaderId    String         @map("uploaderId")
   playlists     PlaylistSong[]
   playHistories PlayHistory[]
+  Queue         Queue[]
+}
+
+model Queue {
+  id         String    @id @default(cuid()) @map("_id")
+  position   Int
+  search     String?
+  playlist   Playlist? @relation(fields: [playlistId], references: [id])
+  playlistId String?   @map("playlistId")
+  song       Song      @relation(fields: [songId], references: [id])
+  songId     String    @map("songId")
+
+  @@unique([playlistId, songId, position])
 }
 
 model PlayHistory {
