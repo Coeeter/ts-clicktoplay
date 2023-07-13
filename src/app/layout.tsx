@@ -1,7 +1,6 @@
-import { SessionProvider } from '@/components/providers/SessionProvider';
-import { ToastProvider } from '@/components/providers/ToastProvider';
-import type { Metadata } from 'next';
 import './globals.css';
+import { SessionProvider, ToastProvider } from '@/components/providers';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'ClickToPlay',

@@ -1,8 +1,9 @@
-import { prisma } from '@/lib/database';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { AuthOptions, getServerSession as getSession } from 'next-auth';
 import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
+
+import { prisma } from '@/lib/database';
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
 
 export const authOptions: AuthOptions = {
   session: {

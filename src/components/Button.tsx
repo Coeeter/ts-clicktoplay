@@ -1,4 +1,7 @@
+'use client';
+
 import { ButtonHTMLAttributes, DetailedHTMLProps } from 'react';
+
 import { Spinner } from './Spinner';
 
 type Props = DetailedHTMLProps<
@@ -26,8 +29,10 @@ export const Button = ({
   }
 
   const variants = {
-    primary: 'bg-blue-700 text-slate-300 hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-slate-300',
-    secondary: 'border-2 border-blue-700 text-blue-600 hover:bg-blue-700 hover:text-slate-300 disabled:border-gray-500 disabled:bg-transparent disabled:text-slate-300 disabled:cursor-not-allowed',
+    primary:
+      'bg-blue-700 text-slate-300 hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-slate-300',
+    secondary:
+      'border-2 border-blue-700 text-blue-600 hover:bg-blue-700 hover:text-slate-300 disabled:border-gray-500 disabled:bg-transparent disabled:text-slate-300 disabled:cursor-not-allowed',
   };
 
   return (
