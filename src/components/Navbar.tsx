@@ -1,5 +1,5 @@
 'use client';
-
+import { motion, AnimatePresence } from 'framer-motion';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -8,10 +8,11 @@ import { useRef, useState } from 'react';
 
 export const Navbar = () => {
   const ref = useRef(null);
+  const imgRef = useRef(null);
   const pathName = usePathname();
   const [showDropDown, setShowDropDown] = useState(false);
   const { data, status } = useSession();
-  useOutsideClick(ref, () => setShowDropDown(false));
+  useOutsideClick(ref, () => setShowDropDown(false), imgRef);
 
   const dropDownItems = [
     {
@@ -43,36 +44,49 @@ export const Navbar = () => {
             </div>
           ) : status === 'authenticated' && data.user !== null ? (
             <>
-              <img
-                src={data.user!.image ?? '/default-user.png'}
-                alt={data.user!.name ?? ''}
-                className="w-10 h-10 rounded-full mr-3 cursor-pointer"
-                onClick={() => setShowDropDown(!showDropDown)}
-              />
               <div className="relative">
-                {showDropDown && (
-                  <div
-                    ref={ref}
-                    className="absolute right-0 top-10 w-48 bg-slate-800 rounded-md shadow-lg py-1 z-10"
-                  >
-                    {dropDownItems.map((item, i) => (
-                      <Link
-                        href={
-                          item.name === 'Logout'
-                            ? `${item.href}?callbackUrl=${encodeURIComponent(
-                                window.location.href
-                              )}`
-                            : item.href
-                        }
-                        key={i}
-                        onClick={() => setShowDropDown(false)}
-                        className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-slate-100"
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
+                <motion.img
+                  src={data.user!.image ?? '/default-user.png'}
+                  alt={data.user!.name ?? ''}
+                  className="w-10 h-10 rounded-full mr-3 cursor-pointer"
+                  onClick={() => setShowDropDown(!showDropDown)}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                />
+                <AnimatePresence>
+                  {showDropDown && (
+                    <motion.div
+                      ref={ref}
+                      initial={{
+                        scale: 0.5,
+                        opacity: 0,
+                        y: -10,
+                        transformOrigin: 'top right',
+                      }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
+                      exit={{ scale: 0.5, opacity: 0, y: -10 }}
+                      className="absolute right-0 mt-2 w-48 bg-slate-700 rounded-md shadow-lg py-1 z-10"
+                    >
+                      {dropDownItems.map((item, i) => (
+                        <Link
+                          href={
+                            item.name === 'Logout'
+                              ? `${item.href}?callbackUrl=${encodeURIComponent(
+                                  window.location.href
+                                )}`
+                              : item.href
+                          }
+                          key={i}
+                          onClick={() => setShowDropDown(false)}
+                          className="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-800"
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </>
           ) : (
