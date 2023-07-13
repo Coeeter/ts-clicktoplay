@@ -48,8 +48,9 @@ export const Navbar = () => {
                 <motion.img
                   src={data.user!.image ?? '/default-user.png'}
                   alt={data.user!.name ?? ''}
+                  ref={imgRef}
                   className="w-10 h-10 rounded-full mr-3 cursor-pointer"
-                  onClick={() => setShowDropDown(!showDropDown)}
+                  onClick={() => setShowDropDown(prev => !prev)}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.8, opacity: 0 }}
