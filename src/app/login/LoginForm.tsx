@@ -5,8 +5,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { Button } from '@/components';
-import { useToast } from '@/components/providers';
+import { Button, useToast } from '@/components';
 
 type SignInWithEmailValues = {
   email: string;

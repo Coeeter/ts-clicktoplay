@@ -1,7 +1,6 @@
 import './globals.css';
 
-import { Navbar, Sidebar } from '@/components';
-import { SessionProvider, ToastProvider } from '@/components/providers';
+import { Navbar, SessionProvider, Sidebar, ToastProvider } from '@/components';
 import { getServerSession } from '@/lib/auth';
 import { prisma } from '@/lib/database';
 
