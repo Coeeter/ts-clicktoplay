@@ -1,5 +1,7 @@
-import { getServerSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+
+import { getServerSession } from '@/lib/auth';
+
 import LogoutForm from './LogoutForm';
 
 export default async function Logout({

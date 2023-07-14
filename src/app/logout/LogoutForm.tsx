@@ -1,7 +1,8 @@
 'use client';
 
-import { Button } from '@/components';
 import { signOut } from 'next-auth/react';
+
+import { Button } from '@/components';
 
 export default function LogoutForm({ callbackUrl }: { callbackUrl?: string }) {
   return (

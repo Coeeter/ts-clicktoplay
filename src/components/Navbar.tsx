@@ -1,10 +1,12 @@
 'use client';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useOutsideClick } from '@/hooks/useOutsideClick';
+
+import { AnimatePresence, motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRef, useState } from 'react';
+
+import { useOutsideClick } from '@/hooks/useOutsideClick';
 
 export const Navbar = () => {
   const ref = useRef(null);
@@ -30,10 +32,10 @@ export const Navbar = () => {
   ];
 
   return (
-    <nav className="bg-slate-800 text-slate-300">
+    <nav className="bg-slate-800 text-slate-300 m-3 ml-0 rounded-md">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center">
-          <Link href="/" className="text-2xl text-slate-200 font-bold">
+          <Link href="/" className="text-3xl text-slate-200 font-bold">
             ClickToPlay
           </Link>
         </div>
@@ -49,6 +51,7 @@ export const Navbar = () => {
                   src={data.user!.image ?? '/default-user.png'}
                   alt={data.user!.name ?? ''}
                   ref={imgRef}
+                  referrerPolicy="no-referrer"
                   className="w-10 h-10 rounded-full mr-3 cursor-pointer"
                   onClick={() => setShowDropDown(prev => !prev)}
                   initial={{ scale: 0.8, opacity: 0 }}

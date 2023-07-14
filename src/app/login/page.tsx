@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation';
-import { getServerSession } from '@/lib/auth';
 
-import LoginForm from './LoginForm';
+import { getServerSession } from '@/lib/auth';
 
 type LoginProps = {
   searchParams?: { [key: string]: string | string[] | undefined };
 };
 
 export default async function Login({ searchParams }: LoginProps) {
+  const LoginForm = (await import('./LoginForm')).default;
   let callbackUrl = searchParams?.callbackUrl;
 
   if (callbackUrl && typeof callbackUrl !== 'string') {
