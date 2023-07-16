@@ -8,6 +8,28 @@ import { useRef, useState } from 'react';
 
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 
+const dropDownItems = [
+  {
+    name: 'Profile',
+    href: '/profile',
+  },
+  {
+    name: 'Settings',
+    href: '/settings',
+  },
+  {
+    name: 'Logout',
+    href: `/logout`,
+  },
+];
+
+const navItems = [
+  {
+    name: 'Upload Songs',
+    href: '/upload',
+  },
+];
+
 export const Navbar = () => {
   const ref = useRef(null);
   const imgRef = useRef(null);
@@ -15,21 +37,6 @@ export const Navbar = () => {
   const [showDropDown, setShowDropDown] = useState(false);
   const { data, status } = useSession();
   useOutsideClick(ref, () => setShowDropDown(false), imgRef);
-
-  const dropDownItems = [
-    {
-      name: 'Profile',
-      href: '/profile',
-    },
-    {
-      name: 'Settings',
-      href: '/settings',
-    },
-    {
-      name: 'Logout',
-      href: `/logout`,
-    },
-  ];
 
   return (
     <nav className="bg-slate-800 text-slate-300 m-3 ml-0 rounded-md">
@@ -45,7 +52,20 @@ export const Navbar = () => {
               <div className="bg-slate-700 w-10 h-10 rounded-full mr-3"></div>
             </div>
           ) : status === 'authenticated' && data.user !== null ? (
-            <>
+            <div className="flex gap-6">
+              {navItems.map((item, i) => (
+                <Link
+                  href={item.href}
+                  key={i}
+                  className={`hover:text-slate-200 px-3 py-2 rounded-md transition-all duration-150 ${
+                    pathName === item.href
+                      ? 'text-slate-200 font-bold'
+                      : 'text-slate-300/50'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
               <div className="relative">
                 <motion.img
                   src={data.user!.image ?? '/default-user.png'}
@@ -54,6 +74,7 @@ export const Navbar = () => {
                   referrerPolicy="no-referrer"
                   className="w-10 h-10 rounded-full mr-3 cursor-pointer"
                   onClick={() => setShowDropDown(prev => !prev)}
+                  whileHover={{ scale: 1.1 }}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.8, opacity: 0 }}
@@ -92,7 +113,7 @@ export const Navbar = () => {
                   )}
                 </AnimatePresence>
               </div>
-            </>
+            </div>
           ) : (
             pathName === '/login' || (
               <Link

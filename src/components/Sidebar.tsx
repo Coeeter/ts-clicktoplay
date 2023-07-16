@@ -11,12 +11,12 @@ const sidebarItems = [
   {
     name: 'Home',
     href: '/',
-    icon: <MdHome size={24} />,
+    icon: <MdHome size={32} />,
   },
   {
     name: 'Search',
     href: '/search',
-    icon: <MdSearch size={24} />,
+    icon: <MdSearch size={32} />,
   },
 ];
 
@@ -35,7 +35,7 @@ export const Sidebar = ({ playlists }: { playlists: Playlist[] }) => {
               pathName === href ? 'text-slate-200' : 'text-slate-300/50'
             }`}
           >
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-4">
               {icon}
               {name}
             </div>

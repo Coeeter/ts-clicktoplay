@@ -56,11 +56,9 @@ model Song {
   updatedAt     DateTime       @updatedAt
   title         String
   artist        String?
-  album         String?
   albumCover    String?
-  duration      Int
+  duration      Float
   url           String
-  playlistId    String
   uploader      User           @relation(fields: [uploaderId], references: [id])
   uploaderId    String         @map("uploaderId")
   playlists     PlaylistSong[]
