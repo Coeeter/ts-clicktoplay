@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/database';
 import { redirect } from 'next/navigation';
+import { UpdateSongForm } from './UpdateSongForm';
 
 export default async function UpdateSongPage({
   params: { id },
@@ -16,9 +17,5 @@ export default async function UpdateSongPage({
     return redirect('/');
   }
 
-  return (
-    <audio controls={true}>
-      <source src={song.url} type="audio/mpeg" />
-    </audio>
-  );
+  return <UpdateSongForm song={song} />;
 }

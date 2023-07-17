@@ -2,7 +2,7 @@
 
 import { ButtonHTMLAttributes, DetailedHTMLProps } from 'react';
 
-import { Spinner } from './Spinner';
+import { Spinner } from '../Spinner';
 
 type Props = DetailedHTMLProps<
   ButtonHTMLAttributes<HTMLButtonElement>,

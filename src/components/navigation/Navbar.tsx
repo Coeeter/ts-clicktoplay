@@ -26,7 +26,7 @@ const dropDownItems = [
 const navItems = [
   {
     name: 'Upload Songs',
-    href: '/upload',
+    href: '/songs/upload',
   },
 ];
 

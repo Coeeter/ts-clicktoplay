@@ -1,13 +1,13 @@
 import { getServerSession } from '@/lib/auth';
 import { prisma } from '@/lib/database';
-import { s3 } from '@/lib/s3';
+import { deleteFileFromS3, uploadBufferToS3 } from '@/lib/s3';
 import { randomUUID } from 'crypto';
 import { parseBuffer } from 'music-metadata';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const POST = async (request: NextRequest) => {
-  let songKey: string | null = null;
-  let imageKey: string | null = null;
+  let songUrl: string | null = null;
+  let imageUrl: string | null = null;
 
   try {
     const session = await getServerSession();
@@ -26,22 +26,20 @@ export const POST = async (request: NextRequest) => {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const extension = file.name.split('.').pop();
-    songKey = `songs/${randomUUID()}.${extension}`;
-    const songUrl = await uploadBufferToS3({
-      key: songKey,
+    songUrl = await uploadBufferToS3({
+      key: `songs/${randomUUID()}.${extension}`,
       buffer: buffer,
       contentType: 'audio/mpeg',
-    });
+    }).then(res => res.Location);
 
     const audioData = await parseBuffer(buffer);
     const image = audioData.common.picture?.[0].data;
-    imageKey = image ? `images/${randomUUID()}.jpg` : null;
-    const imageUrl = image
+    imageUrl = image
       ? await uploadBufferToS3({
           buffer: image,
-          key: imageKey!,
+          key: `images/${randomUUID()}.jpg`!,
           contentType: 'image/jpeg',
-        })
+        }).then(res => res.Location)
       : null;
 
     const result = await prisma.song.create({
@@ -63,11 +61,11 @@ export const POST = async (request: NextRequest) => {
     );
   } catch (e) {
     console.log(e);
-    if (songKey) {
-      await deleteFileFromS3(songKey);
+    if (songUrl) {
+      await deleteFileFromS3({ url: songUrl });
     }
-    if (imageKey) {
-      await deleteFileFromS3(imageKey);
+    if (imageUrl) {
+      await deleteFileFromS3({ url: imageUrl });
     }
     return NextResponse.json(
       {
@@ -82,33 +80,4 @@ const extractFileName = (file: File) => {
   return file.name.lastIndexOf('.') > 0
     ? file.name.substring(0, file.name.lastIndexOf('.'))
     : file.name;
-};
-
-const deleteFileFromS3 = async (key: string) => {
-  return await s3
-    .deleteObject({
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Key: key,
-    })
-    .promise();
-};
-
-const uploadBufferToS3 = async ({
-  buffer,
-  key,
-  contentType,
-}: {
-  buffer: Buffer;
-  key: string;
-  contentType: string;
-}) => {
-  return await s3
-    .upload({
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Key: key,
-      Body: buffer,
-      ContentType: contentType,
-    })
-    .promise()
-    .then(result => result.Location);
 };

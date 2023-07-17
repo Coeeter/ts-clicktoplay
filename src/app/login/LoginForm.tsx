@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { Button, useToast } from '@/components';
+import { Button, TextField, useToast } from '@/components';
 
 type SignInWithEmailValues = {
   email: string;
@@ -59,7 +59,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <input
+          <TextField
             {...register('email', {
               required: 'Email is required',
               pattern: {
@@ -67,12 +67,9 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
                 message: 'Email is invalid',
               },
             })}
-            placeholder="Email"
-            className="bg-slate-700 p-3 rounded-md outline-none text-slate-300 focus:outline-blue-600"
+            error={errors.email?.message}
+            label="Email"
           />
-          {errors.email && (
-            <div className="text-red-600 text-sm">{errors.email.message}</div>
-          )}
         </div>
         <Button type="submit" isLoading={isLoading}>
           Sign in using email
