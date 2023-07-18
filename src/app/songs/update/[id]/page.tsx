@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/database';
 import { redirect } from 'next/navigation';
 import { UpdateSongForm } from './UpdateSongForm';
+import { WithAuth } from '@/components/server';
 
 export default async function UpdateSongPage({
   params: { id },
@@ -17,5 +18,9 @@ export default async function UpdateSongPage({
     return redirect('/');
   }
 
-  return <UpdateSongForm song={song} />;
+  return (
+    <WithAuth userId={song.uploaderId}>
+      <UpdateSongForm song={song} />
+    </WithAuth>
+  );
 }

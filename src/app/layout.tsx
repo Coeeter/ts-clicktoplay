@@ -20,11 +20,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const loggedInUser = (await getServerSession())?.user;
-  const playlists = loggedInUser
+  const session = await getServerSession();
+  const playlists = session?.user
     ? await prisma.playlist.findMany({
         where: {
-          creatorId: loggedInUser?.id,
+          creatorId: session.user.id,
         },
       })
     : [];
@@ -32,7 +32,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className="bg-slate-900 antialiased text-slate-400 min-h-screen">
-        <SessionProvider>
+        <SessionProvider session={session}>
           <ToastProvider>
             <div className="flex h-screen">
               <Sidebar playlists={playlists} />

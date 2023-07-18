@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, TextField, WithAuth, useToast } from '@/components';
+import { Button, TextField, useToast } from '@/components';
 import { Song } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -40,7 +40,11 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
   }: UpdateSongFormValues) => {
     try {
       setIsUploading(true);
-      let body: any = {
+      const body: {
+        title: string;
+        artist: string;
+        albumCover?: string;
+      } = {
         title,
         artist,
       };
@@ -57,10 +61,7 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
             'Content-Type': albumCover[0].type,
           },
         });
-        body = {
-          ...body,
-          albumCover: url.split('?')[0],
-        };
+        body.albumCover = url.split('?')[0];
       }
       const result = await fetch(`/api/songs/update/${song.id}`, {
         method: 'PUT',
@@ -81,58 +82,58 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
   };
 
   return (
-    <WithAuth>
-      <form
-        className="flex flex-col gap-5 bg-slate-800 p-6 rounded-md max-w-md w-full mx-auto mt-6"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className="flex flex-col gap-5">
-          <TextField
-            label="Title"
-            id="title"
-            {...register('title', { required: true })}
-            error={errors.title?.message}
+    <form
+      className="flex flex-col gap-5 bg-slate-800 p-6 rounded-md max-w-md w-full mx-auto mt-6"
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <div className="flex flex-col gap-5">
+        <TextField
+          label="Title"
+          id="title"
+          defaultValue={song.title ?? ''}
+          {...register('title', { required: true })}
+          error={errors.title?.message}
+        />
+      </div>
+      <div className="flex flex-col gap-5">
+        <TextField
+          label="Artist"
+          id="artist"
+          defaultValue={song.artist ?? ''}
+          {...register('artist')}
+          error={errors.artist?.message}
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <label htmlFor="albumCover">Album Cover</label>
+        <img
+          src={preview}
+          alt="Album Cover"
+          className="w-24 h-24 rounded-md box-border object-cover"
+        />
+        <div className="flex flex-col gap-1">
+          <input
+            type="file"
+            id="albumCover"
+            className="bg-slate-700 p-3 rounded-md outline-none text-slate-300 focus:outline-blue-600"
+            {...register('albumCover', {
+              onChange: e => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setPreview(URL.createObjectURL(file));
+              },
+            })}
           />
+          {errors.albumCover && (
+            <div className="text-red-500 text-sm">
+              {errors.albumCover.message}
+            </div>
+          )}
         </div>
-        <div className="flex flex-col gap-5">
-          <TextField
-            label="Artist"
-            id="artist"
-            {...register('artist')}
-            error={errors.artist?.message}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label htmlFor="albumCover">Album Cover</label>
-          <img
-            src={preview}
-            alt="Album Cover"
-            className="w-24 h-24 rounded-md box-border object-cover"
-          />
-          <div className="flex flex-col gap-1">
-            <input
-              type="file"
-              id="albumCover"
-              className="bg-slate-700 p-3 rounded-md outline-none text-slate-300 focus:outline-blue-600"
-              {...register('albumCover', {
-                onChange: e => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  setPreview(URL.createObjectURL(file));
-                },
-              })}
-            />
-            {errors.albumCover && (
-              <div className="text-red-500 text-sm">
-                {errors.albumCover.message}
-              </div>
-            )}
-          </div>
-        </div>
-        <Button type="submit" isLoading={isUploading}>
-          Submit
-        </Button>
-      </form>
-    </WithAuth>
+      </div>
+      <Button type="submit" isLoading={isUploading}>
+        Submit
+      </Button>
+    </form>
   );
 };
