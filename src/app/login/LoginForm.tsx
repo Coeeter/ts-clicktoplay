@@ -1,7 +1,6 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import Image from 'next/image';
 import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
@@ -44,12 +43,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
         onClick={() => signIn('google', { callbackUrl: callback })}
         className="bg-slate-200 p-3 rounded-md text-slate-800 hover:bg-slate-300 transition-all duration-150 flex justify-center gap-2"
       >
-        <Image
-          src="/google-logo.png"
-          alt="Google Logo"
-          width={24}
-          height={24}
-        />
+        <img src="/google-logo.png" alt="Google Logo" width={24} height={24} />
         <div>Sign in with Google</div>
       </button>
       <form className="flex flex-col gap-5" onSubmit={handleSubmit(onSubmit)}>
