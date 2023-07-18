@@ -39,7 +39,8 @@ const SongUploader = () => {
       }
       router.push(`/songs/update/${json.id}`);
     } catch (error) {
-      console.log('Error uploading file', error);
+      console.log('Error uploading file:', error);
+      toast.createToast('Error uploading file', 'error');
     } finally {
       setUploading(false);
     }
