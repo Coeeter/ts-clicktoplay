@@ -32,6 +32,20 @@ const deleteFileFromS3 = async ({
     .promise();
 };
 
+export const getPresignedUploadUrl = async ({
+  key,
+  contentType,
+}: {
+  key: string;
+  contentType: string;
+}) => {
+  return await s3.getSignedUrlPromise('putObject', {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: key,
+    ContentType: contentType,
+  });
+};
+
 const uploadBufferToS3 = async ({
   buffer,
   key,

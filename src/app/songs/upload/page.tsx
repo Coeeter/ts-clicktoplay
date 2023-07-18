@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useRef } from 'react';
 import { FaFileUpload } from 'react-icons/fa';
 import { useDropzone } from 'react-dropzone';
+import { parseBlob } from 'music-metadata-browser';
 
 const SongUploader = () => {
   const boxRef = useRef<HTMLDivElement>(null);
@@ -25,12 +26,81 @@ const SongUploader = () => {
   const handleFileUpload = async () => {
     if (!selectedFile) return;
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', selectedFile);
+
+    const getUploadUrl = async (
+      fileType: string,
+      extension: string | undefined,
+      type: 'audio' | 'image'
+    ) => {
+      const { url } = await fetch(
+        `/api/songs/upload?fileType=${fileType}&extension=${extension}&type=${type}`
+      ).then(res => res.json());
+      return url;
+    };
+
+    const uploadToS3 = async (url: string, data: any, contentType: string) => {
+      const response = await fetch(url, {
+        method: 'PUT',
+        body: data,
+        headers: {
+          'Content-Type': contentType,
+        },
+      });
+      if (!response.ok) {
+        console.log(await response.json());
+        return toast.createToast('Error uploading file', 'error');
+      }
+    };
+
+    const getMetadata = async (file: File) => {
+      const metadata = await parseBlob(file);
+      return {
+        title:
+          metadata.common.title ?? file.name.lastIndexOf('.') > 0
+            ? file.name.substring(0, file.name.lastIndexOf('.'))
+            : file.name,
+        artist: metadata.common.artist ?? '',
+        duration: metadata.format.duration ?? 0.0,
+        image: metadata.common.picture?.[0],
+      };
+    };
+
     try {
-      const response = await fetch('/api/songs', {
+      const extension = selectedFile.name.split('.').pop();
+      const fileType = selectedFile.type;
+      const songUploadUrl = await getUploadUrl(fileType, extension, 'audio');
+      await uploadToS3(songUploadUrl, selectedFile, fileType);
+      const { title, artist, duration, image } = await getMetadata(
+        selectedFile
+      );
+      let imageUrl: string | null = null;
+      if (image) {
+        const extension = image.format.split('/').pop();
+        const uploadImageUrl = await getUploadUrl(
+          image.format,
+          extension,
+          'image'
+        );
+        const imageData = new Uint8Array(image.data);
+        const imageFile = new File([imageData], 'image', {
+          type: image.format,
+        });
+        await uploadToS3(uploadImageUrl, imageFile, image.format);
+        imageUrl = uploadImageUrl.split('?')[0];
+      }
+      const songUrl = songUploadUrl.split('?')[0];
+      const response = await fetch('/api/songs/upload', {
         method: 'POST',
-        body: formData,
+        body: JSON.stringify({
+          url: songUrl,
+          title: title,
+          duration: duration,
+          artist: artist,
+          albumCover: imageUrl,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       const json = await response.json();
       if (!response.ok) {
