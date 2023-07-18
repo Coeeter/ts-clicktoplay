@@ -38,10 +38,10 @@ export const GET = async (request: NextRequest) => {
 export const POST = async (request: NextRequest) => {
   const session = await getServerSession();
   if (!session?.user) {
-    return NextResponse.json(
-      {
+    return new NextResponse(
+      JSON.stringify({
         error: 'You must be logged in to upload a song',
-      },
+      }),
       { status: 401 }
     );
   }

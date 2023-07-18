@@ -40,15 +40,31 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
   }: UpdateSongFormValues) => {
     try {
       setIsUploading(true);
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('artist', artist);
+      let body: any = {
+        title,
+        artist,
+      };
       if (albumCover) {
-        formData.append('albumCover', albumCover[0]);
+        const { url } = await fetch(
+          `/api/songs/update/${song.id}?fileType=${
+            albumCover[0].type
+          }&extension=${albumCover[0].name.split('.').pop()}`
+        ).then(res => res.json());
+        await fetch(url, {
+          method: 'PUT',
+          body: albumCover[0],
+          headers: {
+            'Content-Type': albumCover[0].type,
+          },
+        });
+        body = {
+          ...body,
+          albumCover: url.split('?')[0],
+        };
       }
-      const result = await fetch(`/api/songs/${song.id}`, {
+      const result = await fetch(`/api/songs/update/${song.id}`, {
         method: 'PUT',
-        body: formData,
+        body: JSON.stringify(body),
       });
       const json = await result.json();
       if (!result.ok) {
