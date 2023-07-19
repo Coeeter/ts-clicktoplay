@@ -1,9 +1,14 @@
-'use client';
+import { SongItem } from '@/components';
+import { prisma } from '@/lib/database';
 
-export default function Home() {
+export default async function Home() {
+  const songs = await prisma.song.findMany();
+
   return (
-    <div className="container mx-auto">
-      <h1 className="text-4xl font-bold">Hello World</h1>
+    <div className="">
+      {songs.map(song => (
+        <SongItem key={song.id} song={song} />
+      ))}
     </div>
   );
 }

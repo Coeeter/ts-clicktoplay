@@ -25,7 +25,7 @@ export const Sidebar = ({ playlists }: { playlists: Playlist[] }) => {
   const pathName = usePathname();
 
   return (
-    <div className="w-1/3 gap-3 flex flex-col h-full">
+    <div className="w-1/3 gap-3 flex flex-col sticky top-0 h-screen">
       <div className="flex flex-col bg-slate-800 rounded-md m-3 mb-0 px-4 py-3 gap-3">
         {sidebarItems.map(({ name, href, icon }) => (
           <Link

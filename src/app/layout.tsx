@@ -34,7 +34,7 @@ export default async function RootLayout({
       <body className="bg-slate-900 antialiased text-slate-400 min-h-screen">
         <SessionProvider session={session}>
           <ToastProvider>
-            <div className="flex h-screen">
+            <div className="flex min-h-screen relative">
               <Sidebar playlists={playlists} />
               <div className="flex flex-col w-full">
                 <Navbar />
