@@ -11,43 +11,47 @@ datasource db {
 }
 
 model User {
-  id                 String              @id @default(cuid()) @map("_id")
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  email              String              @unique
-  name               String?
-  image              String?
-  uploadedSongs      Song[]
-  playlists          Playlist[]
-  playHistories      PlayHistory[]
-  searchHistory      SearchHistory[]
-  accounts           Account[]
-  sessions           Session[]
-  verificationTokens VerificationToken[]
-  emailVerified      DateTime?           @map("emailVerified")
+  id                    String              @id @default(cuid()) @map("_id")
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  email                 String              @unique
+  name                  String?
+  image                 String?
+  uploadedSongs         Song[]              @relation("uploadedSongs")
+  playlists             Playlist[]
+  playHistories         PlayHistory[]
+  searchHistory         SearchHistory[]
+  accounts              Account[]
+  sessions              Session[]
+  verificationTokens    VerificationToken[]
+  emailVerified         DateTime?           @map("emailVerified")
+  currentlyPlayingQueue Queue?
 }
 
 model Playlist {
-  id            String         @id @default(cuid()) @map("_id")
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id            String        @id @default(cuid()) @map("_id")
+  createdAt     DateTime      @default(now())
   title         String
-  creator       User           @relation(fields: [creatorId], references: [id])
-  creatorId     String         @map("userId")
-  songs         PlaylistSong[]
+  creator       User          @relation(fields: [creatorId], references: [id])
+  creatorId     String        @map("userId")
   playHistories PlayHistory[]
-  Queue         Queue[]
+  queues        Queue[]
+  head          PlaylistItem? @relation(fields: [headId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  headId        String?       @unique @map("headId")
 }
 
-model PlaylistSong {
-  id         String   @id @default(cuid()) @map("_id")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  position   Int
-  playlist   Playlist @relation(fields: [playlistId], references: [id])
-  playlistId String   @map("playlistId")
-  song       Song     @relation(fields: [songId], references: [id])
-  songId     String   @map("songId")
+model PlaylistItem {
+  id                String         @id @default(cuid()) @map("_id")
+  addedAt           DateTime       @default(now())
+  song              Song           @relation(fields: [songId], references: [id])
+  songId            String         @map("songId")
+  next              PlaylistItem?  @relation("nextPlaylistItems", fields: [nextId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nextId            String?        @map("nextId")
+  prev              PlaylistItem?  @relation("prevPlaylistItems", fields: [prevId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  prevId            String?        @map("prevId")
+  nextPlaylistItems PlaylistItem[] @relation("nextPlaylistItems")
+  prevPlaylistItems PlaylistItem[] @relation("prevPlaylistItems")
+  playlist          Playlist?
 }
 
 model Song {
@@ -59,23 +63,46 @@ model Song {
   albumCover    String?
   duration      Float
   url           String
-  uploader      User           @relation(fields: [uploaderId], references: [id])
+  uploader      User           @relation(name: "uploadedSongs", fields: [uploaderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   uploaderId    String         @map("uploaderId")
-  playlists     PlaylistSong[]
+  playlists     PlaylistItem[]
   playHistories PlayHistory[]
-  Queue         Queue[]
+  queueItems    QueueItem[]
+  deletedAt     DateTime?      @map("deletedAt")
+}
+
+enum RepeatMode {
+  NONE
+  ONE
+  ALL
 }
 
 model Queue {
-  id         String    @id @default(cuid()) @map("_id")
-  position   Int
-  search     String?
-  playlist   Playlist? @relation(fields: [playlistId], references: [id])
-  playlistId String?   @map("playlistId")
-  song       Song      @relation(fields: [songId], references: [id])
-  songId     String    @map("songId")
+  id            String     @id @default(cuid()) @map("_id")
+  search        String?
+  playlist      Playlist?  @relation(fields: [playlistId], references: [id])
+  playlistId    String?    @map("playlistId")
+  playingUser   User?      @relation(fields: [playingUserId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  playingUserId String?    @map("playingUserId")
+  shuffle       Boolean    @default(false)
+  repeatMode    RepeatMode @default(NONE)
+  currentSong   QueueItem? @relation(fields: [currentSongId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  currentSongId String?    @map("currentSongId")
 
-  @@unique([playlistId, songId, position])
+  @@unique([playingUserId])
+}
+
+model QueueItem {
+  id             String      @id @default(cuid()) @map("_id")
+  song           Song        @relation(fields: [songId], references: [id])
+  songId         String      @map("songId")
+  next           QueueItem?  @relation("nextQueueItems", fields: [nextId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nextId         String?     @map("nextId")
+  prev           QueueItem?  @relation("prevQueueItems", fields: [prevId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  prevId         String?     @map("prevId")
+  nextQueueItems QueueItem[] @relation("nextQueueItems")
+  prevQueueItems QueueItem[] @relation("prevQueueItems")
+  Queue          Queue[]
 }
 
 model PlayHistory {
