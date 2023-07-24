@@ -1,14 +1,13 @@
 import { randomUUID } from 'crypto';
-import { deleteFileFromS3, getPresignedUploadUrl } from './s3';
-import { Session } from 'next-auth';
-import { prisma } from './database';
+import { deleteFileFromS3, getPresignedUploadUrl } from '../s3';
+import { prisma } from '../database';
 import { ForbiddenError, NotFoundError } from '@/utils/response';
-
-type GetSongFileUploadUrlProps = {
-  fileType?: string;
-  extension?: string;
-  type?: string;
-};
+import {
+  CreateSongProps,
+  GetSongFileUploadUrlProps,
+  GetUpdateFileUploadUrlProps,
+  UpdateSongProps,
+} from './types';
 
 export const getSongFileUploadUrl = async ({
   fileType,
@@ -28,15 +27,6 @@ export const getSongFileUploadUrl = async ({
   return presignedUrl;
 };
 
-type CreateSongProps = {
-  url: string;
-  title: string;
-  duration: number;
-  artist: string;
-  albumCover?: string | null;
-  session: Session;
-};
-
 export const createSong = async (createSongProps: CreateSongProps) => {
   return await prisma.song.create({
     data: {
@@ -48,13 +38,6 @@ export const createSong = async (createSongProps: CreateSongProps) => {
       uploaderId: createSongProps.session.user.id,
     },
   });
-};
-
-type GetUpdateFileUploadUrlProps = {
-  id: string | undefined;
-  fileType: string;
-  extension: string;
-  session: Session;
 };
 
 export const getUpdateFileUploadUrl = async ({
@@ -84,14 +67,6 @@ export const getUpdateFileUploadUrl = async ({
   });
 };
 
-type UpdateSongProps = {
-  id: string | undefined;
-  title?: string | null;
-  artist?: string | null;
-  albumCover?: string | null;
-  session: Session;
-};
-
 export const updateSong = async ({
   id,
   title,
@@ -118,6 +93,17 @@ export const updateSong = async ({
       title: title ?? song.title,
       artist: artist ?? song.artist,
       albumCover: albumCover ?? song.albumCover,
+    },
+  });
+};
+
+export const getSongs = async () => {
+  return await prisma.song.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+    include: {
+      uploader: true,
     },
   });
 };

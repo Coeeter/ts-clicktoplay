@@ -1,8 +1,8 @@
 import { SongItem } from '@/components';
-import { prisma } from '@/lib/database';
+import { getSongs } from '@/lib/songs';
 
 export default async function Home() {
-  const songs = await prisma.song.findMany();
+  const songs = await getSongs();
 
   return (
     <div className="flex flex-wrap gap-3 justify-center">

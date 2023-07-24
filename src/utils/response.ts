@@ -54,6 +54,12 @@ export class ApiError extends Error {
   }
 }
 
+export class BadRequestError extends ApiError {
+  constructor(message: string = 'Bad request') {
+    super(message, 400);
+  }
+}
+
 export class UnauthorizedError extends ApiError {
   constructor(
     message: string = 'You must be logged in to perform this action'
@@ -62,14 +68,14 @@ export class UnauthorizedError extends ApiError {
   }
 }
 
-export class NotFoundError extends ApiError {
-  constructor(message: string = 'Not found') {
-    super(message, 404);
-  }
-}
-
 export class ForbiddenError extends ApiError {
   constructor(message: string = 'You are not allowed to perform this action') {
     super(message, 403);
+  }
+}
+
+export class NotFoundError extends ApiError {
+  constructor(message: string = 'Not found') {
+    super(message, 404);
   }
 }
