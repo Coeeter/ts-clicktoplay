@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { SongId } from './types';
+import { SongId } from '../songs';
 
 export const generateQueueItemId = (queueId: string, songId: string) => {
   return `${queueId}-${songId}`;

@@ -1,8 +1,9 @@
 import { RepeatMode, Song } from '@prisma/client';
 import { Session } from 'next-auth';
 import { getQueue } from './queue';
+import { SongId } from '../songs';
 
-export type SongId = string;
+export type QueueItemId = string;
 
 export type Queue = Awaited<ReturnType<typeof getQueue>>;
 
@@ -23,7 +24,7 @@ export type CreateQueueProps =
 
 export type UpdateCurrentSongInQueueProps = {
   session: Session;
-  currentSongId: string;
+  currentSongId: SongId;
 };
 
 export type InsertSongsToQueueProps = {
@@ -33,14 +34,14 @@ export type InsertSongsToQueueProps = {
 
 export type RemoveSongFromQueueProps = {
   session: Session;
-  songId: string;
+  songId: SongId;
 };
 
 export type MoveSongInQueueProps = {
   session: Session;
-  songId: string;
-  nextId: string | null;
-  prevId: string | null;
+  songId: SongId;
+  nextId: QueueItemId | null;
+  prevId: QueueItemId | null;
 };
 
 export type ClearQueueProps = {

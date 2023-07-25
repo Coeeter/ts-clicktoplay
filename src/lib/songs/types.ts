@@ -1,5 +1,7 @@
 import { Session } from 'next-auth';
 
+export type SongId = string;
+
 export type GetSongFileUploadUrlProps = {
   fileType?: string;
   extension?: string;
