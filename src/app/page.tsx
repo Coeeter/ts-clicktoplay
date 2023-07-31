@@ -1,9 +1,14 @@
-'use client';
+import { SongItem } from '@/components';
+import { getSongs } from '@/lib/songs';
 
-export default function Home() {
+export default async function Home() {
+  const songs = await getSongs();
+
   return (
-    <div className="container mx-auto">
-      <h1 className="text-4xl font-bold">Hello World</h1>
+    <div className="flex flex-wrap gap-3 justify-center">
+      {songs.map(song => (
+        <SongItem key={song.id} song={song} />
+      ))}
     </div>
   );
 }

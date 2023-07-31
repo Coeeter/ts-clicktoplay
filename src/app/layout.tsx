@@ -1,8 +1,15 @@
 import './globals.css';
 
-import { Navbar, SessionProvider, Sidebar, ToastProvider } from '@/components';
+import {
+  Navbar,
+  SessionProvider,
+  Sidebar,
+  SongProvider,
+  ToastProvider,
+} from '@/components';
 import { getServerSession } from '@/lib/auth';
 import { prisma } from '@/lib/database';
+import { getQueue } from '@/lib/queue';
 
 import type { Metadata } from 'next';
 
@@ -28,19 +35,22 @@ export default async function RootLayout({
         },
       })
     : [];
+  const queue = session ? await getQueue(session) : null;
 
   return (
     <html lang="en">
       <body className="bg-slate-900 antialiased text-slate-400 min-h-screen">
         <SessionProvider session={session}>
           <ToastProvider>
-            <div className="flex h-screen">
-              <Sidebar playlists={playlists} />
-              <div className="flex flex-col w-full">
-                <Navbar />
-                <main>{children}</main>
+            <SongProvider queue={queue}>
+              <div className="flex min-h-screen relative">
+                <Sidebar playlists={playlists} />
+                <div className="flex flex-col w-full">
+                  <Navbar />
+                  <main>{children}</main>
+                </div>
               </div>
-            </div>
+            </SongProvider>
           </ToastProvider>
         </SessionProvider>
       </body>
