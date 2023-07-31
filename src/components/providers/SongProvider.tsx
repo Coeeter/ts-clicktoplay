@@ -1,7 +1,8 @@
 'use client';
 
-import { Queue, SongId } from '@/lib/queue';
-import { sortLinkedList } from '@/utils';
+import { Queue } from '@/lib/queue';
+import { SongId } from '@/lib/songs';
+import { sortLinkedList } from '@/utils/sortLinkedList';
 import { Playlist } from '@prisma/client';
 import { createContext, useContext, useEffect, useState } from 'react';
 
@@ -26,7 +27,7 @@ type SongProviderProps = {
   children: React.ReactNode;
 };
 
-const songContext = createContext<SongContext | null>(null);
+const SongContext = createContext<SongContext | null>(null);
 
 export const SongProvider = ({ queue, children }: SongProviderProps) => {
   const [_queue, _setQueue] = useState<Queue | null>(
@@ -106,7 +107,7 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
   }, [queue]);
 
   return (
-    <songContext.Provider
+    <SongContext.Provider
       value={{
         queue: _queue,
         isPlaying: _isPlaying,
@@ -124,12 +125,12 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
       }}
     >
       {children}
-    </songContext.Provider>
+    </SongContext.Provider>
   );
 };
 
 export const useSong = () => {
-  const context = useContext(songContext);
+  const context = useContext(SongContext);
   if (context === undefined) {
     throw new Error('useSong must be used within a SongProvider');
   }
