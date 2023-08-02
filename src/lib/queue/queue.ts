@@ -231,9 +231,18 @@ export const moveSongInQueue = async ({
   const oldNextItem = items.find(item => lastItem.nextId === item.id);
   const newPrevItem = items.find(item => prevId === item.id);
   const newNextItem = items.find(item => nextId === item.id);
+  if (!prevId && !nextId) {
+    throw new BadRequestError('nextId or prevId is required');
+  }
+  if (prevId && !newPrevItem) {
+    throw new NotFoundError('prevId not found in queue');
+  }
+  if (nextId && !newNextItem) {
+    throw new NotFoundError('nextId not found in queue');
+  }
   if (
-    newPrevItem?.nextId !== newNextItem?.id ||
-    newNextItem?.prevId !== newPrevItem?.id
+    (newPrevItem && newPrevItem?.nextId !== newNextItem?.id) ||
+    (newNextItem && newNextItem?.prevId !== newPrevItem?.id)
   ) {
     throw new BadRequestError('Invalid nextId or prevId');
   }
