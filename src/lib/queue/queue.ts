@@ -1,6 +1,11 @@
 import { Session } from 'next-auth';
 import { prisma } from '../database';
-import { BadRequestError, NotFoundError, sortLinkedList } from '@/utils';
+import {
+  BadRequestError,
+  NotFoundError,
+  checkLinkedListNodesAreInOrder,
+  sortLinkedList,
+} from '@/utils';
 import {
   ClearQueueProps,
   CreateQueueProps,
@@ -8,7 +13,7 @@ import {
   InsertSongsToQueueProps,
   MoveSongInQueueProps,
   Queue,
-  RemoveSongFromQueueProps,
+  RemoveSongsFromQueueProps,
   UpdateCurrentSongInQueueProps,
   UpdateQueueSettingsProps,
 } from './types';
@@ -150,23 +155,30 @@ export const insertSongsToQueue = async ({
 
 export const removeSongFromQueue = async ({
   session,
-  songId,
-}: RemoveSongFromQueueProps): Promise<Queue> => {
+  songIds,
+}: RemoveSongsFromQueueProps): Promise<Queue> => {
   const queue = await getQueue(session);
   if (!queue) {
     throw new NotFoundError('Queue not found');
   }
   const { items } = queue;
-  const songToRemove = items.find(item => item.songId === songId);
-  if (!songToRemove) {
-    throw new NotFoundError('Song not found in queue');
+  const songsToRemove = items.filter(item => songIds.includes(item.songId));
+  if (
+    songsToRemove.length !== songIds.length ||
+    !checkLinkedListNodesAreInOrder(songsToRemove, true)
+  ) {
+    throw new BadRequestError('Invalid songIds');
   }
-  const prevItem = items.find(item => songToRemove.prevId === item.id);
-  const nextItem = items.find(item => songToRemove.nextId === item.id);
+  const prevItem = items.find(item => songsToRemove[0].prevId === item.id);
+  const nextItem = items.find(
+    item => songsToRemove[songsToRemove.length - 1].nextId === item.id
+  );
   await prisma.$transaction([
-    prisma.queueItem.delete({
+    prisma.queueItem.deleteMany({
       where: {
-        id: songToRemove.id,
+        id: {
+          in: songIds,
+        },
       },
     }),
     prisma.queueItem.update({
@@ -174,7 +186,7 @@ export const removeSongFromQueue = async ({
         id: prevItem?.id,
       },
       data: {
-        nextId: songToRemove.nextId,
+        nextId: nextItem?.id,
       },
     }),
     prisma.queueItem.update({
@@ -182,7 +194,7 @@ export const removeSongFromQueue = async ({
         id: nextItem?.id,
       },
       data: {
-        prevId: songToRemove.prevId,
+        prevId: prevItem?.id,
       },
     }),
   ]);

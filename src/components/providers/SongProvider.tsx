@@ -2,7 +2,7 @@
 
 import { Queue } from '@/lib/queue';
 import { SongId } from '@/lib/songs';
-import { sortLinkedList } from '@/utils/sortLinkedList';
+import { sortLinkedList } from '@/utils/linkedList';
 import { Playlist } from '@prisma/client';
 import { createContext, useContext, useEffect, useState } from 'react';
 

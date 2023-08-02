@@ -25,3 +25,25 @@ export const sortLinkedList = <T>(
   }
   return sortedLinkedList as T;
 };
+
+export const checkLinkedListNodesAreInOrder = <T>(
+  linkedList: T extends LinkedList ? T : never,
+  isSorted = false,
+  firstItemId: string | null = null
+): boolean => {
+  const sortedLinkedList = isSorted
+    ? linkedList
+    : sortLinkedList(linkedList, firstItemId);
+  return !sortedLinkedList.some((node, index) => {
+    if (index === 0) {
+      return node.nextId !== sortedLinkedList[index + 1].id;
+    }
+    if (index === sortedLinkedList.length - 1) {
+      return node.prevId !== sortedLinkedList[index - 1].id;
+    }
+    return (
+      node.prevId !== sortedLinkedList[index - 1].id ||
+      node.nextId !== sortedLinkedList[index + 1].id
+    );
+  });
+};
