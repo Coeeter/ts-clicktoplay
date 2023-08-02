@@ -4,10 +4,16 @@ import {
   AddSongsToPlaylistProps,
   CreatePlaylistProps,
   DeletePlaylistProps,
+  MoveSongsInPlaylistProps,
   Playlist,
   UpdatePlaylistProps,
 } from './types';
-import { NotFoundError, UnauthorizedError } from '@/utils';
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+  checkLinkedListNodesAreInOrder,
+} from '@/utils';
 import { createPlaylistItems } from './helper';
 
 export const getCreatedPlaylists = async (session: Session) => {
@@ -147,7 +153,144 @@ export const removeSongsFromPlaylist = async ({
     );
   }
   const { id, items } = playlist;
-  throw new Error('Not implemented');
+  const playlistItemsToRemove = songIds.map(songId => {
+    const item = items.find(item => item.songId === songId);
+    if (!item) {
+      throw new NotFoundError('Song not found in playlist');
+    }
+    return item;
+  });
+  if (!checkLinkedListNodesAreInOrder(playlistItemsToRemove, true)) {
+    throw new BadRequestError('Playlist items are not in order');
+  }
+  const firstItem = playlistItemsToRemove[0];
+  const lastItem = playlistItemsToRemove[playlistItemsToRemove.length - 1];
+  const prevItem = items.find(item => item.nextId === firstItem.id);
+  const nextItem = items.find(item => item.prevId === lastItem.id);
+  await prisma.$transaction([
+    prisma.playlistItem.deleteMany({
+      where: {
+        id: {
+          in: songIds,
+        },
+      },
+    }),
+    prisma.playlistItem.update({
+      where: {
+        id: prevItem?.id,
+      },
+      data: {
+        nextId: nextItem?.id,
+      },
+    }),
+    prisma.playlistItem.update({
+      where: {
+        id: nextItem?.id,
+      },
+      data: {
+        prevId: prevItem?.id,
+      },
+    }),
+  ]);
+  return await getPlaylistById(id);
+};
+
+export const moveSongsInPlaylist = async ({
+  session,
+  playlistId,
+  songIds,
+  prevId,
+  nextId,
+}: MoveSongsInPlaylistProps): Promise<Playlist> => {
+  const playlist = await getPlaylistById(playlistId);
+  if (playlist.creatorId !== session.user.id) {
+    throw new UnauthorizedError(
+      'You are not authorized to update this playlist'
+    );
+  }
+  const { id, items } = playlist;
+  const playlistItemsToMove = songIds.map(songId => {
+    const item = items.find(item => item.songId === songId);
+    if (!item) {
+      throw new NotFoundError('Song not found in playlist');
+    }
+    return item;
+  });
+  if (!checkLinkedListNodesAreInOrder(playlistItemsToMove, true)) {
+    throw new BadRequestError('Playlist items are not in order');
+  }
+  const firstItem = playlistItemsToMove[0];
+  const lastItem = playlistItemsToMove[playlistItemsToMove.length - 1];
+  const oldPrevItem = items.find(item => item.nextId === firstItem.id);
+  const oldNextItem = items.find(item => item.prevId === lastItem.id);
+  const newPrevItem = items.find(item => prevId === item.id);
+  const newNextItem = items.find(item => nextId === item.id);
+  if (!prevId && !nextId) {
+    throw new BadRequestError('nextId or prevId is required');
+  }
+  if (prevId && !newPrevItem) {
+    throw new NotFoundError('prevId not found in playlist');
+  }
+  if (nextId && !newNextItem) {
+    throw new NotFoundError('nextId not found in playlist');
+  }
+  if (
+    (newPrevItem && newPrevItem?.nextId !== newNextItem?.id) ||
+    (newNextItem && newNextItem?.prevId !== newPrevItem?.id)
+  ) {
+    throw new BadRequestError('Invalid nextId or prevId');
+  }
+  await prisma.$transaction([
+    prisma.playlistItem.update({
+      where: {
+        id: firstItem.id,
+      },
+      data: {
+        prevId,
+      },
+    }),
+    prisma.playlistItem.update({
+      where: {
+        id: lastItem.id,
+      },
+      data: {
+        nextId,
+      },
+    }),
+    prisma.playlistItem.update({
+      where: {
+        id: newPrevItem?.id,
+      },
+      data: {
+        nextId: firstItem.id,
+      },
+    }),
+    prisma.playlistItem.update({
+      where: {
+        id: newNextItem?.id,
+      },
+      data: {
+        prevId: lastItem.id,
+      },
+    }),
+    prisma.playlistItem.update({
+      where: {
+        id: oldPrevItem?.id,
+      },
+      data: {
+        nextId: lastItem.nextId,
+      },
+    }),
+    prisma.playlistItem.update({
+      where: {
+        id: oldNextItem?.id,
+      },
+      data: {
+        prevId: firstItem.prevId,
+      },
+    }),
+  ]);
+  return await getPlaylistById(id);
 };
 
 export const deletePlaylist = async ({

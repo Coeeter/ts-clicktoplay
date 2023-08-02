@@ -153,7 +153,7 @@ export const insertSongsToQueue = async ({
   return await getQueue(session);
 };
 
-export const removeSongFromQueue = async ({
+export const removeSongsFromQueue = async ({
   session,
   songIds,
 }: RemoveSongsFromQueueProps): Promise<Queue> => {
@@ -204,7 +204,7 @@ export const removeSongFromQueue = async ({
   return await getQueue(session);
 };
 
-export const moveSongInQueue = async ({
+export const moveSongsInQueue = async ({
   session,
   songIds,
   nextId,
