@@ -11,7 +11,7 @@ import {
   CreateQueueProps,
   DeleteQueueProps,
   InsertSongsToQueueProps,
-  MoveSongInQueueProps,
+  MoveSongsInQueueProps,
   Queue,
   RemoveSongsFromQueueProps,
   UpdateCurrentSongInQueueProps,
@@ -162,17 +162,20 @@ export const removeSongFromQueue = async ({
     throw new NotFoundError('Queue not found');
   }
   const { items } = queue;
-  const songsToRemove = items.filter(item => songIds.includes(item.songId));
-  if (
-    songsToRemove.length !== songIds.length ||
-    !checkLinkedListNodesAreInOrder(songsToRemove, true)
-  ) {
+  const songsToRemove = songIds.map(songId => {
+    const item = items.find(item => item.songId === songId);
+    if (!item) {
+      throw new NotFoundError(`Song ${songId} not found in queue`);
+    }
+    return item;
+  });
+  if (!checkLinkedListNodesAreInOrder(songsToRemove, true)) {
     throw new BadRequestError('Invalid songIds');
   }
-  const prevItem = items.find(item => songsToRemove[0].prevId === item.id);
-  const nextItem = items.find(
-    item => songsToRemove[songsToRemove.length - 1].nextId === item.id
-  );
+  const firstItem = songsToRemove[0];
+  const lastItem = songsToRemove[songsToRemove.length - 1];
+  const prevItem = items.find(item => firstItem.prevId === item.id);
+  const nextItem = items.find(item => lastItem.nextId === item.id);
   await prisma.$transaction([
     prisma.queueItem.deleteMany({
       where: {
@@ -203,21 +206,29 @@ export const removeSongFromQueue = async ({
 
 export const moveSongInQueue = async ({
   session,
-  songId,
+  songIds,
   nextId,
   prevId,
-}: MoveSongInQueueProps): Promise<Queue> => {
+}: MoveSongsInQueueProps): Promise<Queue> => {
   const queue = await getQueue(session);
   if (!queue) {
     throw new NotFoundError('Queue not found');
   }
   const { items } = queue;
-  const songToMove = items.find(item => item.songId === songId);
-  if (!songToMove) {
-    throw new NotFoundError('Song not found in queue');
+  const songsToMove = songIds.map(songId => {
+    const item = items.find(item => item.songId === songId);
+    if (!item) {
+      throw new NotFoundError(`Song ${songId} not found in queue`);
+    }
+    return item;
+  });
+  if (!checkLinkedListNodesAreInOrder(songsToMove, true)) {
+    throw new BadRequestError('Invalid songIds');
   }
-  const oldPrevItem = items.find(item => songToMove.prevId === item.id);
-  const oldNextItem = items.find(item => songToMove.nextId === item.id);
+  const firstItem = songsToMove[0];
+  const lastItem = songsToMove[songsToMove.length - 1];
+  const oldPrevItem = items.find(item => firstItem?.prevId === item.id);
+  const oldNextItem = items.find(item => lastItem.nextId === item.id);
   const newPrevItem = items.find(item => prevId === item.id);
   const newNextItem = items.find(item => nextId === item.id);
   if (
@@ -229,11 +240,18 @@ export const moveSongInQueue = async ({
   await prisma.$transaction([
     prisma.queueItem.update({
       where: {
-        id: songToMove.id,
+        id: firstItem.id,
+      },
+      data: {
+        prevId,
+      },
+    }),
+    prisma.queueItem.update({
+      where: {
+        id: lastItem.id,
       },
       data: {
         nextId,
-        prevId,
       },
     }),
     prisma.queueItem.update({
@@ -241,7 +259,7 @@ export const moveSongInQueue = async ({
         id: newPrevItem?.id,
       },
       data: {
-        nextId: songToMove.id,
+        nextId: firstItem.id,
       },
     }),
     prisma.queueItem.update({
@@ -249,7 +267,7 @@ export const moveSongInQueue = async ({
         id: newNextItem?.id,
       },
       data: {
-        prevId: songToMove.id,
+        prevId: lastItem.id,
       },
     }),
     prisma.queueItem.update({
@@ -257,7 +275,7 @@ export const moveSongInQueue = async ({
         id: oldPrevItem?.id,
       },
       data: {
-        nextId: songToMove.nextId,
+        nextId: lastItem.nextId,
       },
     }),
     prisma.queueItem.update({
@@ -265,7 +283,7 @@ export const moveSongInQueue = async ({
         id: oldNextItem?.id,
       },
       data: {
-        prevId: songToMove.prevId,
+        prevId: firstItem.prevId,
       },
     }),
   ]);
