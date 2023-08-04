@@ -80,7 +80,6 @@ enum RepeatMode {
 
 model Queue {
   id                 String      @id @default(cuid()) @map("_id")
-  search             String?
   playlist           Playlist?   @relation(fields: [playlistId], references: [id])
   playlistId         String?     @map("playlistId")
   shuffle            Boolean     @default(false)

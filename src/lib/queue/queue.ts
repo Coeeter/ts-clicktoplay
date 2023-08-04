@@ -29,6 +29,17 @@ export const getQueue = async (session: Session) => {
       items: true,
     },
   });
+  if (!queue) {
+    return await prisma.queue.create({
+      data: {
+        id: session.user.id,
+      },
+      include: {
+        playlist: true,
+        items: true,
+      },
+    });
+  }
   return queue;
 };
 
@@ -41,7 +52,7 @@ export const createQueue = async (props: CreateQueueProps): Promise<Queue> => {
     },
   });
   if (type === 'search') {
-    const { search, songs } = props;
+    const { songs } = props;
     return await prisma.queue.create({
       data: {
         id: session.user.id,
@@ -55,7 +66,6 @@ export const createQueue = async (props: CreateQueueProps): Promise<Queue> => {
             session.user.id
           ),
         },
-        search,
       },
       include: {
         playlist: true,

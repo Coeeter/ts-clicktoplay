@@ -2,7 +2,7 @@
 
 import { signOut } from 'next-auth/react';
 
-import { Button } from '@/components';
+import { Button } from '@/components/forms/Button';
 
 export default function LogoutForm({ callbackUrl }: { callbackUrl?: string }) {
   return (

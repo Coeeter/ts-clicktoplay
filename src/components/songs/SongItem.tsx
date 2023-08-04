@@ -3,13 +3,13 @@
 import { Song } from '@prisma/client';
 import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
-import { useToast } from '../providers';
+import { useToast } from '../providers/ToastProvider';
 import { useRef } from 'react';
 
 export const SongItem = ({ song }: { song: Song }) => {
   const ref = useRef<HTMLDivElement>(null);
   const toast = useToast();
-  
+
   const minutes = Math.floor(song.duration / 60);
   const seconds = Math.floor(song.duration % 60);
   const duration = `${minutes < 10 ? '0' : ''}${minutes}:${

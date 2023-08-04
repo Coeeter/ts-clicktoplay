@@ -1,9 +1,9 @@
 'use client';
 
+import { Playlist } from '@/lib/playlist';
 import { Queue } from '@/lib/queue';
 import { SongId } from '@/lib/songs';
 import { sortLinkedList } from '@/utils/linkedList';
-import { Playlist } from '@prisma/client';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 type SongContext = {
@@ -23,21 +23,14 @@ type SongContext = {
 };
 
 type SongProviderProps = {
-  queue: Queue | null;
+  queue: Queue;
   children: React.ReactNode;
 };
 
 const SongContext = createContext<SongContext | null>(null);
 
 export const SongProvider = ({ queue, children }: SongProviderProps) => {
-  const [_queue, _setQueue] = useState<Queue | null>(
-    queue
-      ? {
-          ...queue,
-          items: sortLinkedList(queue.items),
-        }
-      : null
-  );
+  const [_queue, _setQueue] = useState<Queue>({...queue});
   const [_isPlaying, _setIsPlaying] = useState(false);
   const [_volume, _setVolume] = useState(0);
   const [_currentTime, _setCurrentTime] = useState(0);
@@ -86,9 +79,7 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
     });
   };
 
-  const playPlaylist = (playlist: Playlist, songId: SongId | null) => {
-    // TODO: Play playlist
-  };
+  const playPlaylist = (playlist: Playlist, songId: SongId | null) => {};
 
   const playSearch = (query: string, songId: SongId) => {
     // TODO: Play search

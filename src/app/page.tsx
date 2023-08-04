@@ -1,4 +1,4 @@
-import { SongItem } from '@/components';
+import { SongItem } from '@/components/songs/SongItem';
 import { getSongs } from '@/lib/songs';
 
 export default async function Home() {

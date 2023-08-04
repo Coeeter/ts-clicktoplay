@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/database';
 import { redirect } from 'next/navigation';
 import { UpdateSongForm } from './UpdateSongForm';
-import { WithAuth } from '@/components/server';
+import { WithAuth } from '@/components/server/WithAuth';
 
 export default async function UpdateSongPage({
   params: { id },

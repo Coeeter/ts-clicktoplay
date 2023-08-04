@@ -1,4 +1,4 @@
-import { WithAuth } from '@/components/server';
+import { WithAuth } from '@/components/server/WithAuth';
 import UploadSongForm from './UploadSongForm';
 
 const SongUploader = () => {

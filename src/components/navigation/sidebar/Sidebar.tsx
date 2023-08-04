@@ -1,13 +1,11 @@
-'use client';
-
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { MdHome, MdSearch } from 'react-icons/md';
 
-import { Playlist } from '@prisma/client';
+import { getServerSession } from '@/lib/auth';
+import { SidebarItem, SidebarItemProps } from './SidebarItem';
+import { getCreatedPlaylists } from '@/lib/playlist/playlist';
 
-const sidebarItems = [
+const sidebarItems: SidebarItemProps[] = [
   {
     name: 'Home',
     href: '/',
@@ -20,26 +18,15 @@ const sidebarItems = [
   },
 ];
 
-export const Sidebar = ({ playlists }: { playlists: Playlist[] }) => {
-  const session = useSession();
-  const pathName = usePathname();
+export const Sidebar = async () => {
+  const session = await getServerSession();
+  const playlists = session ? await getCreatedPlaylists(session) : [];
 
   return (
     <div className="w-1/3 gap-3 flex flex-col sticky top-0 h-screen">
       <div className="flex flex-col bg-slate-800 rounded-md m-3 mb-0 px-4 py-3 gap-3">
-        {sidebarItems.map(({ name, href, icon }) => (
-          <Link
-            key={name}
-            href={href}
-            className={`text-md hover:text-slate-200 duration-150 font-semibold ${
-              pathName === href ? 'text-slate-200' : 'text-slate-300/50'
-            }`}
-          >
-            <div className="flex items-center gap-4">
-              {icon}
-              {name}
-            </div>
-          </Link>
+        {sidebarItems.map(sidebarItem => (
+          <SidebarItem {...sidebarItem} />
         ))}
       </div>
       <div className="flex-grow bg-slate-800 rounded-md m-3 mt-0 ">
@@ -47,7 +34,7 @@ export const Sidebar = ({ playlists }: { playlists: Playlist[] }) => {
           <div className="text-lg text-slate-300 font-semibold">
             Your Playlists
           </div>
-          {session.status === 'authenticated' ? (
+          {session?.user ? (
             playlists.length === 0 ? (
               <div className="text-md text-slate-300/50 font-semibold">
                 No playlists found
@@ -58,11 +45,7 @@ export const Sidebar = ({ playlists }: { playlists: Playlist[] }) => {
                   <Link
                     key={id}
                     href={`/playlist/${id}`}
-                    className={`text-md hover:text-slate-200 duration-150 font-semibold ${
-                      pathName === `/playlist/${id}`
-                        ? 'text-slate-200'
-                        : 'text-slate-300/50'
-                    }`}
+                    className={`text-md hover:text-slate-200 duration-150 font-semiboldtext-slate-300/50`}
                   >
                     {title}
                   </Link>
