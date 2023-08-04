@@ -1,7 +1,7 @@
 'use client';
-
 import { Playlist } from '@/lib/playlist';
 import { Queue } from '@/lib/queue';
+import { createQueueItems, generateQueueItemId } from '@/lib/queue/helper';
 import { SongId } from '@/lib/songs';
 import { sortLinkedList } from '@/utils/linkedList';
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -9,13 +9,11 @@ import { createContext, useContext, useEffect, useState } from 'react';
 type SongContext = {
   queue: Queue;
   isPlaying: boolean;
-  playSong: () => void;
-  pauseSong: () => void;
-  togglePlay: () => void;
+  setIsPlaying: (isPlaying: boolean) => void;
   playNext: () => void;
   playPrev: () => void;
   playPlaylist: (playlist: Playlist, songId: SongId | null) => void;
-  playSearch: (query: string, songId: SongId, songs: SongId[]) => void;
+  playSong: (song: SongId, songs: SongId[]) => void;
   seek: (time: number) => void;
   setVolume: (volume: number) => void;
   volume: number;
@@ -27,25 +25,16 @@ type SongProviderProps = {
   children: React.ReactNode;
 };
 
+type QueueChange = 'next' | 'prev' | 'playlist' | 'custom';
+
 const SongContext = createContext<SongContext | null>(null);
 
 export const SongProvider = ({ queue, children }: SongProviderProps) => {
-  const [_queue, _setQueue] = useState<Queue>({...queue});
+  const [_queue, _setQueue] = useState<Queue>({ ...queue });
   const [_isPlaying, _setIsPlaying] = useState(false);
   const [_volume, _setVolume] = useState(0);
   const [_currentTime, _setCurrentTime] = useState(0);
-
-  const playSong = () => {
-    _setIsPlaying(true);
-  };
-
-  const pauseSong = () => {
-    _setIsPlaying(false);
-  };
-
-  const togglePlay = () => {
-    _setIsPlaying(!_isPlaying);
-  };
+  const [_queueChange, _setQueueChange] = useState<QueueChange | null>(null);
 
   const playNext = () => {
     _setQueue(_queue => {
@@ -61,6 +50,7 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
       }
       return _queue;
     });
+    _setQueueChange('next');
   };
 
   const playPrev = () => {
@@ -77,12 +67,48 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
       }
       return _queue;
     });
+    _setQueueChange('prev');
   };
 
-  const playPlaylist = (playlist: Playlist, songId: SongId | null) => {};
+  const playPlaylist = (playlist: Playlist, songId: SongId | null) => {
+    const items = sortLinkedList(playlist.items);
+    _setQueue(queue => ({
+      ...queue,
+      playlistId: playlist.id,
+      playlist: playlist,
+      items: createQueueItems(
+        items.map(item => item.id),
+        queue.id
+      ).map(item => ({
+        id: item.id!,
+        prevId: item.prevId!,
+        nextId: item.nextId!,
+        songId: item.songId!,
+        queueId: queue.id!,
+      })),
+      currentlyPlayingId: generateQueueItemId(
+        queue.id,
+        songId ?? items[0].songId
+      ),
+    }));
+    _setQueueChange('playlist');
+  };
 
-  const playSearch = (query: string, songId: SongId) => {
-    // TODO: Play search
+  const playSong = (songId: SongId, songs: SongId[]) => {
+    _setQueue(queue => ({
+      ...queue,
+      playlist: null,
+      playlistId: null,
+      currentlyPlayingId: generateQueueItemId(queue.id, songId),
+      items: createQueueItems(songs, queue.id).map(item => ({
+        id: item.id!,
+        prevId: item.prevId!,
+        nextId: item.nextId!,
+        songId: item.songId!,
+        queueId: queue.id!,
+      })),
+    }));
+    _setQueueChange('custom');
   };
 
   const seek = (time: number) => {
@@ -94,21 +120,53 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
   };
 
   useEffect(() => {
-    //TODO: Update queue in db
-  }, [queue]);
+    switch (_queueChange) {
+      case 'next':
+        fetch(`/api/queue/${_queue.id}/next`, {
+          method: 'POST',
+        });
+        _setQueueChange(null);
+        break;
+      case 'prev':
+        fetch(`/api/queue/${_queue.id}/prev`, {
+          method: 'POST',
+        });
+        _setQueueChange(null);
+        break;
+      case 'playlist':
+        fetch(`/api/queue/${_queue.id}/playlist/${_queue.playlistId}`, {
+          method: 'POST',
+          body: JSON.stringify({
+            songId: _queue.currentlyPlayingId,
+          }),
+        });
+        _setQueueChange(null);
+        break;
+      case 'custom':
+        fetch(`/api/queue/${_queue.id}/play`, {
+          method: 'POST',
+          body: JSON.stringify({
+            songId: _queue.currentlyPlayingId,
+            songs: sortLinkedList(_queue.items).map(item => item.songId),
+          }),
+        });
+        _setQueueChange(null);
+        break;
+      default:
+        break;
+    }
+  }, [_queue, _queueChange]);
 
   return (
     <SongContext.Provider
       value={{
         queue: _queue,
         isPlaying: _isPlaying,
-        playSong,
-        pauseSong,
-        togglePlay,
+        setIsPlaying: _setIsPlaying,
         playNext,
         playPrev,
         playPlaylist,
-        playSearch,
+        playSong,
         seek,
         setVolume,
         volume: _volume,
@@ -122,7 +180,7 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
 
 export const useSong = () => {
   const context = useContext(SongContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useSong must be used within a SongProvider');
   }
   return context;

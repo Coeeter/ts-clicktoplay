@@ -1,14 +1,13 @@
 'use client';
-
 import { Song } from '@prisma/client';
 import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
-import { useToast } from '../providers/ToastProvider';
 import { useRef } from 'react';
+import { useSong } from '../providers/SongProvider';
 
 export const SongItem = ({ song }: { song: Song }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const toast = useToast();
+  const { playSong } = useSong();
 
   const minutes = Math.floor(song.duration / 60);
   const seconds = Math.floor(song.duration % 60);
@@ -43,10 +42,7 @@ export const SongItem = ({ song }: { song: Song }) => {
             ref={ref}
             className="absolute right-0 bottom-0 p-4 rounded-full bg-blue-700 m-3 opacity-0 translate-y-5 hover:scale-110 group-hover:translate-y-0 group-hover:opacity-100 duration-300 transition-all"
             onClick={() => {
-              toast.createToast(
-                'This feature is not yet implemented',
-                'normal'
-              );
+              playSong(song.id, [song.id]);
             }}
           >
             <FaPlay className="text-white" size={16} />
