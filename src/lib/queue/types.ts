@@ -7,20 +7,17 @@ export type QueueItemId = string;
 
 export type Queue = Awaited<ReturnType<typeof getQueue>>;
 
-export type CreateQueueProps =
-  | {
-      type: 'search';
-      session: Session;
-      currentSongId: SongId;
-      songs: Song[];
-      search?: string;
-    }
-  | {
-      type: 'playlist';
-      session: Session;
-      currentSongId: SongId | null | undefined;
-      playlistId: string;
-    };
+export type PlayPlaylistProps = {
+  session: Session;
+  playlistId: string;
+  currentSongId?: SongId;
+}
+
+export type PlaySongProps = {
+  session: Session;
+  songId: SongId;
+  songIds: SongId[];
+};
 
 export type UpdateCurrentSongInQueueProps = {
   session: Session;
