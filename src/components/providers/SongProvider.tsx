@@ -1,9 +1,11 @@
 'use client';
+
 import { Playlist } from '@/lib/playlist';
 import { Queue } from '@/lib/queue';
 import { createQueueItems, generateQueueItemId } from '@/lib/queue/helper';
 import { SongId } from '@/lib/songs';
 import { sortLinkedList } from '@/utils/linkedList';
+import { RepeatMode } from '@prisma/client';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 type SongContext = {
@@ -18,6 +20,8 @@ type SongContext = {
   setVolume: (volume: number) => void;
   volume: number;
   currentTime: number;
+  setShuffle: (shuffle: boolean) => void;
+  setRepeat: (repeat: RepeatMode) => void;
 };
 
 type SongProviderProps = {
@@ -25,7 +29,7 @@ type SongProviderProps = {
   children: React.ReactNode;
 };
 
-type QueueChange = 'next' | 'prev' | 'playlist' | 'custom';
+type QueueChange = 'next' | 'prev' | 'playlist' | 'play' | 'shuffle' | 'repeat';
 
 const SongContext = createContext<SongContext | null>(null);
 
@@ -85,6 +89,8 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
         nextId: item.nextId!,
         songId: item.songId!,
         queueId: queue.id!,
+        shuffledNextId: null,
+        shuffledPrevId: null,
       })),
       currentlyPlayingId: generateQueueItemId(
         queue.id,
@@ -106,9 +112,11 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
         nextId: item.nextId!,
         songId: item.songId!,
         queueId: queue.id!,
+        shuffledNextId: null,
+        shuffledPrevId: null,
       })),
     }));
-    _setQueueChange('custom');
+    _setQueueChange('play');
   };
 
   const seek = (time: number) => {
@@ -117,6 +125,41 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
 
   const setVolume = (volume: number) => {
     _setVolume(volume);
+  };
+
+  const setShuffle = (shuffle: boolean) => {
+    const shuffled = [..._queue.items];
+    if (shuffle) {
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+    }
+    _setQueue(queue => ({
+      ...queue,
+      shuffle,
+      items: !shuffle
+        ? sortLinkedList(queue.items).map(item => ({
+            ...item,
+            shuffledNextId: null,
+            shuffledPrevId: null,
+          }))
+        : shuffled.map((item, index) => ({
+            ...item,
+            shuffledNextId:
+              index === shuffled.length - 1 ? null : shuffled[index + 1].id,
+            shuffledPrevId: index === 0 ? null : shuffled[index - 1].id,
+          })),
+    }));
+    _setQueueChange('shuffle');
+  };
+
+  const setRepeat = (repeat: RepeatMode) => {
+    _setQueue(queue => ({
+      ...queue,
+      repeat,
+    }));
+    _setQueueChange('repeat');
   };
 
   useEffect(() => {
@@ -137,17 +180,42 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
         fetch(`/api/queue/${_queue.id}/playlist/${_queue.playlistId}`, {
           method: 'POST',
           body: JSON.stringify({
-            songId: _queue.currentlyPlayingId,
+            songId: _queue.items.find(
+              item => item.id === _queue.currentlyPlayingId
+            )?.songId,
           }),
         });
         _setQueueChange(null);
         break;
-      case 'custom':
+      case 'play':
         fetch(`/api/queue/${_queue.id}/play`, {
           method: 'POST',
           body: JSON.stringify({
-            songId: _queue.currentlyPlayingId,
+            songId: _queue.items.find(
+              item => item.id === _queue.currentlyPlayingId
+            )?.songId,
             songs: sortLinkedList(_queue.items).map(item => item.songId),
+          }),
+        });
+        _setQueueChange(null);
+        break;
+      case 'shuffle':
+        fetch(`/api/queue/${_queue.id}/shuffle`, {
+          method: 'POST',
+          body: JSON.stringify({
+            shuffle: _queue.shuffle,
+            newItems: sortLinkedList(_queue.items, null, _queue.shuffle).map(
+              item => item.songId
+            ),
+          }),
+        });
+        _setQueueChange(null);
+        break;
+      case 'repeat':
+        fetch(`/api/queue/${_queue.id}/repeat`, {
+          method: 'POST',
+          body: JSON.stringify({
+            repeatMode: _queue.repeatMode,
           }),
         });
         _setQueueChange(null);
@@ -171,6 +239,8 @@ export const SongProvider = ({ queue, children }: SongProviderProps) => {
         setVolume,
         volume: _volume,
         currentTime: _currentTime,
+        setShuffle,
+        setRepeat,
       }}
     >
       {children}

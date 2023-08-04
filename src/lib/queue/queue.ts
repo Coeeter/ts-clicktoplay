@@ -156,6 +156,16 @@ export const insertSongsToQueue = async ({
       },
     }),
   ]);
+  if (queue.shuffle) {
+    return await updateQueueSettings({
+      session,
+      isShuffled: true,
+      newOrder: [
+        ...sortLinkedList(items, null, true).map(item => item.id),
+        ...songs,
+      ],
+    });
+  }
   return await getQueue(session);
 };
 
@@ -164,7 +174,7 @@ export const removeSongsFromQueue = async ({
   songIds,
 }: RemoveSongsFromQueueProps): Promise<Queue> => {
   const queue = await getQueue(session);
-  const { items } = queue;
+  const { items, shuffle } = queue;
   const songsToRemove = songIds.map(songId => {
     const item = items.find(item => item.songId === songId);
     if (!item) {
@@ -172,13 +182,23 @@ export const removeSongsFromQueue = async ({
     }
     return item;
   });
-  if (!checkLinkedListNodesAreInOrder(songsToRemove, true)) {
+  if (!checkLinkedListNodesAreInOrder(songsToRemove, true, null, shuffle)) {
     throw new BadRequestError('Invalid songIds');
   }
+  const nextIdKey = shuffle ? 'shuffledNextId' : 'nextId';
+  const prevIdKey = shuffle ? 'shuffledPrevId' : 'prevId';
+  const otherNextidKey = shuffle ? 'nextId' : 'shuffledNextId';
+  const otherPrevIdKey = shuffle ? 'prevId' : 'shuffledPrevId';
   const firstItem = songsToRemove[0];
   const lastItem = songsToRemove[songsToRemove.length - 1];
-  const prevItem = items.find(item => firstItem.prevId === item.id);
-  const nextItem = items.find(item => lastItem.nextId === item.id);
+  const prevItem = items.find(item => firstItem[prevIdKey] === item.id);
+  const nextItem = items.find(item => lastItem[nextIdKey] === item.id);
+  const otherPrevItem = items.find(
+    item => firstItem[otherPrevIdKey] === item.id
+  );
+  const otherNextItem = items.find(
+    item => lastItem[otherNextidKey] === item.id
+  );
   await prisma.$transaction([
     prisma.queueItem.deleteMany({
       where: {
@@ -192,7 +212,7 @@ export const removeSongsFromQueue = async ({
         id: prevItem?.id,
       },
       data: {
-        nextId: nextItem?.id,
+        [nextIdKey]: nextItem?.id,
       },
     }),
     prisma.queueItem.update({
@@ -200,7 +220,23 @@ export const removeSongsFromQueue = async ({
         id: nextItem?.id,
       },
       data: {
-        prevId: prevItem?.id,
+        [prevIdKey]: prevItem?.id,
+      },
+    }),
+    prisma.queueItem.update({
+      where: {
+        id: otherPrevItem?.id,
+      },
+      data: {
+        [otherNextidKey]: otherNextItem?.id,
+      },
+    }),
+    prisma.queueItem.update({
+      where: {
+        id: otherNextItem?.id,
+      },
+      data: {
+        [otherPrevIdKey]: otherPrevItem?.id,
       },
     }),
   ]);
@@ -214,7 +250,7 @@ export const moveSongsInQueue = async ({
   prevId,
 }: MoveSongsInQueueProps): Promise<Queue> => {
   const queue = await getQueue(session);
-  const { items } = queue;
+  const { items, shuffle } = queue;
   const songsToMove = songIds.map(songId => {
     const item = items.find(item => item.songId === songId);
     if (!item) {
@@ -222,13 +258,15 @@ export const moveSongsInQueue = async ({
     }
     return item;
   });
-  if (!checkLinkedListNodesAreInOrder(songsToMove, true)) {
+  if (!checkLinkedListNodesAreInOrder(songsToMove, true, null, shuffle)) {
     throw new BadRequestError('Invalid songIds');
   }
+  const prevIdKey = shuffle ? 'shuffledPrevId' : 'prevId';
+  const nextIdKey = shuffle ? 'shuffledNextId' : 'nextId';
   const firstItem = songsToMove[0];
   const lastItem = songsToMove[songsToMove.length - 1];
-  const oldPrevItem = items.find(item => firstItem?.prevId === item.id);
-  const oldNextItem = items.find(item => lastItem.nextId === item.id);
+  const oldPrevItem = items.find(item => firstItem[prevIdKey] === item.id);
+  const oldNextItem = items.find(item => lastItem[nextIdKey] === item.id);
   const newPrevItem = items.find(item => prevId === item.id);
   const newNextItem = items.find(item => nextId === item.id);
   if (!prevId && !nextId) {
@@ -241,8 +279,8 @@ export const moveSongsInQueue = async ({
     throw new NotFoundError('nextId not found in queue');
   }
   if (
-    (newPrevItem && newPrevItem?.nextId !== newNextItem?.id) ||
-    (newNextItem && newNextItem?.prevId !== newPrevItem?.id)
+    (newPrevItem && newPrevItem[nextIdKey] !== newNextItem?.id) ||
+    (newNextItem && newNextItem[prevIdKey] !== newPrevItem?.id)
   ) {
     throw new BadRequestError('Invalid nextId or prevId');
   }
@@ -252,7 +290,7 @@ export const moveSongsInQueue = async ({
         id: firstItem.id,
       },
       data: {
-        prevId,
+        [prevIdKey]: prevId,
       },
     }),
     prisma.queueItem.update({
@@ -260,7 +298,7 @@ export const moveSongsInQueue = async ({
         id: lastItem.id,
       },
       data: {
-        nextId,
+        [nextIdKey]: nextId,
       },
     }),
     prisma.queueItem.update({
@@ -268,7 +306,7 @@ export const moveSongsInQueue = async ({
         id: newPrevItem?.id,
       },
       data: {
-        nextId: firstItem.id,
+        [nextIdKey]: firstItem.id,
       },
     }),
     prisma.queueItem.update({
@@ -276,7 +314,7 @@ export const moveSongsInQueue = async ({
         id: newNextItem?.id,
       },
       data: {
-        prevId: lastItem.id,
+        [prevIdKey]: lastItem.id,
       },
     }),
     prisma.queueItem.update({
@@ -284,7 +322,7 @@ export const moveSongsInQueue = async ({
         id: oldPrevItem?.id,
       },
       data: {
-        nextId: lastItem.nextId,
+        [nextIdKey]: lastItem[nextIdKey],
       },
     }),
     prisma.queueItem.update({
@@ -292,7 +330,7 @@ export const moveSongsInQueue = async ({
         id: oldNextItem?.id,
       },
       data: {
-        prevId: firstItem.prevId,
+        [prevIdKey]: firstItem[prevIdKey],
       },
     }),
   ]);
@@ -330,41 +368,60 @@ export const updateQueueSettings = async ({
   repeatMode,
   newOrder,
 }: UpdateQueueSettingsProps): Promise<Queue> => {
-  const queue = await getQueue(session);
-  const { id, items } = queue;
-  let sortedItems = sortLinkedList(items);
-  if (isShuffled) {
+  const { id, items, shuffle, repeatMode: repeat } = await getQueue(session);
+  let sortedItems: Queue['items'] = sortLinkedList(items).map(item => ({
+    ...item,
+    shuffledNextId: null,
+    shuffledPrevId: null,
+  }));
+  if (isShuffled === true) {
     if (!newOrder) {
       throw new BadRequestError('newOrder is required');
     }
     if (newOrder.length !== sortedItems.length) {
       throw new BadRequestError('newOrder length must match queue length');
     }
-    sortedItems = newOrder.map(songId => {
+    sortedItems = newOrder.map((songId, index) => {
       const item = sortedItems.find(item => item.songId === songId);
       if (!item) {
         throw new BadRequestError('Invalid newOrder');
       }
-      return item;
+      const nextItemId =
+        index === newOrder.length - 1
+          ? null
+          : sortedItems.find(item => item.songId === newOrder[index + 1])?.id ??
+            'Invalid';
+      if (nextItemId === 'Invalid') {
+        throw new BadRequestError('Invalid newOrder');
+      }
+      const prevItemId =
+        index === 0
+          ? null
+          : sortedItems.find(item => item.songId === newOrder[index - 1])?.id ??
+            'Invalid';
+      if (prevItemId === 'Invalid') {
+        throw new BadRequestError('Invalid newOrder');
+      }
+      return {
+        ...item,
+        shuffledNextId: nextItemId,
+        shuffledPrevId: prevItemId,
+      };
     });
   }
-  const newItems = createQueueItems(
-    sortedItems.map(item => item.songId),
-    id
-  );
   return await prisma.queue.update({
     where: { id },
     data: {
-      ...(isShuffled
-        ? {
+      ...(isShuffled === undefined
+        ? {}
+        : {
             items: {
               deleteMany: {},
-              create: newItems,
+              create: sortedItems,
             },
-          }
-        : {}),
-      shuffle: isShuffled ?? queue.shuffle,
-      repeatMode: repeatMode ?? queue.repeatMode,
+          }),
+      shuffle: isShuffled === undefined ? shuffle : isShuffled,
+      repeatMode: repeatMode ?? repeat,
     },
     include: {
       playlist: true,

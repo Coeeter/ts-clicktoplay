@@ -85,23 +85,29 @@ model Queue {
   shuffle            Boolean     @default(false)
   repeatMode         RepeatMode  @default(NONE)
   items              QueueItem[]
-  currentlyPlayingId String?    
+  currentlyPlayingId String?
   currentlyPlaying   QueueItem?  @relation("currentlyPlayingQueue", fields: [currentlyPlayingId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model QueueItem {
-  id                    String      @id @default(cuid()) @map("_id")
-  song                  Song        @relation(fields: [songId], references: [id])
-  songId                String      @map("songId")
-  next                  QueueItem?  @relation("nextQueueItems", fields: [nextId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  nextId                String?     @map("nextId")
-  prev                  QueueItem?  @relation("prevQueueItems", fields: [prevId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  prevId                String?     @map("prevId")
-  nextQueueItems        QueueItem[] @relation("nextQueueItems") @ignore
-  prevQueueItems        QueueItem[] @relation("prevQueueItems") @ignore
-  queue                 Queue       @relation(fields: [queueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  queueId               String      @map("queueId")
-  currentlyPlayedQueues Queue[]     @relation("currentlyPlayingQueue") @ignore
+  id                     String      @id @default(cuid()) @map("_id")
+  song                   Song        @relation(fields: [songId], references: [id])
+  songId                 String      @map("songId")
+  next                   QueueItem?  @relation("nextQueueItems", fields: [nextId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nextId                 String?     @map("nextId")
+  prev                   QueueItem?  @relation("prevQueueItems", fields: [prevId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  prevId                 String?     @map("prevId")
+  shuffledNext           QueueItem?  @relation("shuffledNextQueueItems", fields: [shuffledNextId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  shuffledNextId         String?     @map("shuffledNextId")
+  shuffledPrev           QueueItem?  @relation("shuffledPrevQueueItems", fields: [shuffledPrevId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  shuffledPrevId         String?     @map("shuffledPrevId")
+  nextQueueItems         QueueItem[] @relation("nextQueueItems") @ignore
+  prevQueueItems         QueueItem[] @relation("prevQueueItems") @ignore
+  queue                  Queue       @relation(fields: [queueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  queueId                String      @map("queueId")
+  currentlyPlayedQueues  Queue[]     @relation("currentlyPlayingQueue") @ignore
+  shuffledNextQueueItems QueueItem[] @relation("shuffledNextQueueItems") @ignore
+  shuffledPrevQueueItems QueueItem[] @relation("shuffledPrevQueueItems") @ignore
 }
 
 model PlayHistory {
@@ -127,9 +133,9 @@ model LibraryItem {
   id         String   @id @default(cuid()) @map("_id")
   createdAt  DateTime @default(now())
   library    Library  @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  libraryId  String  
+  libraryId  String
   playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  playlistId String  
+  playlistId String
 }
 
 model SearchHistory {
@@ -142,7 +148,7 @@ model SearchHistory {
 
 model Account {
   id                String   @id @default(cuid()) @map("_id")
-  userId            String  
+  userId            String
   type              String
   provider          String
   providerAccountId String
@@ -178,7 +184,7 @@ model VerificationToken {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   User       User?    @relation(fields: [userId], references: [id])
-  userId     String? 
+  userId     String?
 
   @@unique([identifier, token])
 }
