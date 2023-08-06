@@ -130,12 +130,18 @@ model Library {
 }
 
 model LibraryItem {
-  id         String   @id @default(cuid()) @map("_id")
-  createdAt  DateTime @default(now())
-  library    Library  @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  libraryId  String
-  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  playlistId String
+  id               String        @id @default(cuid()) @map("_id")
+  createdAt        DateTime      @default(now())
+  library          Library       @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  libraryId        String
+  playlist         Playlist      @relation(fields: [playlistId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  playlistId       String
+  next             LibraryItem?  @relation("nextLibraryItems", fields: [nextId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nextId           String?       @map("nextId")
+  prev             LibraryItem?  @relation("prevLibraryItems", fields: [prevId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  prevId           String?       @map("prevId")
+  nextLibraryItems LibraryItem[] @relation("nextLibraryItems") @ignore
+  prevLibraryItems LibraryItem[] @relation("prevLibraryItems") @ignore
 }
 
 model SearchHistory {
