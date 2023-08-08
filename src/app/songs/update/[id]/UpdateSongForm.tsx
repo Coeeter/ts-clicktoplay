@@ -1,8 +1,7 @@
 'use client';
-
 import { Button } from '@/components/forms/Button';
 import { TextField } from '@/components/forms/TextField';
-import { useToast } from '@/components/providers/ToastProvider';
+import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -21,7 +20,7 @@ type UpdateSongFormValues = {
 export const UpdateSongForm = ({ song }: UpdateSongProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState(song.albumCover ?? '/album-cover.png');
-  const toast = useToast();
+  const createToast = useToastStore(state => state.createToast);
   const router = useRouter();
   const {
     register,
@@ -71,13 +70,13 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
       });
       const json = await result.json();
       if (!result.ok) {
-        return toast.createToast(json.message, 'error');
+        return createToast(json.message, 'error');
       }
-      toast.createToast('Song updated successfully', 'success');
+      createToast('Song updated successfully', 'success');
       router.push('/');
     } catch (e) {
       console.error(e);
-      toast.createToast('Error updating song', 'error');
+      createToast('Error updating song', 'error');
     } finally {
       setIsUploading(false);
     }

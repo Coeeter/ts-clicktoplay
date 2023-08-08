@@ -6,6 +6,7 @@ import { Navbar } from '@/components/navigation/navbar/Navbar';
 import { MainProvider } from '@/components/providers/MainProvider';
 import { getServerSession } from '@/lib/auth';
 import { getQueue } from '@/lib/queue';
+import { Toast } from '@/components/Toast';
 
 export const metadata: Metadata = {
   title: 'ClickToPlay',
@@ -35,6 +36,7 @@ export default async function RootLayout({
               <main>{children}</main>
             </div>
           </div>
+          <Toast />
         </MainProvider>
       </body>
     </html>

@@ -34,7 +34,10 @@ type QueueChange = 'next' | 'prev' | 'playlist' | 'play' | 'shuffle' | 'repeat';
 const SongContext = createContext<SongContext | null>(null);
 
 export const SongProvider = ({ queue, children }: SongProviderProps) => {
-  const [_queue, _setQueue] = useState<Queue>({ ...queue });
+  const [_queue, _setQueue] = useState<Queue>({
+    ...queue,
+    items: sortLinkedList(queue.items),
+  });
   const [_isPlaying, _setIsPlaying] = useState(false);
   const [_volume, _setVolume] = useState(0);
   const [_currentTime, _setCurrentTime] = useState(0);

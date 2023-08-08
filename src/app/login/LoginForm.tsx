@@ -5,8 +5,7 @@ import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Button } from '@/components/forms/Button';
 import { TextField } from '@/components/forms/TextField';
-import { useToast } from '@/components/providers/ToastProvider';
-
+import { useToastStore } from '@/store/ToastStore';
 
 type SignInWithEmailValues = {
   email: string;
@@ -18,7 +17,7 @@ type LoginFormProps = {
 
 export default function LoginForm({ callbackUrl }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { createToast } = useToast();
+  const createToast = useToastStore(state => state.createToast);
   const callback = callbackUrl ?? '/';
 
   const {
