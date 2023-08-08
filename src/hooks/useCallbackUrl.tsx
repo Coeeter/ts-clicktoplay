@@ -14,7 +14,7 @@ export const useCallbackUrl = ({ checkForPathname }: UseCallbackUrlProps) => {
       checkForPathname && pathname === checkForPathname
         ? new URLSearchParams(window.location.search)
             .get('callbackUrl')!
-            .toString()
+            ?.toString() ?? window.location.origin
         : window.location.href
     );
   }, [pathname]);

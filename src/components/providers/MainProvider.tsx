@@ -6,7 +6,7 @@ import { SongProvider } from './SongProvider';
 import { ToastProvider } from './ToastProvider';
 import { Session } from 'next-auth';
 
-export const MainProvider = async ({
+export const MainProvider = ({
   children,
   session,
   queue,

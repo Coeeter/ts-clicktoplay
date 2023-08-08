@@ -1,4 +1,5 @@
 'use client';
+
 import { Song } from '@prisma/client';
 import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
