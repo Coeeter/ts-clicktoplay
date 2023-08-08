@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
 import { useRef } from 'react';
 import { useQueueStore } from '@/store/QueueStore';
+import { useToastStore } from '@/store/ToastStore';
 
 export const SongItem = ({ song }: { song: Song }) => {
   const ref = useRef<HTMLDivElement>(null);
   const playSong = useQueueStore(state => state.playSong);
+  const createToast = useToastStore(state => state.createToast);
 
   const minutes = Math.floor(song.duration / 60);
   const seconds = Math.floor(song.duration % 60);
@@ -43,7 +45,14 @@ export const SongItem = ({ song }: { song: Song }) => {
             ref={ref}
             className="absolute right-0 bottom-0 p-4 rounded-full bg-blue-700 m-3 opacity-0 translate-y-5 hover:scale-110 group-hover:translate-y-0 group-hover:opacity-100 duration-300 transition-all"
             onClick={() => {
-              playSong(song.id, [song.id]);
+              try {
+                playSong(song.id, [song.id]);
+              } catch (e) {
+                createToast(
+                  (e as any).message ?? 'Unknown error has occured',
+                  'error'
+                );
+              }
             }}
           >
             <FaPlay className="text-white" size={16} />

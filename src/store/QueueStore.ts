@@ -25,6 +25,7 @@ export type QueueActions = {
   setVolume: (volume: number) => void;
   setShuffle: (shuffle: boolean) => void;
   setRepeat: (repeat: RepeatMode) => void;
+  clearQueue: () => void;
 };
 
 const initialState: QueueState = {
@@ -177,5 +178,14 @@ export const useQueueStore = create<QueueState & QueueActions>(set => ({
   },
   setRepeat: repeat => {
     set({ repeatMode: repeat });
+  },
+  clearQueue: () => {
+    set({
+      ...initialState,
+      queueId: initialState.queueId,
+      volume: initialState.volume,
+      repeatMode: initialState.repeatMode,
+      shuffle: initialState.shuffle,
+    });
   },
 }));
