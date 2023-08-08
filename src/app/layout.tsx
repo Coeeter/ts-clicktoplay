@@ -3,10 +3,10 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Sidebar } from '@/components/navigation/sidebar/Sidebar';
 import { Navbar } from '@/components/navigation/navbar/Navbar';
-import { MainProvider } from '@/components/providers/MainProvider';
 import { getServerSession } from '@/lib/auth';
 import { getQueue } from '@/lib/queue';
 import { Toast } from '@/components/Toast';
+import { MainProvider } from '@/components/providers/MainProvider';
 
 export const metadata: Metadata = {
   title: 'ClickToPlay',

@@ -4,11 +4,11 @@ import { Song } from '@prisma/client';
 import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
 import { useRef } from 'react';
-import { useSong } from '../providers/SongProvider';
+import { useQueueStore } from '@/store/QueueStore';
 
 export const SongItem = ({ song }: { song: Song }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const { playSong } = useSong();
+  const playSong = useQueueStore(state => state.playSong);
 
   const minutes = Math.floor(song.duration / 60);
   const seconds = Math.floor(song.duration % 60);

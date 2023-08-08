@@ -1,7 +1,7 @@
 import { playPlaylist } from '@/lib/queue';
 import { createJsonResponse, protectedApiRoute } from '@/utils';
 
-export const POST = protectedApiRoute<{ queueId: string; playlistId: string }>(
+export const POST = protectedApiRoute<{ playlistId: string }>(
   async (req, session, params) => {
     const body = (await req.json()) as { songId: string };
     await playPlaylist({
