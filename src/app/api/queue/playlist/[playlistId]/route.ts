@@ -4,13 +4,11 @@ import { createJsonResponse, protectedApiRoute } from '@/utils';
 export const POST = protectedApiRoute<{ playlistId: string }>(
   async (req, session, params) => {
     const body = (await req.json()) as { songId: string };
-    await playPlaylist({
+    const result = await playPlaylist({
       session: session!,
       playlistId: params!.playlistId,
       currentSongId: body.songId,
     });
-    return createJsonResponse({
-      message: 'Playlist played',
-    });
+    return createJsonResponse(result);
   }
 );
