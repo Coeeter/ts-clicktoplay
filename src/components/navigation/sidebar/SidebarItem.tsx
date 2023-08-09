@@ -9,16 +9,11 @@ export type SidebarItemProps = {
   icon: JSX.Element;
 };
 
-export const SidebarItem = ({
-  name,
-  href,
-  icon,
-}: SidebarItemProps) => {
+export const SidebarItem = ({ name, href, icon }: SidebarItemProps) => {
   const pathName = usePathname();
 
   return (
     <Link
-      key={name}
       href={href}
       className={`text-md hover:text-slate-200 duration-150 font-semibold ${
         pathName === href ? 'text-slate-200' : 'text-slate-300/50'

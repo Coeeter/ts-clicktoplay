@@ -21,8 +21,12 @@ import {
 import { createQueueItems, generateQueueItemId } from './helper';
 
 export const getQueue = async (session: Session) => {
-  const queue = await prisma.queue.findUnique({
+  return await prisma.queue.upsert({
     where: {
+      id: session.user.id,
+    },
+    update: {},
+    create: {
       id: session.user.id,
     },
     include: {
@@ -30,18 +34,6 @@ export const getQueue = async (session: Session) => {
       items: true,
     },
   });
-  if (!queue) {
-    return await prisma.queue.create({
-      data: {
-        id: session.user.id,
-      },
-      include: {
-        playlist: true,
-        items: true,
-      },
-    });
-  }
-  return queue;
 };
 
 export const playPlaylist = async ({
