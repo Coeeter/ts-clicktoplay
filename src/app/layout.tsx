@@ -32,9 +32,9 @@ export default async function RootLayout({
       <body className="bg-slate-900 antialiased text-slate-400 min-h-screen">
         <MainProvider session={session} queue={queue}>
           <div className="flex flex-col min-h-screen">
-            <div className="flex relative flex-1">
+            <div className="flex relative flex-1 p-3 gap-3">
               <Sidebar />
-              <div className="flex flex-col w-full">
+              <div className="flex flex-col w-full gap-3">
                 <Navbar />
                 <main>{children}</main>
               </div>

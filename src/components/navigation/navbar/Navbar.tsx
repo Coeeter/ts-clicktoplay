@@ -12,8 +12,8 @@ export const Navbar = async () => {
   ];
 
   return (
-    <nav className="bg-slate-800 text-slate-300 m-3 ml-0 rounded-md">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+    <nav className="bg-slate-800 text-slate-300 rounded-md">
+      <div className="mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center">
           <Link href="/" className="text-3xl text-slate-200 font-bold">
             ClickToPlay

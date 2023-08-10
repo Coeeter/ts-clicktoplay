@@ -40,7 +40,7 @@ export const ProfileButton = ({ session }: ProfileButtonProps) => {
   return (
     <div className="relative">
       <div className="animate-pulse absolute right-0">
-        <div className="bg-slate-700 w-10 h-10 rounded-full mr-3"></div>
+        <div className="bg-slate-700 w-10 h-10 rounded-full"></div>
       </div>
       <div className="relative">
         <motion.img
@@ -48,7 +48,7 @@ export const ProfileButton = ({ session }: ProfileButtonProps) => {
           alt={session.user!.name ?? ''}
           ref={imgRef}
           referrerPolicy="no-referrer"
-          className="w-10 h-10 rounded-full mr-3 cursor-pointer"
+          className="w-10 h-10 rounded-full cursor-pointer"
           onClick={() => setShowDropDown(prev => !prev)}
           whileHover={{ scale: 1.1 }}
           initial={{ scale: 0.8, opacity: 0 }}

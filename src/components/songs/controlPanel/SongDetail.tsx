@@ -1,5 +1,6 @@
 'use client';
 
+import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
 import { Song } from '@prisma/client';
 import Link from 'next/link';
@@ -9,6 +10,7 @@ type SongDetailProps = {
 };
 
 export const SongDetail = ({ songs }: SongDetailProps) => {
+  const mounted = useMounted();
   const currentlyPlayingQueueId = useQueueStore(
     state => state.currentlyPlayingId
   );
@@ -19,9 +21,7 @@ export const SongDetail = ({ songs }: SongDetailProps) => {
     song => song.id === currentlyPlayingQueueItem?.songId
   );
 
-  if (!currentSong) {
-    return <div></div>;
-  }
+  if (!mounted || !currentSong) return <div className="w-16 aspect-square" />;
 
   const { id, title, artist, albumCover } = currentSong;
 
@@ -34,7 +34,10 @@ export const SongDetail = ({ songs }: SongDetailProps) => {
         />
       </div>
       <div className="flex flex-col justify-center">
-        <Link className="text-md font-bold hover:underline" href={`/songs/${id}`}>
+        <Link
+          className="text-md font-bold hover:underline"
+          href={`/songs/${id}`}
+        >
           {title}
         </Link>
         <div className="text-sm text-slate-300/50">

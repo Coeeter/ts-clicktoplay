@@ -20,7 +20,7 @@ export const initialState: QueueState = {
   queueId: null,
   items: [],
   isPlaying: false,
-  volume: 1,
+  volume: 100,
   currentTime: 0,
   repeatMode: 'NONE',
   shuffle: false,
