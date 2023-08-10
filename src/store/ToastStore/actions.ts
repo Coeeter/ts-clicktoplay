@@ -3,7 +3,7 @@ import { ToastMode, ToastState, Toast } from '../ToastStore';
 const createToast = (
   message: string,
   mode: ToastMode,
-  duration: number = 2000
+  duration: number = 5000
 ): ((state: ToastState) => Partial<ToastState>) => {
   return state => ({
     toasts: [

@@ -9,7 +9,7 @@ export const Toast = () => {
   const toasts = useToastStore(state => state.toasts);
 
   return (
-    <div className="flex flex-col gap-3 absolute bottom-10 right-10">
+    <div className="flex flex-col gap-3 absolute bottom-3 right-3">
       <AnimatePresence>
         {toasts.map(toast => (
           <ToastItem key={toast.id} toast={toast} />
@@ -25,7 +25,7 @@ const ToastItem = ({ toast }: { toast: ToastType }) => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       hideToast(toast);
-    }, toast.duration ?? 2000);
+    }, toast.duration ?? 5000);
     return () => {
       clearTimeout(timeoutId);
     };

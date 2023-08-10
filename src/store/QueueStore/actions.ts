@@ -18,46 +18,42 @@ const setIsPlaying = (isPlaying: boolean): Partial<QueueState> => {
   return { isPlaying };
 };
 
+const setCurrentlyPlayingId = (
+  currentlyPlayingId: string | null
+): Partial<QueueState> => {
+  fetch(`/api/queue`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      currentlyPlayingId,
+    }),
+  });
+  return { currentlyPlayingId, currentTime: 0 };
+};
+
 const playNext = (state: QueueState): Partial<QueueState> => {
   const currentSong = state.items.find(
     item => item.id === state.currentlyPlayingId
   );
+  if (!currentSong) return {};
   const nextSongId =
     currentSong?.nextId ?? state.repeatMode === 'ALL'
-      ? state.items.find(item => !item.prevId)?.id
+      ? state.items.find(item => !item.prevId)?.id ?? null
       : null;
-  fetch(`/api/queue`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      currentlyPlayingId: nextSongId,
-    }),
-  });
-  return {
-    currentlyPlayingId: nextSongId,
-    currentTime: 0,
-  };
+  return setCurrentlyPlayingId(nextSongId);
 };
 
 const playPrev = (state: QueueState): Partial<QueueState> => {
   const currentSong = state.items.find(
     item => item.id === state.currentlyPlayingId
   );
+  if (!currentSong) return {};
   const prevSongId =
     state.currentTime > 5000
       ? state.currentlyPlayingId
       : currentSong?.prevId ?? state.repeatMode === 'ALL'
-      ? state.items.find(item => !item.nextId)?.id
+      ? state.items.find(item => !item.nextId)?.id ?? null
       : null;
-  fetch(`/api/queue`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      currentlyPlayingId: prevSongId,
-    }),
-  });
-  return {
-    currentlyPlayingId: prevSongId,
-    currentTime: 0,
-  };
+  return setCurrentlyPlayingId(prevSongId);
 };
 
 const playPlaylist = (
@@ -125,25 +121,12 @@ const playSong = (
     });
     return {
       playlistId: null,
-      playlist: null,
       items: newItems,
       currentlyPlayingId: generateQueueItemId(state.queueId!, song),
       currentTime: 0,
       isPlaying: true,
     };
   };
-};
-
-const setCurrentlyPlayingId = (
-  currentlyPlayingId: string
-): Partial<QueueState> => {
-  fetch(`/api/queue`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      currentlyPlayingId,
-    }),
-  });
-  return { currentlyPlayingId, currentTime: 0 };
 };
 
 const setCurrentTime = (currentTime: number): Partial<QueueState> => {
@@ -225,4 +208,4 @@ export {
   setShuffle,
   setRepeat,
   clearQueue,
-}
+};

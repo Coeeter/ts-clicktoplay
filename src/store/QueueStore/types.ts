@@ -23,4 +23,5 @@ export type QueueActions = {
   setShuffle: (shuffle: boolean) => void;
   setRepeat: (repeat: RepeatMode) => void;
   clearQueue: () => void;
+  resetState: () => void;
 };

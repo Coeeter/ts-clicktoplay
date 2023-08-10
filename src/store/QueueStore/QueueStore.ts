@@ -44,6 +44,7 @@ export const useQueueStore = create<QueueState & QueueActions>()(
       setShuffle: shuffle => set(setShuffle(shuffle)),
       setRepeat: repeat => set(setRepeat(repeat)),
       clearQueue: () => set(clearQueue),
+      resetState: () => set(initialState)
     }),
     {
       name: 'queue-store',
