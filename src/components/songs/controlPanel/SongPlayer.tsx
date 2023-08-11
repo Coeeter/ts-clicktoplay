@@ -9,8 +9,9 @@ import {
   MdPlayCircle,
   MdSkipNext,
   MdSkipPrevious,
+  MdShuffle,
 } from 'react-icons/md';
-import { TbRepeatOff, TbRepeat, TbRepeatOnce } from 'react-icons/tb';
+import { TbRepeat, TbRepeatOnce } from 'react-icons/tb';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type SongPlayerProps = {
@@ -26,6 +27,7 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
   const currentTime = useQueueStore(state => state.currentTime);
   const volume = useQueueStore(state => state.volume);
   const repeatMode = useQueueStore(state => state.repeatMode);
+  const shuffle = useQueueStore(state => state.shuffle);
   const currentQueueItem = useQueueStore(state =>
     state.items.find(item => item.id === state.currentlyPlayingId)
   );
@@ -35,10 +37,11 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
   const playNext = useQueueStore(state => state.playNext);
   const playPrev = useQueueStore(state => state.playPrev);
   const setRepeatMode = useQueueStore(state => state.setRepeat);
+  const setShuffle = useQueueStore(state => state.setShuffle);
 
   const currentSong = songs.find(song => song.id === currentQueueItem?.songId);
-  const hasNextSong = currentQueueItem?.nextId !== null || repeatMode === 'ALL';
-  const hasPrevSong = currentQueueItem?.prevId !== null || repeatMode === 'ALL';
+  const hasNextSong = currentQueueItem?.[shuffle ? 'shuffledNextId' : 'nextId'] !== null || repeatMode === 'ALL';
+  const hasPrevSong = currentQueueItem?.[shuffle ? 'shuffledPrevId' : 'prevId'] !== null || repeatMode === 'ALL';
   const percent = useCallback(() => {
     if (!currentSong) return 0;
     return (currentTime / currentSong.duration) * 100;
@@ -133,23 +136,28 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
     <div className="flex-1 flex flex-col justify-center items-center">
       <div className="flex gap-3">
         <button
-          className="text-lg text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
+          className={`text-lg transition-colors disabled:text-slate-300/30 relative ${
+            repeatMode === 'NONE'
+              ? 'text-slate-300/70 hover:text-slate-100'
+              : 'text-blue-500'
+          }`}
           onClick={() => {
-            if (repeatMode === 'NONE') {
-              setRepeatMode('ALL');
-            } else if (repeatMode === 'ALL') {
-              setRepeatMode('ONE');
-            } else {
-              setRepeatMode('NONE');
-            }
+            setRepeatMode(
+              repeatMode === 'NONE'
+                ? 'ALL'
+                : repeatMode === 'ALL'
+                ? 'ONE'
+                : 'NONE'
+            );
           }}
         >
-          {repeatMode === 'NONE' ? (
-            <TbRepeatOff />
-          ) : repeatMode === 'ALL' ? (
+          {repeatMode === 'ALL' || repeatMode === 'NONE' ? (
             <TbRepeat />
           ) : (
             <TbRepeatOnce />
+          )}
+          {repeatMode === 'NONE' || (
+            <div className="w-1 h-1 bg-blue-500 rounded-full absolute bottom-1 left-1/2 -translate-x-1/2" />
           )}
         </button>
         <button
@@ -174,6 +182,17 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
           onClick={() => playNext(true)}
         >
           <MdSkipNext />
+        </button>
+        <button
+          className={`text-lg transition-colors disabled:text-slate-300/30 relative ${
+            shuffle ? 'text-blue-500' : 'text-slate-300/70 hover:text-slate-100'
+          }`}
+          onClick={() => setShuffle(!shuffle)}
+        >
+          <MdShuffle />
+          {shuffle && (
+            <div className="w-1 h-1 bg-blue-500 rounded-full absolute bottom-1 left-1/2 -translate-x-1/2" />
+          )}
         </button>
       </div>
       <div className="w-full flex items-center gap-3">
