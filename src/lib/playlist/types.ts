@@ -27,7 +27,7 @@ export type AddSongsToPlaylistProps = {
 
 export type RemoveSongsFromPlaylistProps = AddSongsToPlaylistProps;
 
-export type MoveSongInPlaylistProps = {
+export type MoveSongsInPlaylistProps = {
   session: Session;
   playlistId: PlaylistId;
   songIds: SongId[];

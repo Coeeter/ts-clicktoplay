@@ -19,57 +19,50 @@ model User {
   image              String?
   uploadedSongs      Song[]              @relation("uploadedSongs")
   playlists          Playlist[]
-  playHistories      PlayHistory[]
   searchHistory      SearchHistory[]
   accounts           Account[]
   sessions           Session[]
   verificationTokens VerificationToken[]
-  emailVerified      DateTime?           @map("emailVerified")
+  emailVerified      DateTime?
   library            Library?            @relation("library")
 }
 
 model Playlist {
-  id            String         @id @default(cuid()) @map("_id")
-  createdAt     DateTime       @default(now())
-  title         String
-  creator       User           @relation(fields: [creatorId], references: [id])
-  creatorId     String         @map("userId")
-  playHistories PlayHistory[]
-  queues        Queue[]
-  items         PlaylistItem[]
-  libraries     LibraryItem[]  @ignore
+  id        String         @id @default(cuid()) @map("_id")
+  createdAt DateTime       @default(now())
+  title     String
+  creator   User           @relation(fields: [creatorId], references: [id])
+  creatorId String
+  queues    Queue[]
+  items     PlaylistItem[]
+  libraries LibraryItem[]  @ignore
 }
 
 model PlaylistItem {
-  id                String         @id @default(cuid()) @map("_id")
-  addedAt           DateTime       @default(now())
-  song              Song           @relation(fields: [songId], references: [id])
-  songId            String         @map("songId")
-  next              PlaylistItem?  @relation("nextPlaylistItems", fields: [nextId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  nextId            String?        @map("nextId")
-  prev              PlaylistItem?  @relation("prevPlaylistItems", fields: [prevId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  prevId            String?        @map("prevId")
-  nextPlaylistItems PlaylistItem[] @relation("nextPlaylistItems") @ignore
-  prevPlaylistItems PlaylistItem[] @relation("prevPlaylistItems") @ignore
-  playlist          Playlist       @relation(fields: [playlistId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  playlistId        String         @map("playlistId")
+  id         String   @id @default(cuid()) @map("_id")
+  addedAt    DateTime @default(now())
+  song       Song     @relation(fields: [songId], references: [id])
+  songId     String
+  nextId     String?
+  prevId     String?
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  playlistId String
 }
 
 model Song {
-  id            String         @id @default(cuid()) @map("_id")
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  title         String
-  artist        String?
-  albumCover    String?
-  duration      Float
-  url           String
-  uploader      User           @relation(name: "uploadedSongs", fields: [uploaderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  uploaderId    String         @map("uploaderId")
-  playlists     PlaylistItem[] @ignore
-  playHistories PlayHistory[]  @ignore
-  queueItems    QueueItem[]    @ignore
-  deletedAt     DateTime?      @map("deletedAt")
+  id         String         @id @default(cuid()) @map("_id")
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  title      String
+  artist     String?
+  albumCover String?
+  duration   Float
+  url        String
+  uploader   User           @relation(name: "uploadedSongs", fields: [uploaderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  uploaderId String
+  playlists  PlaylistItem[] @ignore
+  queueItems QueueItem[]    @ignore
+  deletedAt  DateTime?
 }
 
 enum RepeatMode {
@@ -80,40 +73,24 @@ enum RepeatMode {
 
 model Queue {
   id                 String      @id @default(cuid()) @map("_id")
-  search             String?
   playlist           Playlist?   @relation(fields: [playlistId], references: [id])
-  playlistId         String?     @map("playlistId")
+  playlistId         String?
   shuffle            Boolean     @default(false)
   repeatMode         RepeatMode  @default(NONE)
   items              QueueItem[]
-  currentlyPlayingId String?    
-  currentlyPlaying   QueueItem?  @relation("currentlyPlayingQueue", fields: [currentlyPlayingId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  currentlyPlayingId String?
 }
 
 model QueueItem {
-  id                    String      @id @default(cuid()) @map("_id")
-  song                  Song        @relation(fields: [songId], references: [id])
-  songId                String      @map("songId")
-  next                  QueueItem?  @relation("nextQueueItems", fields: [nextId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  nextId                String?     @map("nextId")
-  prev                  QueueItem?  @relation("prevQueueItems", fields: [prevId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  prevId                String?     @map("prevId")
-  nextQueueItems        QueueItem[] @relation("nextQueueItems") @ignore
-  prevQueueItems        QueueItem[] @relation("prevQueueItems") @ignore
-  queue                 Queue       @relation(fields: [queueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  queueId               String      @map("queueId")
-  currentlyPlayedQueues Queue[]     @relation("currentlyPlayingQueue") @ignore
-}
-
-model PlayHistory {
-  id         String    @id @default(cuid()) @map("_id")
-  playedAt   DateTime  @default(now())
-  user       User      @relation(fields: [userId], references: [id])
-  userId     String    @map("userId")
-  song       Song      @relation(fields: [songId], references: [id])
-  songId     String    @map("songId")
-  playlist   Playlist? @relation(fields: [playlistId], references: [id])
-  playlistId String?   @map("playlistId")
+  id             String  @id @default(cuid()) @map("_id")
+  song           Song    @relation(fields: [songId], references: [id])
+  songId         String
+  nextId         String?
+  prevId         String?
+  shuffledNextId String?
+  shuffledPrevId String?
+  queue          Queue   @relation(fields: [queueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  queueId        String
 }
 
 model Library {
@@ -128,9 +105,11 @@ model LibraryItem {
   id         String   @id @default(cuid()) @map("_id")
   createdAt  DateTime @default(now())
   library    Library  @relation(fields: [libraryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  libraryId  String  
+  libraryId  String
   playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  playlistId String  
+  playlistId String
+  nextId     String?
+  prevId     String?
 }
 
 model SearchHistory {
@@ -138,12 +117,12 @@ model SearchHistory {
   createdAt DateTime @default(now())
   query     String
   user      User     @relation(fields: [userId], references: [id])
-  userId    String   @map("userId")
+  userId    String
 }
 
 model Account {
   id                String   @id @default(cuid()) @map("_id")
-  userId            String  
+  userId            String
   type              String
   provider          String
   providerAccountId String
@@ -179,7 +158,7 @@ model VerificationToken {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   User       User?    @relation(fields: [userId], references: [id])
-  userId     String? 
+  userId     String?
 
   @@unique([identifier, token])
 }

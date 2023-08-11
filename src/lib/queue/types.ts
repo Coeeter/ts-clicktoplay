@@ -7,24 +7,21 @@ export type QueueItemId = string;
 
 export type Queue = Awaited<ReturnType<typeof getQueue>>;
 
-export type CreateQueueProps =
-  | {
-      type: 'search';
-      session: Session;
-      currentSongId: SongId;
-      songs: Song[];
-      search?: string;
-    }
-  | {
-      type: 'playlist';
-      session: Session;
-      currentSongId: SongId | null | undefined;
-      playlistId: string;
-    };
+export type PlayPlaylistProps = {
+  session: Session;
+  playlistId: string;
+  currentSongId?: SongId;
+}
+
+export type PlaySongProps = {
+  session: Session;
+  songId: SongId;
+  songIds: SongId[];
+};
 
 export type UpdateCurrentSongInQueueProps = {
   session: Session;
-  currentSongId: SongId;
+  currentQueueItemId: QueueItemId;
 };
 
 export type InsertSongsToQueueProps = {
@@ -32,14 +29,14 @@ export type InsertSongsToQueueProps = {
   songs: SongId[];
 };
 
-export type RemoveSongFromQueueProps = {
+export type RemoveSongsFromQueueProps = {
   session: Session;
-  songId: SongId;
+  songIds: SongId[];
 };
 
-export type MoveSongInQueueProps = {
+export type MoveSongsInQueueProps = {
   session: Session;
-  songId: SongId;
+  songIds: SongId[];
   nextId: QueueItemId | null;
   prevId: QueueItemId | null;
 };

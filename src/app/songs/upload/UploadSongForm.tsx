@@ -1,18 +1,19 @@
 'use client';
 
-import { Button, useToast } from '@/components';
 import { useRouter } from 'next/navigation';
 import { useState, useRef } from 'react';
 import { FaFileUpload } from 'react-icons/fa';
 import { useDropzone } from 'react-dropzone';
 import { parseBlob } from 'music-metadata-browser';
+import { Button } from '@/components/forms/Button';
+import { useToastStore } from '@/store/ToastStore';
 
 const SongUploader = () => {
   const boxRef = useRef<HTMLDivElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const toast = useToast();
   const router = useRouter();
+  const createToast = useToastStore(state => state.createToast);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -48,7 +49,7 @@ const SongUploader = () => {
       });
       if (!response.ok) {
         console.log(await response.json());
-        return toast.createToast('Error uploading file', 'error');
+        return createToast('Error uploading file', 'error');
       }
     };
 
@@ -105,12 +106,12 @@ const SongUploader = () => {
       const json = await response.json();
       if (!response.ok) {
         console.log(json);
-        return toast.createToast('Error uploading file', 'error');
+        return createToast('Error uploading file', 'error');
       }
       router.push(`/songs/update/${json.id}`);
     } catch (error) {
       console.log('Error uploading file:', error);
-      toast.createToast('Error uploading file', 'error');
+      createToast('Error uploading file', 'error');
     } finally {
       setUploading(false);
     }

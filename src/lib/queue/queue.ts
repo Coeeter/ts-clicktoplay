@@ -1,22 +1,32 @@
 import { Session } from 'next-auth';
 import { prisma } from '../database';
-import { BadRequestError, NotFoundError, sortLinkedList } from '@/utils';
+import {
+  BadRequestError,
+  NotFoundError,
+  checkLinkedListNodesAreInOrder,
+  sortLinkedList,
+} from '@/utils';
 import {
   ClearQueueProps,
-  CreateQueueProps,
   DeleteQueueProps,
   InsertSongsToQueueProps,
-  MoveSongInQueueProps,
+  MoveSongsInQueueProps,
+  PlayPlaylistProps,
+  PlaySongProps,
   Queue,
-  RemoveSongFromQueueProps,
+  RemoveSongsFromQueueProps,
   UpdateCurrentSongInQueueProps,
   UpdateQueueSettingsProps,
 } from './types';
 import { createQueueItems, generateQueueItemId } from './helper';
 
 export const getQueue = async (session: Session) => {
-  const queue = await prisma.queue.findUnique({
+  return await prisma.queue.upsert({
     where: {
+      id: session.user.id,
+    },
+    update: {},
+    create: {
       id: session.user.id,
     },
     include: {
@@ -24,41 +34,13 @@ export const getQueue = async (session: Session) => {
       items: true,
     },
   });
-  return queue;
 };
 
-export const createQueue = async (props: CreateQueueProps): Promise<Queue> => {
-  const { session, currentSongId } = props;
-  const { type } = props;
-  await prisma.queue.delete({
-    where: {
-      id: session.user.id,
-    },
-  });
-  if (type === 'search') {
-    const { search, songs } = props;
-    return await prisma.queue.create({
-      data: {
-        id: session.user.id,
-        currentlyPlayingId: generateQueueItemId(
-          session.user.id,
-          currentSongId!
-        ),
-        items: {
-          create: createQueueItems(
-            songs.map(song => song.id),
-            session.user.id
-          ),
-        },
-        search,
-      },
-      include: {
-        playlist: true,
-        items: true,
-      },
-    });
-  }
-  const { playlistId } = props;
+export const playPlaylist = async ({
+  session,
+  playlistId,
+  currentSongId,
+}: PlayPlaylistProps): Promise<Queue> => {
   const playlist = await prisma.playlist.findUnique({
     where: {
       id: playlistId,
@@ -71,14 +53,17 @@ export const createQueue = async (props: CreateQueueProps): Promise<Queue> => {
     throw new NotFoundError('Playlist not found');
   }
   const songIds = sortLinkedList(playlist.items).map(item => item.songId);
-  return await prisma.queue.create({
-    data: {
+  return await prisma.queue.update({
+    where: {
       id: session.user.id,
+    },
+    data: {
       currentlyPlayingId: generateQueueItemId(
         session.user.id,
         currentSongId ?? songIds[0]
       ),
       items: {
+        deleteMany: {},
         create: createQueueItems(songIds, session.user.id),
       },
       playlistId,
@@ -90,24 +75,41 @@ export const createQueue = async (props: CreateQueueProps): Promise<Queue> => {
   });
 };
 
+export const playSong = async ({
+  session,
+  songId,
+  songIds,
+}: PlaySongProps): Promise<Queue> => {
+  return await prisma.queue.update({
+    where: {
+      id: session.user.id,
+    },
+    data: {
+      currentlyPlayingId: generateQueueItemId(session.user.id, songId),
+      items: {
+        deleteMany: {},
+        create: createQueueItems(songIds, session.user.id),
+      },
+      playlistId: null,
+    },
+    include: {
+      playlist: true,
+      items: true,
+    },
+  });
+};
+
 export const updateCurrentSongInQueue = async ({
   session,
-  currentSongId,
+  currentQueueItemId,
 }: UpdateCurrentSongInQueueProps): Promise<Queue> => {
-  const queue = await getQueue(session);
-  if (!queue) {
-    throw new NotFoundError('Queue not found');
-  }
-  const { id, items } = queue;
-  const currentlyPlayingId = items.find(
-    item => item.songId === currentSongId
-  )?.id;
-  if (!currentlyPlayingId) {
-    throw new NotFoundError('Song not found in queue');
-  }
   return await prisma.queue.update({
-    where: { id },
-    data: { currentlyPlayingId },
+    where: {
+      id: session.user.id,
+    },
+    data: {
+      currentlyPlayingId: currentQueueItemId,
+    },
     include: {
       playlist: true,
       items: true,
@@ -120,17 +122,14 @@ export const insertSongsToQueue = async ({
   songs,
 }: InsertSongsToQueueProps): Promise<Queue> => {
   const queue = await getQueue(session);
-  if (!queue) {
-    throw new NotFoundError('Queue not found');
-  }
   const { id, items } = queue;
-  const lastItem = items.find(item => !item.nextId)!;
+  const lastItem = items.find(item => !item.nextId);
   const newItems = createQueueItems(songs, id);
-  newItems[0].prevId = lastItem.id;
+  newItems[0].prevId = lastItem?.id;
   await prisma.$transaction([
     prisma.queueItem.update({
       where: {
-        id: lastItem.id,
+        id: lastItem?.id,
       },
       data: {
         nextId: newItems[0].id,
@@ -145,28 +144,55 @@ export const insertSongsToQueue = async ({
       },
     }),
   ]);
+  if (queue.shuffle) {
+    return await updateQueueSettings({
+      session,
+      isShuffled: true,
+      newOrder: [
+        ...sortLinkedList(items, null, true).map(item => item.id),
+        ...songs,
+      ],
+    });
+  }
   return await getQueue(session);
 };
 
-export const removeSongFromQueue = async ({
+export const removeSongsFromQueue = async ({
   session,
-  songId,
-}: RemoveSongFromQueueProps): Promise<Queue> => {
+  songIds,
+}: RemoveSongsFromQueueProps): Promise<Queue> => {
   const queue = await getQueue(session);
-  if (!queue) {
-    throw new NotFoundError('Queue not found');
+  const { items, shuffle } = queue;
+  const songsToRemove = songIds.map(songId => {
+    const item = items.find(item => item.songId === songId);
+    if (!item) {
+      throw new NotFoundError(`Song ${songId} not found in queue`);
+    }
+    return item;
+  });
+  if (!checkLinkedListNodesAreInOrder(songsToRemove, true, null, shuffle)) {
+    throw new BadRequestError('Invalid songIds');
   }
-  const { items } = queue;
-  const songToRemove = items.find(item => item.songId === songId);
-  if (!songToRemove) {
-    throw new NotFoundError('Song not found in queue');
-  }
-  const prevItem = items.find(item => songToRemove.prevId === item.id);
-  const nextItem = items.find(item => songToRemove.nextId === item.id);
+  const nextIdKey = shuffle ? 'shuffledNextId' : 'nextId';
+  const prevIdKey = shuffle ? 'shuffledPrevId' : 'prevId';
+  const otherNextidKey = shuffle ? 'nextId' : 'shuffledNextId';
+  const otherPrevIdKey = shuffle ? 'prevId' : 'shuffledPrevId';
+  const firstItem = songsToRemove[0];
+  const lastItem = songsToRemove[songsToRemove.length - 1];
+  const prevItem = items.find(item => firstItem[prevIdKey] === item.id);
+  const nextItem = items.find(item => lastItem[nextIdKey] === item.id);
+  const otherPrevItem = items.find(
+    item => firstItem[otherPrevIdKey] === item.id
+  );
+  const otherNextItem = items.find(
+    item => lastItem[otherNextidKey] === item.id
+  );
   await prisma.$transaction([
-    prisma.queueItem.delete({
+    prisma.queueItem.deleteMany({
       where: {
-        id: songToRemove.id,
+        id: {
+          in: songIds,
+        },
       },
     }),
     prisma.queueItem.update({
@@ -174,7 +200,7 @@ export const removeSongFromQueue = async ({
         id: prevItem?.id,
       },
       data: {
-        nextId: songToRemove.nextId,
+        [nextIdKey]: nextItem?.id,
       },
     }),
     prisma.queueItem.update({
@@ -182,46 +208,85 @@ export const removeSongFromQueue = async ({
         id: nextItem?.id,
       },
       data: {
-        prevId: songToRemove.prevId,
+        [prevIdKey]: prevItem?.id,
+      },
+    }),
+    prisma.queueItem.update({
+      where: {
+        id: otherPrevItem?.id,
+      },
+      data: {
+        [otherNextidKey]: otherNextItem?.id,
+      },
+    }),
+    prisma.queueItem.update({
+      where: {
+        id: otherNextItem?.id,
+      },
+      data: {
+        [otherPrevIdKey]: otherPrevItem?.id,
       },
     }),
   ]);
   return await getQueue(session);
 };
 
-export const moveSongInQueue = async ({
+export const moveSongsInQueue = async ({
   session,
-  songId,
+  songIds,
   nextId,
   prevId,
-}: MoveSongInQueueProps): Promise<Queue> => {
+}: MoveSongsInQueueProps): Promise<Queue> => {
   const queue = await getQueue(session);
-  if (!queue) {
-    throw new NotFoundError('Queue not found');
+  const { items, shuffle } = queue;
+  const songsToMove = songIds.map(songId => {
+    const item = items.find(item => item.songId === songId);
+    if (!item) {
+      throw new NotFoundError(`Song ${songId} not found in queue`);
+    }
+    return item;
+  });
+  if (!checkLinkedListNodesAreInOrder(songsToMove, true, null, shuffle)) {
+    throw new BadRequestError('Invalid songIds');
   }
-  const { items } = queue;
-  const songToMove = items.find(item => item.songId === songId);
-  if (!songToMove) {
-    throw new NotFoundError('Song not found in queue');
-  }
-  const oldPrevItem = items.find(item => songToMove.prevId === item.id);
-  const oldNextItem = items.find(item => songToMove.nextId === item.id);
+  const prevIdKey = shuffle ? 'shuffledPrevId' : 'prevId';
+  const nextIdKey = shuffle ? 'shuffledNextId' : 'nextId';
+  const firstItem = songsToMove[0];
+  const lastItem = songsToMove[songsToMove.length - 1];
+  const oldPrevItem = items.find(item => firstItem[prevIdKey] === item.id);
+  const oldNextItem = items.find(item => lastItem[nextIdKey] === item.id);
   const newPrevItem = items.find(item => prevId === item.id);
   const newNextItem = items.find(item => nextId === item.id);
+  if (!prevId && !nextId) {
+    throw new BadRequestError('nextId or prevId is required');
+  }
+  if (prevId && !newPrevItem) {
+    throw new NotFoundError('prevId not found in queue');
+  }
+  if (nextId && !newNextItem) {
+    throw new NotFoundError('nextId not found in queue');
+  }
   if (
-    newPrevItem?.nextId !== newNextItem?.id ||
-    newNextItem?.prevId !== newPrevItem?.id
+    (newPrevItem && newPrevItem[nextIdKey] !== newNextItem?.id) ||
+    (newNextItem && newNextItem[prevIdKey] !== newPrevItem?.id)
   ) {
     throw new BadRequestError('Invalid nextId or prevId');
   }
   await prisma.$transaction([
     prisma.queueItem.update({
       where: {
-        id: songToMove.id,
+        id: firstItem.id,
       },
       data: {
-        nextId,
-        prevId,
+        [prevIdKey]: prevId,
+      },
+    }),
+    prisma.queueItem.update({
+      where: {
+        id: lastItem.id,
+      },
+      data: {
+        [nextIdKey]: nextId,
       },
     }),
     prisma.queueItem.update({
@@ -229,7 +294,7 @@ export const moveSongInQueue = async ({
         id: newPrevItem?.id,
       },
       data: {
-        nextId: songToMove.id,
+        [nextIdKey]: firstItem.id,
       },
     }),
     prisma.queueItem.update({
@@ -237,7 +302,7 @@ export const moveSongInQueue = async ({
         id: newNextItem?.id,
       },
       data: {
-        prevId: songToMove.id,
+        [prevIdKey]: lastItem.id,
       },
     }),
     prisma.queueItem.update({
@@ -245,7 +310,7 @@ export const moveSongInQueue = async ({
         id: oldPrevItem?.id,
       },
       data: {
-        nextId: songToMove.nextId,
+        [nextIdKey]: lastItem[nextIdKey],
       },
     }),
     prisma.queueItem.update({
@@ -253,7 +318,7 @@ export const moveSongInQueue = async ({
         id: oldNextItem?.id,
       },
       data: {
-        prevId: songToMove.prevId,
+        [prevIdKey]: firstItem[prevIdKey],
       },
     }),
   ]);
@@ -263,13 +328,10 @@ export const moveSongInQueue = async ({
 export const clearQueue = async ({
   session,
 }: ClearQueueProps): Promise<Queue> => {
-  const queue = await getQueue(session);
-  if (!queue) {
-    throw new NotFoundError('Queue not found');
-  }
-  const { id } = queue;
   return await prisma.queue.update({
-    where: { id },
+    where: {
+      id: session.user.id,
+    },
     data: { items: { deleteMany: {} } },
     include: {
       playlist: true,
@@ -294,40 +356,60 @@ export const updateQueueSettings = async ({
   repeatMode,
   newOrder,
 }: UpdateQueueSettingsProps): Promise<Queue> => {
-  const queue = await getQueue(session);
-  if (!queue) {
-    throw new NotFoundError('Queue not found');
-  }
-  const { id, items } = queue;
-  let sortedItems = sortLinkedList(items);
-  if (isShuffled) {
+  const { id, items, shuffle, repeatMode: repeat } = await getQueue(session);
+  let sortedItems: Queue['items'] = sortLinkedList(items).map(item => ({
+    ...item,
+    shuffledNextId: null,
+    shuffledPrevId: null,
+  }));
+  if (isShuffled === true) {
     if (!newOrder) {
       throw new BadRequestError('newOrder is required');
     }
     if (newOrder.length !== sortedItems.length) {
       throw new BadRequestError('newOrder length must match queue length');
     }
-    sortedItems = newOrder.map(songId => {
+    sortedItems = newOrder.map((songId, index) => {
       const item = sortedItems.find(item => item.songId === songId);
       if (!item) {
         throw new BadRequestError('Invalid newOrder');
       }
-      return item;
+      const nextItemId =
+        index === newOrder.length - 1
+          ? null
+          : sortedItems.find(item => item.songId === newOrder[index + 1])?.id ??
+            'Invalid';
+      if (nextItemId === 'Invalid') {
+        throw new BadRequestError('Invalid newOrder');
+      }
+      const prevItemId =
+        index === 0
+          ? null
+          : sortedItems.find(item => item.songId === newOrder[index - 1])?.id ??
+            'Invalid';
+      if (prevItemId === 'Invalid') {
+        throw new BadRequestError('Invalid newOrder');
+      }
+      return {
+        ...item,
+        shuffledNextId: nextItemId,
+        shuffledPrevId: prevItemId,
+      };
     });
   }
-  const newItems = createQueueItems(
-    sortedItems.map(item => item.songId),
-    id
-  );
   return await prisma.queue.update({
     where: { id },
     data: {
-      items: {
-        deleteMany: {},
-        create: newItems,
-      },
-      shuffle: isShuffled,
-      repeatMode,
+      ...(isShuffled === undefined
+        ? {}
+        : {
+            items: {
+              deleteMany: {},
+              create: sortedItems,
+            },
+          }),
+      shuffle: isShuffled === undefined ? shuffle : isShuffled,
+      repeatMode: repeatMode ?? repeat,
     },
     include: {
       playlist: true,
