@@ -60,7 +60,7 @@ const ToastItem = ({ toast }: { toast: ToastType }) => {
           ? 'bg-yellow-600'
           : toast.mode == 'success'
           ? 'bg-green-600'
-          : 'bg-slate-800'
+          : 'bg-slate-600'
       }`}
     >
       {icon}

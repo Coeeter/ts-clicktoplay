@@ -30,18 +30,26 @@ const setCurrentlyPlayingId = (
   return { currentlyPlayingId, currentTime: 0 };
 };
 
-const playNext = (state: QueueState): Partial<QueueState> => {
-  const currentSong = state.items.find(
-    item => item.id === state.currentlyPlayingId
-  );
-  if (!currentSong) return {};
-  const nextSongId =
-    currentSong?.nextId ??
-    (state.repeatMode === 'ALL'
-      ? state.items.find(item => !item.prevId)?.id ?? null
-      : null);
-  if (!nextSongId) return {};
-  return setCurrentlyPlayingId(nextSongId);
+const playNext = (
+  force: boolean = false
+): ((state: QueueState) => Partial<QueueState>) => {
+  return state => {
+    const currentSong = state.items.find(
+      item => item.id === state.currentlyPlayingId
+    );
+    if (!currentSong) return {};
+    const nextSongKey = state.shuffle ? 'shuffledNextId' : 'nextId';
+    const prevSongKey = state.shuffle ? 'shuffledPrevId' : 'prevId';
+    const nextSongId =
+      state.repeatMode === 'ONE' && !force
+        ? currentSong.id
+        : currentSong[nextSongKey] ??
+          (state.repeatMode === 'ALL'
+            ? state.items.find(item => !item[prevSongKey])?.id ?? null
+            : null);
+    if (!nextSongId) return {};
+    return setCurrentlyPlayingId(nextSongId);
+  };
 };
 
 const playPrev = (state: QueueState): Partial<QueueState> => {
@@ -49,12 +57,14 @@ const playPrev = (state: QueueState): Partial<QueueState> => {
     item => item.id === state.currentlyPlayingId
   );
   if (!currentSong) return {};
+  const nextSongKey = state.shuffle ? 'shuffledNextId' : 'nextId';
+  const prevSongKey = state.shuffle ? 'shuffledPrevId' : 'prevId';
   const prevSongId =
     state.currentTime > 5
       ? state.currentlyPlayingId
-      : currentSong?.prevId ??
+      : currentSong[prevSongKey] ??
         (state.repeatMode === 'ALL'
-          ? state.items.find(item => !item.nextId)?.id ?? null
+          ? state.items.find(item => !item[nextSongKey])?.id ?? null
           : null);
   if (!prevSongId) return {};
   return setCurrentlyPlayingId(prevSongId);

@@ -405,7 +405,10 @@ export const updateQueueSettings = async ({
         : {
             items: {
               deleteMany: {},
-              create: sortedItems,
+              create: sortedItems.map(item => ({
+                ...item,
+                queueId: undefined,
+              })),
             },
           }),
       shuffle: isShuffled === undefined ? shuffle : isShuffled,

@@ -21,7 +21,7 @@ export const SongDetail = ({ songs }: SongDetailProps) => {
     song => song.id === currentlyPlayingQueueItem?.songId
   );
 
-  if (!mounted || !currentSong) return <div className="w-16 aspect-square" />;
+  if (!mounted || !currentSong) return <div className="h-16 flex-1" />;
 
   const { id, title, artist, albumCover } = currentSong;
 
