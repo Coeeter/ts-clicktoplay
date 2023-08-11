@@ -34,7 +34,7 @@ export const VolumeTrackbar = () => {
     return () => window.removeEventListener('keydown', onKeyEvent);
   }, []);
 
-  if (!mounted || !currentQueueItemId) return null;
+  if (!mounted || !currentQueueItemId) return <div className='flex-1' />;
 
   return (
     <div className="flex items-center justify-end flex-1">

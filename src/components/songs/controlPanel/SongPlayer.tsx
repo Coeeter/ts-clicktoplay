@@ -1,5 +1,4 @@
 'use client';
-
 import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
 import { Song } from '@prisma/client';
@@ -40,8 +39,11 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
   const setShuffle = useQueueStore(state => state.setShuffle);
 
   const currentSong = songs.find(song => song.id === currentQueueItem?.songId);
-  const hasNextSong = currentQueueItem?.[shuffle ? 'shuffledNextId' : 'nextId'] !== null || repeatMode === 'ALL';
-  const hasPrevSong = currentQueueItem?.[shuffle ? 'shuffledPrevId' : 'prevId'] !== null || repeatMode === 'ALL';
+  const nextSongKey = shuffle ? 'shuffledNextId' : 'nextId';
+  const prevSongKey = shuffle ? 'shuffledPrevId' : 'prevId';
+  const hasNextSong = currentQueueItem?.[nextSongKey] || repeatMode === 'ALL';
+  const hasPrevSong = currentQueueItem?.[prevSongKey] || repeatMode === 'ALL';
+  const disabled = !currentSong || !isMounted;
   const percent = useCallback(() => {
     if (!currentSong) return 0;
     return (currentTime / currentSong.duration) * 100;
@@ -130,8 +132,6 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
     };
   }, [currentSong?.albumCover, currentSong?.artist, currentSong?.title]);
 
-  if (!isMounted || !currentSong) return null;
-
   return (
     <div className="flex-1 flex flex-col justify-center items-center">
       <div className="flex gap-3">
@@ -150,6 +150,7 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
                 : 'NONE'
             );
           }}
+          disabled={disabled}
         >
           {repeatMode === 'ALL' || repeatMode === 'NONE' ? (
             <TbRepeat />
@@ -162,7 +163,7 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
         </button>
         <button
           className="text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
-          disabled={!hasPrevSong}
+          disabled={!hasPrevSong || disabled}
           onClick={() => {
             setUserSeeking(true);
             playPrev();
@@ -171,14 +172,15 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
           <MdSkipPrevious />
         </button>
         <button
-          className="text-slate-300 hover:text-slate-100 transition-colors"
+          className="text-slate-300 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
           onClick={() => setIsPlaying(!isPlaying)}
+          disabled={disabled}
         >
           {isPlaying ? <MdPauseCircle size={40} /> : <MdPlayCircle size={40} />}
         </button>
         <button
           className="text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
-          disabled={!hasNextSong}
+          disabled={!hasNextSong || disabled}
           onClick={() => playNext(true)}
         >
           <MdSkipNext />
@@ -188,6 +190,7 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
             shuffle ? 'text-blue-500' : 'text-slate-300/70 hover:text-slate-100'
           }`}
           onClick={() => setShuffle(!shuffle)}
+          disabled={disabled}
         >
           <MdShuffle />
           {shuffle && (
@@ -202,7 +205,8 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
         <input
           type="range"
           min={0}
-          max={currentSong.duration}
+          max={currentSong?.duration}
+          disabled={disabled}
           value={currentTime}
           onChange={e => setCurrentTime(parseInt(e.target.value))}
           onMouseDown={() => setIsUserDragging(true)}
@@ -215,33 +219,37 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
             setUserSeeking(true);
             setIsUserDragging(false);
           }}
-          className={`w-full cursor-pointer appearance-none h-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:accent-current rounded-lg focus:outline-none`}
+          className={`w-full cursor-pointer appearance-none h-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:accent-current rounded-lg focus:outline-none disabled:cursor-default`}
           style={{
             background: `linear-gradient(to right, #1D4ED8 ${percent}%, #374047 ${percent}%)`,
           }}
         />
         <div className="text-sm text-slate-300/50 text-center">
-          {new Date(currentSong.duration * 1000)
-            .toISOString()
-            .substring(14, 19)}
+          {disabled
+            ? '00:00'
+            : new Date(currentSong.duration * 1000)
+                .toISOString()
+                .substring(14, 19)}
         </div>
       </div>
-      <ReactPlayer
-        ref={ref}
-        url={currentSong.url}
-        playing={isPlaying}
-        onEnded={() => {
-          if (repeatMode === 'ONE') setUserSeeking(true);
-          playNext();
-        }}
-        onProgress={e => {
-          if (isUserDragging) return;
-          setCurrentTime(e.playedSeconds);
-        }}
-        volume={volume / 100}
-        width="0%"
-        height="0%"
-      />
+      {disabled ? null : (
+        <ReactPlayer
+          ref={ref}
+          url={currentSong.url}
+          playing={isPlaying}
+          onEnded={() => {
+            if (repeatMode === 'ONE') setUserSeeking(true);
+            playNext();
+          }}
+          onProgress={e => {
+            if (isUserDragging) return;
+            setCurrentTime(e.playedSeconds);
+          }}
+          volume={volume / 100}
+          width="0%"
+          height="0%"
+        />
+      )}
     </div>
   );
 };

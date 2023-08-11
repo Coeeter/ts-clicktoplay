@@ -34,7 +34,7 @@ export const useQueueStore = create<QueueState & QueueActions>()(
       ...initialState,
       setQueue: queue => set(setQueue(queue)),
       setIsPlaying: isPlaying => set(setIsPlaying(isPlaying)),
-      playNext: (force) => set(playNext(force)),
+      playNext: force => set(playNext(force)),
       playPrev: () => set(playPrev),
       playPlaylist: (playlist, songId) => set(playPlaylist(playlist, songId)),
       playSong: (song, songs) => set(playSong(song, songs)),
@@ -44,7 +44,7 @@ export const useQueueStore = create<QueueState & QueueActions>()(
       setShuffle: shuffle => set(setShuffle(shuffle)),
       setRepeat: repeat => set(setRepeat(repeat)),
       clearQueue: () => set(clearQueue),
-      resetState: () => set(initialState)
+      resetState: () => set(initialState),
     }),
     {
       name: 'queue-store',
