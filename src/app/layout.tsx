@@ -38,8 +38,8 @@ export default async function RootLayout({
                 <Navbar />
                 <main>{children}</main>
               </div>
-              <Toast />
             </div>
+            <Toast />
             <SongControlPanel />
           </div>
         </MainProvider>

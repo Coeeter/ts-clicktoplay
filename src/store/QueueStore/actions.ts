@@ -127,12 +127,14 @@ const playSong = (
       shuffledPrevId: null,
     }));
     const newCurrentlyPlayingId = generateQueueItemId(state.queueId!, song);
-    const sortedOldItems = sortLinkedList(state.items);
-    const isSameState =
-      newItems.every(
-        (item, index) => item.songId === sortedOldItems[index].songId
-      ) && state.currentlyPlayingId === newCurrentlyPlayingId;
-    if (isSameState) return { isPlaying: true };
+    if (state.items.length) {
+      const sortedOldItems = sortLinkedList(state.items);
+      const isSameState =
+        newItems.every(
+          (item, index) => item.songId === sortedOldItems[index].songId
+        ) && state.currentlyPlayingId === newCurrentlyPlayingId;
+      if (isSameState) return { isPlaying: true };
+    }
     fetch(`/api/queue/play`, {
       method: 'POST',
       body: JSON.stringify({

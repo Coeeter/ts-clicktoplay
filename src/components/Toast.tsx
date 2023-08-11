@@ -9,7 +9,7 @@ export const Toast = () => {
   const toasts = useToastStore(state => state.toasts);
 
   return (
-    <div className="flex flex-col gap-3 absolute bottom-3 right-3">
+    <div className="flex flex-col gap-3 absolute bottom-[6.25rem] right-3">
       <AnimatePresence>
         {toasts.map(toast => (
           <ToastItem key={toast.id} toast={toast} />
