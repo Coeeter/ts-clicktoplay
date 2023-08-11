@@ -1,4 +1,5 @@
 'use client';
+
 import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
 import { Song } from '@prisma/client';
@@ -12,6 +13,7 @@ import {
 } from 'react-icons/md';
 import { TbRepeat, TbRepeatOnce } from 'react-icons/tb';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Spinner } from '@/components/Spinner';
 
 type SongPlayerProps = {
   songs: Song[];
@@ -51,6 +53,11 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
 
   const ref = useRef<ReactPlayer>(null);
   const currentTimeRef = useRef(currentTime);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    ref.current.forceUpdate();
+  }, [disabled])
 
   useEffect(() => {
     if (ref.current && userSeeking) {
