@@ -162,12 +162,17 @@ const setShuffle = (
   shuffle: boolean
 ): ((state: QueueState) => Partial<QueueState>) => {
   return state => {
-    const shuffled = [...state.items];
+    const currentSong = state.items.find(
+      item => item.id === state.currentlyPlayingId
+    );
+    let shuffled = [...state.items];
     if (shuffle) {
+      shuffled = shuffled.filter(item => item.id !== state.currentlyPlayingId);
       for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
       }
+      if (currentSong) shuffled.unshift(currentSong);
     }
     const lastIndex = shuffled.length - 1;
     const newItems = shuffle
