@@ -4,7 +4,7 @@ import { TextField } from '@/components/forms/TextField';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 type UpdateSongProps = {
@@ -25,6 +25,7 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<UpdateSongFormValues>({
     defaultValues: {
@@ -82,6 +83,17 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
     }
   };
 
+  useEffect(() => {
+    const listener = (e: ClipboardEvent) => {
+      const files = e.clipboardData?.files ?? null;
+      setValue('albumCover', files);
+      if (!files?.[0]) return;
+      setPreview(URL.createObjectURL(files[0]));
+    };
+    window.addEventListener('paste', listener);
+    return () => window.removeEventListener('paste', listener);
+  }, []);
+
   return (
     <form
       className="flex flex-col gap-5 bg-slate-800 p-6 rounded-md max-w-md w-full mx-auto mt-6"
@@ -114,8 +126,8 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
         />
         <div className="flex flex-col gap-1">
           <input
-            type="file"
             id="albumCover"
+            type="file"
             className="bg-slate-700 p-3 rounded-md outline-none text-slate-300 focus:outline-blue-600"
             {...register('albumCover', {
               onChange: e => {
