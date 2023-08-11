@@ -132,7 +132,7 @@ const playSong = (
       newItems.every(
         (item, index) => item.songId === sortedOldItems[index].songId
       ) && state.currentlyPlayingId === newCurrentlyPlayingId;
-    if (isSameState) return {};
+    if (isSameState) return { isPlaying: true };
     fetch(`/api/queue/play`, {
       method: 'POST',
       body: JSON.stringify({
