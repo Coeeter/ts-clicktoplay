@@ -34,7 +34,7 @@ export const useQueueStore = create<QueueState & QueueActions>()(
       ...initialState,
       setQueue: queue => set(setQueue(queue)),
       setIsPlaying: isPlaying => set(setIsPlaying(isPlaying)),
-      playNext: () => set(playNext),
+      playNext: (force) => set(playNext(force)),
       playPrev: () => set(playPrev),
       playPlaylist: (playlist, songId) => set(playPlaylist(playlist, songId)),
       playSong: (song, songs) => set(playSong(song, songs)),

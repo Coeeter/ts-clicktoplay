@@ -10,6 +10,7 @@ import {
   MdSkipNext,
   MdSkipPrevious,
 } from 'react-icons/md';
+import { TbRepeatOff, TbRepeat, TbRepeatOnce } from 'react-icons/tb';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type SongPlayerProps = {
@@ -24,6 +25,7 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
   const isPlaying = useQueueStore(state => state.isPlaying);
   const currentTime = useQueueStore(state => state.currentTime);
   const volume = useQueueStore(state => state.volume);
+  const repeatMode = useQueueStore(state => state.repeatMode);
   const currentQueueItem = useQueueStore(state =>
     state.items.find(item => item.id === state.currentlyPlayingId)
   );
@@ -32,23 +34,25 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
   const setCurrentTime = useQueueStore(state => state.setCurrentTime);
   const playNext = useQueueStore(state => state.playNext);
   const playPrev = useQueueStore(state => state.playPrev);
+  const setRepeatMode = useQueueStore(state => state.setRepeat);
 
   const currentSong = songs.find(song => song.id === currentQueueItem?.songId);
-  const hasNextSong = currentQueueItem?.nextId !== null;
-  const hasPrevSong = currentQueueItem?.prevId !== null;
+  const hasNextSong = currentQueueItem?.nextId !== null || repeatMode === 'ALL';
+  const hasPrevSong = currentQueueItem?.prevId !== null || repeatMode === 'ALL';
   const percent = useCallback(() => {
     if (!currentSong) return 0;
     return (currentTime / currentSong.duration) * 100;
   }, [currentSong?.duration, currentTime])();
 
   const ref = useRef<ReactPlayer>(null);
+  const currentTimeRef = useRef(currentTime);
 
   useEffect(() => {
     if (ref.current && userSeeking) {
-      console.log('seeking to', currentTime);
       ref.current.seekTo(currentTime, 'seconds');
       setUserSeeking(false);
     }
+    currentTimeRef.current = currentTime;
   }, [currentTime, userSeeking]);
 
   useEffect(() => {
@@ -58,16 +62,23 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
       }
       if (event.key === 'ArrowLeft') {
         setUserSeeking(true);
-        return setCurrentTime(Math.max(currentTime - 10, 0));
+        return setCurrentTime(Math.max(currentTimeRef.current - 10, 0));
       }
       if (event.key === 'ArrowRight') {
         if (!currentSong) return;
         setUserSeeking(true);
         return setCurrentTime(
-          Math.min(currentTime + 10, currentSong?.duration)
+          Math.min(currentTimeRef.current + 10, currentSong?.duration)
         );
       }
     };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  useEffect(() => {
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
     navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
     navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
@@ -75,20 +86,20 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
       setUserSeeking(true);
       playPrev();
     });
-    navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+    navigator.mediaSession.setActionHandler('nexttrack', () => playNext(true));
     navigator.mediaSession.setActionHandler('stop', () => setIsPlaying(false));
     navigator.mediaSession.setActionHandler('seekbackward', () => {
       setUserSeeking(true);
-      setCurrentTime(Math.max(currentTime - 10, 0));
+      setCurrentTime(Math.max(currentTimeRef.current - 10, 0));
     });
     navigator.mediaSession.setActionHandler('seekforward', () => {
       if (!currentSong) return;
       setUserSeeking(true);
-      setCurrentTime(Math.min(currentTime + 10, currentSong.duration));
+      setCurrentTime(
+        Math.min(currentTimeRef.current + 10, currentSong.duration)
+      );
     });
-    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
       navigator.mediaSession.setActionHandler('play', null);
       navigator.mediaSession.setActionHandler('pause', null);
       navigator.mediaSession.setActionHandler('previoustrack', null);
@@ -97,7 +108,7 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
       navigator.mediaSession.setActionHandler('seekbackward', null);
       navigator.mediaSession.setActionHandler('seekforward', null);
     };
-  }, [currentTime]);
+  }, []);
 
   useEffect(() => {
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -122,6 +133,26 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
     <div className="flex-1 flex flex-col justify-center items-center">
       <div className="flex gap-3">
         <button
+          className="text-lg text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
+          onClick={() => {
+            if (repeatMode === 'NONE') {
+              setRepeatMode('ALL');
+            } else if (repeatMode === 'ALL') {
+              setRepeatMode('ONE');
+            } else {
+              setRepeatMode('NONE');
+            }
+          }}
+        >
+          {repeatMode === 'NONE' ? (
+            <TbRepeatOff />
+          ) : repeatMode === 'ALL' ? (
+            <TbRepeat />
+          ) : (
+            <TbRepeatOnce />
+          )}
+        </button>
+        <button
           className="text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
           disabled={!hasPrevSong}
           onClick={() => {
@@ -140,7 +171,7 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
         <button
           className="text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
           disabled={!hasNextSong}
-          onClick={() => playNext()}
+          onClick={() => playNext(true)}
         >
           <MdSkipNext />
         </button>
@@ -180,7 +211,10 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
         ref={ref}
         url={currentSong.url}
         playing={isPlaying}
-        onEnded={() => playNext()}
+        onEnded={() => {
+          if (repeatMode === 'ONE') setUserSeeking(true);
+          playNext();
+        }}
         onProgress={e => {
           if (isUserDragging) return;
           setCurrentTime(e.playedSeconds);

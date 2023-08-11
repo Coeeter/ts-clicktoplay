@@ -2,7 +2,7 @@
 
 import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { MdVolumeMute, MdVolumeDown, MdVolumeUp } from 'react-icons/md';
 
 export const VolumeTrackbar = () => {
@@ -11,28 +11,35 @@ export const VolumeTrackbar = () => {
   const setVolume = useQueueStore(state => state.setVolume);
   const currentQueueItemId = useQueueStore(state => state.currentlyPlayingId);
 
+  const volumeRef = useRef(volume);
+
+  useEffect(() => {
+    if (volumeRef.current === volume) return;
+    volumeRef.current = volume;
+  }, [volume]);
+
   useEffect(() => {
     const onKeyEvent = (event: KeyboardEvent) => {
       if (event.key === 'm') {
-        return setVolume(volume === 0 ? 50 : 0);
+        return setVolume(volumeRef.current === 0 ? 50 : 0);
       }
       if (event.key === 'ArrowUp') {
-        return setVolume(volume > 95 ? 100 : volume + 5);
+        return setVolume(Math.min(volumeRef.current + 5, 100));
       }
       if (event.key === 'ArrowDown') {
-        return setVolume(volume < 5 ? 0 : volume - 5);
+        return setVolume(Math.max(volumeRef.current - 5, 0));
       }
     };
     window.addEventListener('keydown', onKeyEvent);
     return () => window.removeEventListener('keydown', onKeyEvent);
-  }, [volume]);
+  }, []);
 
   if (!mounted || !currentQueueItemId) return null;
 
   return (
     <div className="flex items-center justify-end flex-1">
       <div
-        className="text-slate-300 mr-2"
+        className="text-xl text-slate-300 mr-2 cursor-pointer"
         onClick={() => {
           if (volume === 0) {
             setVolume(50);
@@ -42,11 +49,11 @@ export const VolumeTrackbar = () => {
         }}
       >
         {volume === 0 ? (
-          <MdVolumeMute size={18} />
+          <MdVolumeMute />
         ) : volume < 50 ? (
-          <MdVolumeDown size={18} />
+          <MdVolumeDown />
         ) : (
-          <MdVolumeUp size={18} />
+          <MdVolumeUp />
         )}
       </div>
       <input

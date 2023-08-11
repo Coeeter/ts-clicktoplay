@@ -30,18 +30,24 @@ const setCurrentlyPlayingId = (
   return { currentlyPlayingId, currentTime: 0 };
 };
 
-const playNext = (state: QueueState): Partial<QueueState> => {
-  const currentSong = state.items.find(
-    item => item.id === state.currentlyPlayingId
-  );
-  if (!currentSong) return {};
-  const nextSongId =
-    currentSong?.nextId ??
-    (state.repeatMode === 'ALL'
-      ? state.items.find(item => !item.prevId)?.id ?? null
-      : null);
-  if (!nextSongId) return {};
-  return setCurrentlyPlayingId(nextSongId);
+const playNext = (
+  force: boolean = false
+): ((state: QueueState) => Partial<QueueState>) => {
+  return state => {
+    const currentSong = state.items.find(
+      item => item.id === state.currentlyPlayingId
+    );
+    if (!currentSong) return {};
+    const nextSongId =
+      state.repeatMode === 'ONE' && !force
+        ? currentSong.id
+        : currentSong.nextId ??
+          (state.repeatMode === 'ALL'
+            ? state.items.find(item => !item.prevId)?.id ?? null
+            : null);
+    if (!nextSongId) return {};
+    return setCurrentlyPlayingId(nextSongId);
+  };
 };
 
 const playPrev = (state: QueueState): Partial<QueueState> => {
