@@ -45,10 +45,76 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
 
   useEffect(() => {
     if (ref.current && userSeeking) {
+      console.log('seeking to', currentTime);
       ref.current.seekTo(currentTime, 'seconds');
       setUserSeeking(false);
     }
   }, [currentTime, userSeeking]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === ' ') {
+        return setIsPlaying(!isPlaying);
+      }
+      if (event.key === 'ArrowLeft') {
+        setUserSeeking(true);
+        return setCurrentTime(Math.max(currentTime - 10, 0));
+      }
+      if (event.key === 'ArrowRight') {
+        if (!currentSong) return;
+        setUserSeeking(true);
+        return setCurrentTime(
+          Math.min(currentTime + 10, currentSong?.duration)
+        );
+      }
+    };
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+    navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
+    navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      setUserSeeking(true);
+      playPrev();
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+    navigator.mediaSession.setActionHandler('stop', () => setIsPlaying(false));
+    navigator.mediaSession.setActionHandler('seekbackward', () => {
+      setUserSeeking(true);
+      setCurrentTime(Math.max(currentTime - 10, 0));
+    });
+    navigator.mediaSession.setActionHandler('seekforward', () => {
+      if (!currentSong) return;
+      setUserSeeking(true);
+      setCurrentTime(Math.min(currentTime + 10, currentSong.duration));
+    });
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      navigator.mediaSession.setActionHandler('play', null);
+      navigator.mediaSession.setActionHandler('pause', null);
+      navigator.mediaSession.setActionHandler('previoustrack', null);
+      navigator.mediaSession.setActionHandler('nexttrack', null);
+      navigator.mediaSession.setActionHandler('stop', null);
+      navigator.mediaSession.setActionHandler('seekbackward', null);
+      navigator.mediaSession.setActionHandler('seekforward', null);
+    };
+  }, [currentTime]);
+
+  useEffect(() => {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentSong?.title ?? 'Unknown',
+      artist: currentSong?.artist ?? 'Unknown',
+      artwork: [
+        {
+          src: currentSong?.albumCover ?? '/album-cover.png',
+          sizes: '512x512',
+          type: 'image/png',
+        },
+      ],
+    });
+    return () => {
+      navigator.mediaSession.metadata = null;
+    };
+  }, [currentSong?.albumCover, currentSong?.artist, currentSong?.title]);
 
   if (!isMounted || !currentSong) return null;
 
@@ -56,7 +122,7 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
     <div className="flex-1 flex flex-col justify-center items-center">
       <div className="flex gap-3">
         <button
-          className="text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/50"
+          className="text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
           disabled={!hasPrevSong}
           onClick={() => {
             setUserSeeking(true);
@@ -72,7 +138,7 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
           {isPlaying ? <MdPauseCircle size={40} /> : <MdPlayCircle size={40} />}
         </button>
         <button
-          className="text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/50"
+          className="text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
           disabled={!hasNextSong}
           onClick={() => playNext()}
         >

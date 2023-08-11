@@ -2,6 +2,7 @@
 
 import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
+import { useEffect } from 'react';
 import { MdVolumeMute, MdVolumeDown, MdVolumeUp } from 'react-icons/md';
 
 export const VolumeTrackbar = () => {
@@ -9,6 +10,22 @@ export const VolumeTrackbar = () => {
   const volume = useQueueStore(state => state.volume);
   const setVolume = useQueueStore(state => state.setVolume);
   const currentQueueItemId = useQueueStore(state => state.currentlyPlayingId);
+
+  useEffect(() => {
+    const onKeyEvent = (event: KeyboardEvent) => {
+      if (event.key === 'm') {
+        return setVolume(volume === 0 ? 50 : 0);
+      }
+      if (event.key === 'ArrowUp') {
+        return setVolume(volume > 95 ? 100 : volume + 5);
+      }
+      if (event.key === 'ArrowDown') {
+        return setVolume(volume < 5 ? 0 : volume - 5);
+      }
+    };
+    window.addEventListener('keydown', onKeyEvent);
+    return () => window.removeEventListener('keydown', onKeyEvent);
+  }, [volume]);
 
   if (!mounted || !currentQueueItemId) return null;
 
