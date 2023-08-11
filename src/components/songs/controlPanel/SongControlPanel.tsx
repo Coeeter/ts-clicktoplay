@@ -14,5 +14,3 @@ export const SongControlPanel = async () => {
     </div>
   );
 };
-
-export const dynamic = 'full-dynamic';

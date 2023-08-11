@@ -10,7 +10,7 @@ import {
   MdSkipNext,
   MdSkipPrevious,
 } from 'react-icons/md';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type SongPlayerProps = {
   songs: Song[];
@@ -19,6 +19,7 @@ type SongPlayerProps = {
 export const SongPlayer = ({ songs }: SongPlayerProps) => {
   const isMounted = useMounted();
   const [userSeeking, setUserSeeking] = useState(false);
+  const [isUserDragging, setIsUserDragging] = useState(false);
 
   const isPlaying = useQueueStore(state => state.isPlaying);
   const currentTime = useQueueStore(state => state.currentTime);
@@ -35,6 +36,10 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
   const currentSong = songs.find(song => song.id === currentQueueItem?.songId);
   const hasNextSong = currentQueueItem?.nextId !== null;
   const hasPrevSong = currentQueueItem?.prevId !== null;
+  const percent = useCallback(() => {
+    if (!currentSong) return 0;
+    return (currentTime / currentSong.duration) * 100;
+  }, [currentSong?.duration, currentTime])();
 
   const ref = useRef<ReactPlayer>(null);
 
@@ -83,15 +88,20 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
           min={0}
           max={currentSong.duration}
           value={currentTime}
-          onChange={e => {
+          onChange={e => setCurrentTime(parseInt(e.target.value))}
+          onMouseDown={() => setIsUserDragging(true)}
+          onTouchStart={() => setIsUserDragging(true)}
+          onMouseUp={() => {
             setUserSeeking(true);
-            setCurrentTime(parseInt(e.target.value));
+            setIsUserDragging(false);
+          }}
+          onTouchEnd={() => {
+            setUserSeeking(true);
+            setIsUserDragging(false);
           }}
           className={`w-full cursor-pointer appearance-none h-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:accent-current rounded-lg focus:outline-none`}
           style={{
-            background: `linear-gradient(to right, #1D4ED8 ${
-              (currentTime / currentSong.duration) * 100
-            }%, #374047 ${(currentTime / currentSong.duration) * 100}%)`,
+            background: `linear-gradient(to right, #1D4ED8 ${percent}%, #374047 ${percent}%)`,
           }}
         />
         <div className="text-sm text-slate-300/50 text-center">
@@ -105,7 +115,10 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
         url={currentSong.url}
         playing={isPlaying}
         onEnded={() => playNext()}
-        onProgress={e => setCurrentTime(e.playedSeconds)}
+        onProgress={e => {
+          if (isUserDragging) return;
+          setCurrentTime(e.playedSeconds);
+        }}
         volume={volume / 100}
         width="0%"
         height="0%"
