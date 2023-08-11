@@ -19,7 +19,7 @@ const setIsPlaying = (isPlaying: boolean): Partial<QueueState> => {
 };
 
 const setCurrentlyPlayingId = (
-  currentlyPlayingId: string | null
+  currentlyPlayingId: string
 ): Partial<QueueState> => {
   fetch(`/api/queue`, {
     method: 'PUT',
@@ -36,9 +36,11 @@ const playNext = (state: QueueState): Partial<QueueState> => {
   );
   if (!currentSong) return {};
   const nextSongId =
-    currentSong?.nextId ?? state.repeatMode === 'ALL'
+    currentSong?.nextId ??
+    (state.repeatMode === 'ALL'
       ? state.items.find(item => !item.prevId)?.id ?? null
-      : null;
+      : null);
+  if (!nextSongId) return {};
   return setCurrentlyPlayingId(nextSongId);
 };
 
@@ -48,11 +50,13 @@ const playPrev = (state: QueueState): Partial<QueueState> => {
   );
   if (!currentSong) return {};
   const prevSongId =
-    state.currentTime > 5000
+    state.currentTime > 5
       ? state.currentlyPlayingId
-      : currentSong?.prevId ?? state.repeatMode === 'ALL'
-      ? state.items.find(item => !item.nextId)?.id ?? null
-      : null;
+      : currentSong?.prevId ??
+        (state.repeatMode === 'ALL'
+          ? state.items.find(item => !item.nextId)?.id ?? null
+          : null);
+  if (!prevSongId) return {};
   return setCurrentlyPlayingId(prevSongId);
 };
 

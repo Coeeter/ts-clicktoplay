@@ -13,7 +13,7 @@ export const VolumeTrackbar = () => {
   if (!mounted || !currentQueueItemId) return null;
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-end flex-1">
       <div
         className="text-slate-300 mr-2"
         onClick={() => {
@@ -38,7 +38,7 @@ export const VolumeTrackbar = () => {
         max="100"
         value={volume}
         onChange={e => setVolume(parseInt(e.target.value))}
-        className={`appearance-none w-24 h-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:accent-current rounded-lg focus:outline-none`}
+        className={`cursor-pointer appearance-none w-24 h-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:accent-current rounded-lg focus:outline-none`}
         style={{
           background: `linear-gradient(to right, #1D4ED8 ${volume}%, #374047 ${volume}%)`,
         }}

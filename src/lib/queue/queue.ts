@@ -101,19 +101,15 @@ export const playSong = async ({
 
 export const updateCurrentSongInQueue = async ({
   session,
-  currentSongId,
+  currentQueueItemId,
 }: UpdateCurrentSongInQueueProps): Promise<Queue> => {
-  const queue = await getQueue(session);
-  const { id, items } = queue;
-  const currentlyPlayingId = items.find(
-    item => item.songId === currentSongId
-  )?.id;
-  if (!currentlyPlayingId) {
-    throw new NotFoundError('Song not found in queue');
-  }
   return await prisma.queue.update({
-    where: { id },
-    data: { currentlyPlayingId },
+    where: {
+      id: session.user.id,
+    },
+    data: {
+      currentlyPlayingId: currentQueueItemId,
+    },
     include: {
       playlist: true,
       items: true,

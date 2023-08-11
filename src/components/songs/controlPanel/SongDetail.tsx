@@ -26,7 +26,7 @@ export const SongDetail = ({ songs }: SongDetailProps) => {
   const { id, title, artist, albumCover } = currentSong;
 
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-3 flex-1">
       <div className="w-16 aspect-square rounded-md overflow-hidden">
         <img
           src={albumCover ?? '/album-cover.png'}

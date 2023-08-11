@@ -14,7 +14,7 @@ export const PUT = protectedApiRoute(async (req, session) => {
   }
   const result = await updateCurrentSongInQueue({
     session: session!,
-    currentSongId: body.currentlyPlayingId,
+    currentQueueItemId: body.currentlyPlayingId,
   });
   return createJsonResponse(result);
 });

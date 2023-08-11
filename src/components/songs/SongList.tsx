@@ -1,4 +1,5 @@
 'use client';
+
 import { Song } from '@prisma/client';
 import { SongItem } from './SongItem';
 import { useQueueStore } from '@/store/QueueStore';
@@ -9,7 +10,7 @@ export const SongList = ({ songs }: { songs: Song[] }) => {
   const createToast = useToastStore(state => state.createToast);
 
   return (
-    <div className="flex flex-wrap gap-3 justify-center mb-3">
+    <div className="flex flex-wrap gap-3 justify-center">
       {songs.map(song => (
         <SongItem
           key={song.id}

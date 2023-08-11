@@ -29,10 +29,10 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className="bg-slate-900 antialiased text-slate-400 min-h-screen">
+      <body className="bg-slate-900 antialiased text-slate-400 min-h-screen no-scrollbar">
         <MainProvider session={session} queue={queue}>
-          <div className="flex flex-col min-h-screen">
-            <div className="flex relative flex-1 p-3 gap-3">
+          <div className="min-h-screen flex flex-col">
+            <div className="flex relative p-3 gap-3 flex-1">
               <Sidebar />
               <div className="flex flex-col w-full gap-3">
                 <Navbar />

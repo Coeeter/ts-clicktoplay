@@ -23,7 +23,7 @@ export const Sidebar = async () => {
   const playlists = session ? await getCreatedPlaylists(session) : [];
 
   return (
-    <div className="w-1/4 gap-3 flex flex-col sticky top-0">
+    <div className="w-1/4 gap-3 flex flex-col sticky top-3 bottom-3 max-h-[calc(100vh-7rem)]">
       <div className="flex flex-col bg-slate-800 rounded-md px-4 py-3 gap-3">
         {sidebarItems.map(sidebarItem => (
           <SidebarItem key={sidebarItem.name} {...sidebarItem} />

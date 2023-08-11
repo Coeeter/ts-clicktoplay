@@ -21,7 +21,7 @@ export type PlaySongProps = {
 
 export type UpdateCurrentSongInQueueProps = {
   session: Session;
-  currentSongId: SongId;
+  currentQueueItemId: QueueItemId;
 };
 
 export type InsertSongsToQueueProps = {
