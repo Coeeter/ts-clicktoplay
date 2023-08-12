@@ -2,8 +2,10 @@ import { Session } from 'next-auth';
 import { prisma } from '../database';
 import {
   BadRequestError,
+  LinkedList,
   NotFoundError,
   checkLinkedListNodesAreInOrder,
+  checkLinkedListsAreEqual,
   sortLinkedList,
 } from '@/utils';
 import {
@@ -64,7 +66,9 @@ export const playPlaylist = async ({
       ),
       items: {
         deleteMany: {},
-        create: createQueueItems(songIds, session.user.id),
+        createMany: {
+          data: createQueueItems(songIds, session.user.id),
+        },
       },
       playlistId,
     },
@@ -80,15 +84,26 @@ export const playSong = async ({
   songId,
   songIds,
 }: PlaySongProps): Promise<Queue> => {
+  const { items } = await getQueue(session);
+  const newItems = createQueueItems(songIds, session.user.id);
+  const newCurrentlyPlayingId = generateQueueItemId(session.user.id, songId);
+  if (checkLinkedListsAreEqual(items, newItems as LinkedList, false)) {
+    return await updateCurrentSongInQueue({
+      session,
+      currentQueueItemId: newCurrentlyPlayingId,
+    });
+  }
   return await prisma.queue.update({
     where: {
       id: session.user.id,
     },
     data: {
-      currentlyPlayingId: generateQueueItemId(session.user.id, songId),
+      currentlyPlayingId: newCurrentlyPlayingId,
       items: {
         deleteMany: {},
-        create: createQueueItems(songIds, session.user.id),
+        createMany: {
+          data: newItems,
+        },
       },
       playlistId: null,
     },
@@ -139,7 +154,9 @@ export const insertSongsToQueue = async ({
       where: { id },
       data: {
         items: {
-          create: newItems,
+          createMany: {
+            data: newItems,
+          },
         },
       },
     }),
@@ -405,10 +422,12 @@ export const updateQueueSettings = async ({
         : {
             items: {
               deleteMany: {},
-              create: sortedItems.map(item => ({
-                ...item,
-                queueId: undefined,
-              })),
+              createMany: {
+                data: sortedItems.map(item => ({
+                  ...item,
+                  queueId: undefined,
+                })),
+              },
             },
           }),
       shuffle: isShuffled === undefined ? shuffle : isShuffled,
