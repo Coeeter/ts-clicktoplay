@@ -1,4 +1,4 @@
-type LinkedListNode = {
+export type LinkedListNode = {
   id: string;
   nextId: string | null;
   prevId: string | null;
@@ -6,7 +6,7 @@ type LinkedListNode = {
   shuffledPrevId?: string | null;
 };
 
-type LinkedList = LinkedListNode[];
+export type LinkedList = LinkedListNode[];
 
 export const sortLinkedList = <T>(
   linkedList: T extends LinkedList ? T : never,
@@ -54,4 +54,22 @@ export const checkLinkedListNodesAreInOrder = <T>(
       node[nextIdKey] !== sortedLinkedList[index + 1].id
     );
   });
+};
+
+export const checkLinkedListsAreEqual = <T>(
+  linkedList1: LinkedList,
+  linkedList2: LinkedList,
+  isSorted: boolean = false,
+  firstItemId: string | null = null,
+  useShuffledValue: boolean = false
+): boolean => {
+  const sortedLinkedList1 = isSorted
+    ? linkedList1
+    : sortLinkedList(linkedList1, firstItemId, useShuffledValue);
+  const sortedLinkedList2 = isSorted
+    ? linkedList2
+    : sortLinkedList(linkedList2, firstItemId, useShuffledValue);
+  return sortedLinkedList1.every(
+    (node, index) => node.id === sortedLinkedList2[index].id
+  );
 };

@@ -13,7 +13,6 @@ import {
 } from 'react-icons/md';
 import { TbRepeat, TbRepeatOnce } from 'react-icons/tb';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Spinner } from '@/components/Spinner';
 
 type SongPlayerProps = {
   songs: Song[];
@@ -57,7 +56,7 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
   useEffect(() => {
     if (!ref.current) return;
     ref.current.forceUpdate();
-  }, [disabled])
+  }, [disabled]);
 
   useEffect(() => {
     if (ref.current && userSeeking) {
