@@ -7,6 +7,8 @@ import { useToastStore } from '@/store/ToastStore';
 
 export const SongList = ({ songs }: { songs: Song[] }) => {
   const playSong = useQueueStore(state => state.playSong);
+  const shuffle = useQueueStore(state => state.shuffle);
+  const setShuffle = useQueueStore(state => state.setShuffle);
   const createToast = useToastStore(state => state.createToast);
 
   return (
@@ -21,6 +23,7 @@ export const SongList = ({ songs }: { songs: Song[] }) => {
                 song.id,
                 songs.map(s => s.id)
               );
+              if (shuffle) setShuffle(true);
             } catch (e) {
               createToast(
                 (e as any).message ?? 'Unknown error has occurred',

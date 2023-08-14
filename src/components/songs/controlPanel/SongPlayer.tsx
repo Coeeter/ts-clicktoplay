@@ -66,77 +66,16 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
     currentTimeRef.current = currentTime;
   }, [currentTime, userSeeking]);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === ' ') {
-        return setIsPlaying(!isPlaying);
-      }
-      if (event.key === 'ArrowLeft') {
-        setUserSeeking(true);
-        return setCurrentTime(Math.max(currentTimeRef.current - 10, 0));
-      }
-      if (event.key === 'ArrowRight') {
-        if (!currentSong) return;
-        setUserSeeking(true);
-        return setCurrentTime(
-          Math.min(currentTimeRef.current + 10, currentSong?.duration)
-        );
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
-  useEffect(() => {
-    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
-    navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
-    navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-      setUserSeeking(true);
-      playPrev();
-    });
-    navigator.mediaSession.setActionHandler('nexttrack', () => playNext(true));
-    navigator.mediaSession.setActionHandler('stop', () => setIsPlaying(false));
-    navigator.mediaSession.setActionHandler('seekbackward', () => {
-      setUserSeeking(true);
-      setCurrentTime(Math.max(currentTimeRef.current - 10, 0));
-    });
-    navigator.mediaSession.setActionHandler('seekforward', () => {
-      if (!currentSong) return;
-      setUserSeeking(true);
-      setCurrentTime(
-        Math.min(currentTimeRef.current + 10, currentSong.duration)
-      );
-    });
-    return () => {
-      navigator.mediaSession.setActionHandler('play', null);
-      navigator.mediaSession.setActionHandler('pause', null);
-      navigator.mediaSession.setActionHandler('previoustrack', null);
-      navigator.mediaSession.setActionHandler('nexttrack', null);
-      navigator.mediaSession.setActionHandler('stop', null);
-      navigator.mediaSession.setActionHandler('seekbackward', null);
-      navigator.mediaSession.setActionHandler('seekforward', null);
-    };
-  }, []);
-
-  useEffect(() => {
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: currentSong?.title ?? 'Unknown',
-      artist: currentSong?.artist ?? 'Unknown',
-      artwork: [
-        {
-          src: currentSong?.albumCover ?? '/album-cover.png',
-          sizes: '512x512',
-          type: 'image/png',
-        },
-      ],
-    });
-    return () => {
-      navigator.mediaSession.metadata = null;
-    };
-  }, [currentSong?.albumCover, currentSong?.artist, currentSong?.title]);
+  useEventListeners(
+    setIsPlaying,
+    isPlaying,
+    currentSong,
+    setUserSeeking,
+    setCurrentTime,
+    currentTimeRef,
+    playPrev,
+    playNext
+  );
 
   return (
     <div className="flex-1 flex flex-col justify-center items-center">
@@ -259,3 +198,168 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
     </div>
   );
 };
+
+function useEventListeners(
+  setIsPlaying: (isPlaying: boolean) => void,
+  isPlaying: boolean,
+  currentSong: Song | undefined,
+  setUserSeeking: (seeking: boolean) => void,
+  setCurrentTime: (time: number) => void,
+  currentTimeRef: React.MutableRefObject<number>,
+  playPrev: (force?: boolean | undefined) => void,
+  playNext: (force?: boolean | undefined) => void
+) {
+  useKeyEvent(
+    setIsPlaying,
+    isPlaying,
+    currentSong,
+    setUserSeeking,
+    setCurrentTime,
+    currentTimeRef
+  );
+  useMediaSession(
+    setIsPlaying,
+    playPrev,
+    playNext,
+    setUserSeeking,
+    setCurrentTime,
+    currentTimeRef,
+    currentSong,
+    isPlaying
+  );
+}
+
+function useKeyEvent(
+  setIsPlaying: (isPlaying: boolean) => void,
+  isPlaying: boolean,
+  currentSong: Song | undefined,
+  setUserSeeking: (seeking: boolean) => void,
+  setCurrentTime: (time: number) => void,
+  currentTimeRef: React.MutableRefObject<number>
+) {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement) return;
+      if (event.key === ' ') {
+        return setIsPlaying(!isPlaying);
+      }
+      if (event.key === 'ArrowLeft') {
+        if (!currentSong) return;
+        setUserSeeking(true);
+        return setCurrentTime(Math.max(currentTimeRef.current - 10, 0));
+      }
+      if (event.key === 'ArrowRight') {
+        if (!currentSong) return;
+        setUserSeeking(true);
+        return setCurrentTime(
+          Math.min(currentTimeRef.current + 10, currentSong?.duration)
+        );
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+}
+
+function useMediaSession(
+  setIsPlaying: (isPlaying: boolean) => void,
+  playPrev: (force?: boolean | undefined) => void,
+  playNext: (force?: boolean | undefined) => void,
+  setUserSeeking: (seeking: boolean) => void,
+  setCurrentTime: (time: number) => void,
+  currentTimeRef: React.MutableRefObject<number>,
+  currentSong: Song | undefined,
+  isPlaying: boolean
+) {
+  useEffect(() => {
+    const actionHandles = getActionHandles(
+      setIsPlaying,
+      playPrev,
+      playNext,
+      setUserSeeking,
+      setCurrentTime,
+      currentTimeRef,
+      currentSong
+    );
+
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+    navigator.mediaSession.metadata = getMetadata(currentSong);
+    actionHandles.forEach(({ action, callback }) => {
+      navigator.mediaSession.setActionHandler(action, callback);
+    });
+
+    return () => {
+      navigator.mediaSession.metadata = null;
+      navigator.mediaSession.playbackState = 'none';
+      actionHandles.forEach(({ action }) => {
+        navigator.mediaSession.setActionHandler(action, null);
+      });
+    };
+  }, [currentSong]);
+}
+
+function getMetadata(currentSong: Song | undefined): MediaMetadata | null {
+  if (!currentSong) return null;
+  return new MediaMetadata({
+    title: currentSong?.title ?? 'Unknown',
+    artist: currentSong?.artist ?? 'Unknown',
+    artwork: [
+      {
+        src: currentSong?.albumCover ?? '/album-cover.png',
+        sizes: '512x512',
+        type: `image/${currentSong?.albumCover?.split('.').pop() ?? 'png'}`,
+      },
+    ],
+  });
+}
+
+function getActionHandles(
+  setIsPlaying: (isPlaying: boolean) => void,
+  playPrev: (force?: boolean | undefined) => void,
+  playNext: (force?: boolean | undefined) => void,
+  setUserSeeking: (seeking: boolean) => void,
+  setCurrentTime: (time: number) => void,
+  currentTimeRef: React.MutableRefObject<number>,
+  currentSong: Song | undefined
+): { action: MediaSessionAction; callback: () => void }[] {
+  return [
+    {
+      action: 'play',
+      callback: () => setIsPlaying(true),
+    },
+    {
+      action: 'pause',
+      callback: () => setIsPlaying(false),
+    },
+    {
+      action: 'previoustrack',
+      callback: () => playPrev(true),
+    },
+    {
+      action: 'nexttrack',
+      callback: () => playNext(true),
+    },
+    {
+      action: 'stop',
+      callback: () => setIsPlaying(false),
+    },
+    {
+      action: 'seekbackward',
+      callback: () => {
+        setUserSeeking(true);
+        setCurrentTime(Math.max(currentTimeRef.current - 10, 0));
+      },
+    },
+    {
+      action: 'seekforward',
+      callback: () => {
+        setUserSeeking(true);
+        setCurrentTime(
+          Math.min(currentTimeRef.current + 10, currentSong!.duration)
+        );
+      },
+    },
+  ];
+}
