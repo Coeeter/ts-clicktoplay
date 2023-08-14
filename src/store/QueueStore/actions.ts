@@ -52,22 +52,26 @@ const playNext = (
   };
 };
 
-const playPrev = (state: QueueState): Partial<QueueState> => {
-  const currentSong = state.items.find(
-    item => item.id === state.currentlyPlayingId
-  );
-  if (!currentSong) return {};
-  const nextSongKey = state.shuffle ? 'shuffledNextId' : 'nextId';
-  const prevSongKey = state.shuffle ? 'shuffledPrevId' : 'prevId';
-  const prevSongId =
-    state.currentTime > 5
-      ? state.currentlyPlayingId
-      : currentSong[prevSongKey] ??
-        (state.repeatMode === 'ALL'
-          ? state.items.find(item => !item[nextSongKey])?.id ?? null
-          : null);
-  if (!prevSongId) return {};
-  return setCurrentlyPlayingId(prevSongId);
+const playPrev = (
+  force: boolean = false
+): ((state: QueueState) => Partial<QueueState>) => {
+  return state => {
+    const currentSong = state.items.find(
+      item => item.id === state.currentlyPlayingId
+    );
+    if (!currentSong) return {};
+    const nextSongKey = state.shuffle ? 'shuffledNextId' : 'nextId';
+    const prevSongKey = state.shuffle ? 'shuffledPrevId' : 'prevId';
+    const prevSongId =
+      state.currentTime > 5 && !force
+        ? state.currentlyPlayingId
+        : currentSong[prevSongKey] ??
+          (state.repeatMode === 'ALL'
+            ? state.items.find(item => !item[nextSongKey])?.id ?? null
+            : null);
+    if (!prevSongId) return {};
+    return setCurrentlyPlayingId(prevSongId);
+  };
 };
 
 const playPlaylist = (
