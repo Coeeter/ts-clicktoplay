@@ -1,10 +1,10 @@
-import { Queue } from '@/lib/queue';
+import { Queue, QueueItemId } from '@/lib/queue';
 import { QueueState } from './types';
 import { Playlist } from '@/lib/playlist';
 import { SongId } from '@/lib/songs';
 import { sortLinkedList } from '@/utils/linkedList';
 import { createQueueItems, generateQueueItemId } from '@/lib/queue/helper';
-import { RepeatMode } from '@prisma/client';
+import { QueueItem, RepeatMode } from '@prisma/client';
 import { initialState } from './QueueStore';
 
 const setQueue = (queue: Queue): Partial<QueueState> => {
@@ -227,6 +227,70 @@ const clearQueue = (): Partial<QueueState> => {
   };
 };
 
+function findMovedItem<T>(originalList: T[], modifiedList: T[]): { index: number, item: T } | null {
+  let movedIndex: number | null = null;
+
+  originalList.forEach((originalItem, index) => {
+      if (originalItem !== modifiedList[index]) {
+          movedIndex = index;
+      }
+  });
+
+  if (movedIndex !== null) {
+      return { index: movedIndex, item: originalList[movedIndex] };
+  } else {
+      return null;
+  }
+}
+
+
+const reorderItems = (
+  reorderedItems: QueueItem[],
+): ((state: QueueState) => Partial<QueueState>) => {
+  return state => {
+    const { item: movedItem } = findMovedItem(state.items, reorderedItems)!;
+    const prevId = movedItem.prevId;
+    const nextId = movedItem.nextId;
+    // fetch(`/api/queue/reorder`, {
+    //   method: 'POST',
+    //   body: JSON.stringify({
+    //     songIds: [movedItem.songId],
+    //     prevId,
+    //     nextId,
+    //   }),
+    // });
+    const newItems = sortLinkedList(
+      state.items.map(item => {
+        const nextIdKey = state.shuffle ? 'shuffledNextId' : 'nextId';
+        const prevIdKey = state.shuffle ? 'shuffledPrevId' : 'prevId';
+        if (item.id === prevId) {
+          return {
+            ...item,
+            [nextIdKey]: reorderedItems[0],
+          };
+        }
+        if (item.id === nextId) {
+          return {
+            ...item,
+            [prevIdKey]: reorderedItems[reorderedItems.length - 1],
+          };
+        }
+        if (item.id === movedItem.id) {
+          return {
+            ...item,
+            [prevIdKey]: prevId,
+            [nextIdKey]: nextId,
+          }
+        }
+        return item;
+      })
+    );
+    return {
+      items: newItems,
+    };
+  };
+};
+
 export {
   setQueue,
   setIsPlaying,
@@ -240,4 +304,5 @@ export {
   setShuffle,
   setRepeat,
   clearQueue,
+  reorderItems,
 };

@@ -7,6 +7,7 @@ import {
   playPlaylist,
   playPrev,
   playSong,
+  reorderItems,
   setCurrentTime,
   setCurrentlyPlayingId,
   setIsPlaying,
@@ -45,6 +46,7 @@ export const useQueueStore = create<QueueState & QueueActions>()(
       setRepeat: repeat => set(setRepeat(repeat)),
       clearQueue: () => set(clearQueue),
       resetState: () => set(initialState),
+      reorderItems: (queueItems) => set(reorderItems(queueItems)),
     }),
     {
       name: 'queue-store',
