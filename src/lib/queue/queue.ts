@@ -284,8 +284,8 @@ export const moveSongsInQueue = async ({
     throw new NotFoundError('nextId not found in queue');
   }
   if (
-    (newPrevItem && newPrevItem[nextIdKey] !== newNextItem?.id) ||
-    (newNextItem && newNextItem[prevIdKey] !== newPrevItem?.id)
+    (newPrevItem && newPrevItem[nextIdKey] !== (newNextItem?.id ?? null)) ||
+    (newNextItem && newNextItem[prevIdKey] !== (newPrevItem?.id ?? null))
   ) {
     throw new BadRequestError('Invalid nextId or prevId');
   }
@@ -306,38 +306,54 @@ export const moveSongsInQueue = async ({
         [nextIdKey]: nextId,
       },
     }),
-    prisma.queueItem.update({
-      where: {
-        id: newPrevItem?.id,
-      },
-      data: {
-        [nextIdKey]: firstItem.id,
-      },
-    }),
-    prisma.queueItem.update({
-      where: {
-        id: newNextItem?.id,
-      },
-      data: {
-        [prevIdKey]: lastItem.id,
-      },
-    }),
-    prisma.queueItem.update({
-      where: {
-        id: oldPrevItem?.id,
-      },
-      data: {
-        [nextIdKey]: lastItem[nextIdKey],
-      },
-    }),
-    prisma.queueItem.update({
-      where: {
-        id: oldNextItem?.id,
-      },
-      data: {
-        [prevIdKey]: firstItem[prevIdKey],
-      },
-    }),
+    ...(newPrevItem
+      ? [
+          prisma.queueItem.update({
+            where: {
+              id: newPrevItem.id,
+            },
+            data: {
+              [nextIdKey]: firstItem.id,
+            },
+          }),
+        ]
+      : []),
+    ...(newNextItem
+      ? [
+          prisma.queueItem.update({
+            where: {
+              id: newNextItem.id,
+            },
+            data: {
+              [prevIdKey]: lastItem.id,
+            },
+          }),
+        ]
+      : []),
+    ...(oldPrevItem
+      ? [
+          prisma.queueItem.update({
+            where: {
+              id: oldPrevItem.id,
+            },
+            data: {
+              [nextIdKey]: lastItem[nextIdKey],
+            },
+          }),
+        ]
+      : []),
+    ...(oldNextItem
+      ? [
+          prisma.queueItem.update({
+            where: {
+              id: oldNextItem?.id,
+            },
+            data: {
+              [prevIdKey]: firstItem[prevIdKey],
+            },
+          }),
+        ]
+      : []),
   ]);
   return await getQueue(session);
 };

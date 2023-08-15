@@ -7,6 +7,7 @@ type QueuItemProps = {
   song: Song;
   isCurrentItem: boolean;
   listOrder: number;
+  isDragging: boolean;
 };
 
 export const QueueItem = ({
@@ -14,6 +15,7 @@ export const QueueItem = ({
   isCurrentItem,
   song,
   listOrder,
+  isDragging,
 }: QueuItemProps) => {
   const isPlaying = useQueueStore(state => state.isPlaying && isCurrentItem);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
@@ -26,6 +28,7 @@ export const QueueItem = ({
       key={queueItem.id}
       className={`w-full cursor-pointer flex items-center justify-between py-2 px-6 rounded-md transition-colors bg-slate-900 hover:bg-slate-700 group `}
       onClick={() => {
+        if (isDragging) return;
         if (isCurrentItem) return setIsPlaying(!isPlaying);
         setCurrentlyPlayingId(queueItem.id);
         setIsPlaying(true);

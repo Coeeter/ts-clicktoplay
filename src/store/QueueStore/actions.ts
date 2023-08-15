@@ -1,10 +1,10 @@
-import { Queue } from '@/lib/queue';
+import { Queue, QueueItemId } from '@/lib/queue';
 import { QueueState } from './types';
 import { Playlist } from '@/lib/playlist';
 import { SongId } from '@/lib/songs';
 import { sortLinkedList } from '@/utils/linkedList';
 import { createQueueItems, generateQueueItemId } from '@/lib/queue/helper';
-import { RepeatMode } from '@prisma/client';
+import { QueueItem, RepeatMode } from '@prisma/client';
 import { initialState } from './QueueStore';
 
 const setQueue = (queue: Queue): Partial<QueueState> => {
@@ -227,6 +227,39 @@ const clearQueue = (): Partial<QueueState> => {
   };
 };
 
+const reorderItems = (
+  reorderedItems: QueueItem[],
+  prevId: QueueItemId | null,
+  nextId: QueueItemId | null,
+  newOrder: QueueItem[]
+): ((state: QueueState) => Partial<QueueState>) => {
+  return state => {
+    fetch(`/api/queue/reorder`, {
+      method: 'POST',
+      body: JSON.stringify({
+        songIds: reorderedItems.map(item => item.songId),
+        prevId,
+        nextId,
+      }),
+    });
+    const newItems = createQueueItems(
+      newOrder.map(item => item.songId),
+      state.queueId!
+    ).map((item, index) => ({
+      id: item.id!,
+      prevId: state.shuffle ? newOrder[index].prevId ?? null : item.prevId!,
+      nextId: state.shuffle ? newOrder[index].nextId ?? null : item.nextId!,
+      songId: item.songId!,
+      queueId: state.queueId!,
+      shuffledNextId: state.shuffle ? item.nextId! : null,
+      shuffledPrevId: state.shuffle ? item.prevId! : null,
+    }));
+    return {
+      items: newItems,
+    };
+  };
+};
+
 export {
   setQueue,
   setIsPlaying,
@@ -240,4 +273,5 @@ export {
   setShuffle,
   setRepeat,
   clearQueue,
+  reorderItems,
 };
