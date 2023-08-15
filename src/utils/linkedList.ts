@@ -13,6 +13,9 @@ export const sortLinkedList = <T>(
   firstItemId: string | null = null,
   useShuffledValue: boolean = false
 ): T => {
+  if (linkedList.length <= 1) {
+    return linkedList as T;
+  }
   const nodeById: { [key: string]: LinkedListNode } = {};
   for (const node of linkedList) {
     nodeById[node.id] = node;
@@ -24,7 +27,7 @@ export const sortLinkedList = <T>(
   );
   let currentItem = firstItem;
   const sortedLinkedList: LinkedList = [];
-  while (currentItem) {
+  while (currentItem && sortedLinkedList.length < linkedList.length) {
     sortedLinkedList.push(currentItem);
     currentItem = nodeById[currentItem[nextIdKey] || ''];
   }
@@ -42,7 +45,7 @@ export const checkLinkedListNodesAreInOrder = <T>(
     : sortLinkedList(linkedList, firstItemId, useShuffledValue);
   const nextIdKey = useShuffledValue ? 'shuffledNextId' : 'nextId';
   const prevIdKey = useShuffledValue ? 'shuffledPrevId' : 'prevId';
-  return !sortedLinkedList.some((node, index) => {
+  return linkedList.length <= 1 || !sortedLinkedList.some((node, index) => {
     if (index === 0) {
       return node[nextIdKey] !== sortedLinkedList[index + 1].id;
     }

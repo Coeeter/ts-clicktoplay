@@ -2,24 +2,27 @@
 
 import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
-import { sortLinkedList } from '@/utils/linkedList';
 import { Song } from '@prisma/client';
 import { Reorder } from 'framer-motion';
 import { QueueItem } from './QueueItem';
 import { useEffect, useState } from 'react';
+import { sortLinkedList } from '@/utils/linkedList';
+import { QueueItemId } from '@/lib/queue';
 
 type QueueListProps = {
   songs: Song[];
 };
 
 export const QueueList = ({ songs }: QueueListProps) => {
+  const [currentlyDragging, setCurrentlyDragging] = useState<null | string>(
+    null
+  );
   const [isDragging, setIsDragging] = useState(false);
   const isMounted = useMounted();
-  const items = useQueueStore(state =>
-    sortLinkedList(state.items, null, state.shuffle)
-  );
+  const items = useQueueStore(state => state.items);
   const currentlyPlayingId = useQueueStore(state => state.currentlyPlayingId);
   const reorderItems = useQueueStore(state => state.reorderItems);
+  const shuffle = useQueueStore(state => state.shuffle);
 
   const currentlyPlayingQueueItem = items.find(
     item => item.id === currentlyPlayingId
@@ -31,12 +34,52 @@ export const QueueList = ({ songs }: QueueListProps) => {
   const [nextPlayingItems, setNextPlayingItems] = useState(items);
 
   useEffect(() => {
-    setNextPlayingItems(
-      items.splice(items.findIndex(item => item.id === currentlyPlayingId) + 1)
+    const sortedItems = sortLinkedList(items, null, shuffle);
+    const currentlyPlayingIndex = sortedItems.findIndex(
+      item => item.id === currentlyPlayingId
     );
-  }, [currentlyPlayingId]);
+    setNextPlayingItems(sortedItems.splice(currentlyPlayingIndex + 1));
+  }, [items, currentlyPlayingId, shuffle]);
 
   if (!isMounted) return null;
+
+  const onDragStart = (queueItemId: QueueItemId) => {
+    return () => {
+      setCurrentlyDragging(queueItemId);
+      setIsDragging(true);
+    };
+  };
+
+  const onDragEnd = () => {
+    try {
+      setIsDragging(false);
+      if (!currentlyDragging) return;
+      const currentlyDraggingItem = items.find(
+        item => item.id === currentlyDragging
+      );
+      if (!currentlyDraggingItem) return;
+      const index = nextPlayingItems.findIndex(
+        item => item.id === currentlyDragging
+      );
+      const prevId =
+        index === 0
+          ? currentlyPlayingQueueItem?.id ?? null
+          : nextPlayingItems[index - 1].id;
+      const nextId =
+        index === nextPlayingItems.length - 1
+          ? null
+          : nextPlayingItems[index + 1].id;
+      const indexOfCurrentlyPlayingItem = items.findIndex(
+        item => item.id === currentlyPlayingId
+      );
+      reorderItems([currentlyDraggingItem], prevId, nextId, [
+        ...items.splice(0, indexOfCurrentlyPlayingItem + 1),
+        ...nextPlayingItems,
+      ]);
+    } finally {
+      setCurrentlyDragging(null);
+    }
+  };
 
   return (
     <>
@@ -75,8 +118,8 @@ export const QueueList = ({ songs }: QueueListProps) => {
                   value={queueItem}
                   key={queueItem.id}
                   className="flex"
-                  onDragStart={() => setIsDragging(true)}
-                  onDragEnd={() => setIsDragging(false)}
+                  onDragStart={onDragStart(queueItem.id)}
+                  onDragEnd={onDragEnd}
                 >
                   <QueueItem
                     queueItem={queueItem}

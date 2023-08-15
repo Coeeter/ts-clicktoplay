@@ -227,64 +227,33 @@ const clearQueue = (): Partial<QueueState> => {
   };
 };
 
-function findMovedItem<T>(originalList: T[], modifiedList: T[]): { index: number, item: T } | null {
-  let movedIndex: number | null = null;
-
-  originalList.forEach((originalItem, index) => {
-      if (originalItem !== modifiedList[index]) {
-          movedIndex = index;
-      }
-  });
-
-  if (movedIndex !== null) {
-      return { index: movedIndex, item: originalList[movedIndex] };
-  } else {
-      return null;
-  }
-}
-
-
 const reorderItems = (
   reorderedItems: QueueItem[],
+  prevId: QueueItemId | null,
+  nextId: QueueItemId | null,
+  newOrder: QueueItem[]
 ): ((state: QueueState) => Partial<QueueState>) => {
   return state => {
-    const { item: movedItem } = findMovedItem(state.items, reorderedItems)!;
-    const prevId = movedItem.prevId;
-    const nextId = movedItem.nextId;
-    // fetch(`/api/queue/reorder`, {
-    //   method: 'POST',
-    //   body: JSON.stringify({
-    //     songIds: [movedItem.songId],
-    //     prevId,
-    //     nextId,
-    //   }),
-    // });
-    const newItems = sortLinkedList(
-      state.items.map(item => {
-        const nextIdKey = state.shuffle ? 'shuffledNextId' : 'nextId';
-        const prevIdKey = state.shuffle ? 'shuffledPrevId' : 'prevId';
-        if (item.id === prevId) {
-          return {
-            ...item,
-            [nextIdKey]: reorderedItems[0],
-          };
-        }
-        if (item.id === nextId) {
-          return {
-            ...item,
-            [prevIdKey]: reorderedItems[reorderedItems.length - 1],
-          };
-        }
-        if (item.id === movedItem.id) {
-          return {
-            ...item,
-            [prevIdKey]: prevId,
-            [nextIdKey]: nextId,
-          }
-        }
-        return item;
-      })
-    );
+    fetch(`/api/queue/reorder`, {
+      method: 'POST',
+      body: JSON.stringify({
+        songIds: reorderedItems.map(item => item.songId),
+        prevId,
+        nextId,
+      }),
+    });
+    const newItems = createQueueItems(
+      newOrder.map(item => item.songId),
+      state.queueId!
+    ).map((item, index) => ({
+      id: item.id!,
+      prevId: state.shuffle ? newOrder[index].prevId ?? null : item.prevId!,
+      nextId: state.shuffle ? newOrder[index].nextId ?? null : item.nextId!,
+      songId: item.songId!,
+      queueId: state.queueId!,
+      shuffledNextId: state.shuffle ? item.nextId! : null,
+      shuffledPrevId: state.shuffle ? item.prevId! : null,
+    }));
     return {
       items: newItems,
     };

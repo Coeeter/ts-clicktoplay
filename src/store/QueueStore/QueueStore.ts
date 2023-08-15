@@ -46,7 +46,7 @@ export const useQueueStore = create<QueueState & QueueActions>()(
       setRepeat: repeat => set(setRepeat(repeat)),
       clearQueue: () => set(clearQueue),
       resetState: () => set(initialState),
-      reorderItems: (queueItems) => set(reorderItems(queueItems)),
+      reorderItems: (...args) => set(reorderItems(...args)),
     }),
     {
       name: 'queue-store',
