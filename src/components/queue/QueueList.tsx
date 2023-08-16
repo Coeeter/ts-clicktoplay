@@ -118,6 +118,7 @@ export const QueueList = ({ songs }: QueueListProps) => {
                   value={queueItem}
                   key={queueItem.id}
                   className="flex"
+                  whileDrag={{ scale: 1.05 }}
                   onDragStart={onDragStart(queueItem.id)}
                   onDragEnd={onDragEnd}
                 >
