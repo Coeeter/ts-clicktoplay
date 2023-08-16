@@ -12,7 +12,8 @@ import { SongControlPanel } from '@/components/songs/controlPanel/SongControlPan
 export const metadata: Metadata = {
   title: 'ClickToPlay',
   icons: {
-    icon: './favicon.ico',
+    icon: '/brand/favicon.ico',
+    apple: '/brand/favicon.ico',
   },
   description: 'Listen to music easily, anywhere',
   keywords: ['music', 'streaming', 'listen', 'songs', 'albums', 'artists'],

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getServerSession } from '@/lib/auth';
 import { NavbarItem, NavbarItemProps } from './NavbarItem';
 import { ProfileButton } from './ProfileButton';
+import Image from 'next/image';
 
 export const Navbar = async () => {
   const session = await getServerSession();
@@ -15,6 +16,13 @@ export const Navbar = async () => {
     <nav className="bg-slate-800 text-slate-300 rounded-md">
       <div className="mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center">
+          <Image
+            src="/brand/icon.png"
+            alt="ClickToPlay"
+            width={32}
+            height={32}
+            className="w-8 h-8 mr-2"
+          />
           <Link href="/" className="text-3xl text-slate-200 font-bold">
             ClickToPlay
           </Link>
