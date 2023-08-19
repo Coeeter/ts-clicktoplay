@@ -4,10 +4,32 @@ import { Song } from '@prisma/client';
 import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
 import { useRef } from 'react';
+import { useContextMenuStore } from '@/store/ContextMenuStore';
 
 type SongItemProps = {
   song: Song;
   playSong: () => void;
+};
+
+const getContextMenuItems = (playSong: () => void) => {
+  return [
+    {
+      label: 'Play',
+      onClick: playSong,
+    },
+    {
+      label: 'Add to Queue',
+      onClick: () => {},
+    },
+    {
+      label: 'Add to Playlist',
+      onClick: () => {},
+    },
+    {
+      label: 'Add to Library',
+      onClick: () => {},
+    },
+  ];
 };
 
 export const SongItem = ({ song, playSong }: SongItemProps) => {
@@ -21,9 +43,16 @@ export const SongItem = ({ song, playSong }: SongItemProps) => {
   const albumCover = song.albumCover ?? '/album-cover.png';
   const artist = song.artist?.length ? song.artist : 'Unknown';
 
+  const showContextMenu = useContextMenuStore(state => state.openContextMenu);
+
   return (
     <Link
       href={`/songs/${song.id}`}
+      onContextMenu={e => {
+        e.preventDefault();
+        e.stopPropagation();
+        showContextMenu(e.pageX, e.pageY, getContextMenuItems(playSong));
+      }}
       onClick={e => {
         e.preventDefault();
         if (

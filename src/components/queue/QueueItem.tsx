@@ -1,3 +1,4 @@
+import { useContextMenuStore } from '@/store/ContextMenuStore';
 import { useQueueStore } from '@/store/QueueStore';
 import { QueueItem as QueueItemType, Song } from '@prisma/client';
 import { HiPause, HiPlay } from 'react-icons/hi2';
@@ -23,6 +24,8 @@ export const QueueItem = ({
     state => state.setCurrentlyPlayingId
   );
 
+  const showContextMenu = useContextMenuStore(state => state.openContextMenu);
+
   return (
     <button
       key={queueItem.id}
@@ -32,6 +35,31 @@ export const QueueItem = ({
         if (isCurrentItem) return setIsPlaying(!isPlaying);
         setCurrentlyPlayingId(queueItem.id);
         setIsPlaying(true);
+      }}
+      onContextMenu={e => {
+        e.preventDefault();
+        e.stopPropagation();
+        showContextMenu(e.pageX, e.pageY, [
+          {
+            label: 'Play',
+            onClick: () => {
+              setCurrentlyPlayingId(queueItem.id);
+              setIsPlaying(true);
+            },
+          },
+          {
+            label: 'Add to Queue',
+            onClick: () => {},
+          },
+          {
+            label: 'Add to Playlist',
+            onClick: () => {},
+          },
+          {
+            label: 'Add to Library',
+            onClick: () => {},
+          },
+        ]);
       }}
     >
       <div className="flex items-center gap-6">

@@ -8,6 +8,7 @@ import { getQueue } from '@/lib/queue';
 import { Toast } from '@/components/Toast';
 import { MainProvider } from '@/components/providers/MainProvider';
 import { SongControlPanel } from '@/components/songs/controlPanel/SongControlPanel';
+import { ContextMenu } from '@/components/ContextMenu';
 
 export const metadata: Metadata = {
   title: 'ClickToPlay',
@@ -40,6 +41,7 @@ export default async function RootLayout({
                 <main className='p-6'>{children}</main>
               </div>
             </div>
+            <ContextMenu />
             <Toast />
             <SongControlPanel />
           </div>
