@@ -1,15 +1,15 @@
 'use client';
 
+import { useTimeout } from '@/hooks/useTimeout';
 import { useToastStore, Toast as ToastType } from '@/store/ToastStore';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect } from 'react';
 import { MdCheck, MdClose, MdError, MdWarning } from 'react-icons/md';
 
 export const Toast = () => {
   const toasts = useToastStore(state => state.toasts);
 
   return (
-    <div className="flex flex-col gap-3 absolute bottom-[6.25rem] right-3">
+    <div className="flex flex-col gap-3 fixed bottom-[6.25rem] right-3">
       <AnimatePresence>
         {toasts.map(toast => (
           <ToastItem key={toast.id} toast={toast} />
@@ -21,15 +21,7 @@ export const Toast = () => {
 
 const ToastItem = ({ toast }: { toast: ToastType }) => {
   const hideToast = useToastStore(state => state.removeToast);
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      hideToast(toast);
-    }, toast.duration ?? 5000);
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [toast]);
+  useTimeout(() => hideToast(toast), toast.duration ?? 5000);
 
   const icon =
     toast.mode == 'error' ? (

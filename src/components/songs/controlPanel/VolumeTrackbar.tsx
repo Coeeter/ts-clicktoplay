@@ -24,13 +24,17 @@ export const VolumeTrackbar = () => {
 
   useEffect(() => {
     const onKeyEvent = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement) return;
       if (event.key === 'm') {
+        event.preventDefault();
         return setVolume(volumeRef.current === 0 ? 50 : 0);
       }
       if (event.key === 'ArrowUp') {
+        event.preventDefault();
         return setVolume(Math.min(volumeRef.current + 5, 100));
       }
       if (event.key === 'ArrowDown') {
+        event.preventDefault();
         return setVolume(Math.max(volumeRef.current - 5, 0));
       }
     };

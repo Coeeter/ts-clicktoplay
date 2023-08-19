@@ -69,17 +69,19 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement) return;
-      event.preventDefault();
       if (event.key === ' ') {
+        event.preventDefault();
         return setIsPlaying(!isPlaying);
       }
       if (event.key === 'ArrowLeft') {
         if (!currentSong) return;
+        event.preventDefault();
         setUserSeeking(true);
         return setCurrentTime(Math.max(currentTimeRef.current - 10, 0));
       }
       if (event.key === 'ArrowRight') {
         if (!currentSong) return;
+        event.preventDefault();
         setUserSeeking(true);
         return setCurrentTime(
           Math.min(currentTimeRef.current + 10, currentSong?.duration)
