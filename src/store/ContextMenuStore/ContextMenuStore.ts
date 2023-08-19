@@ -10,17 +10,14 @@ export const useContextMenuStore = create<ContextMenuStore>(set => ({
     horizontal: 'left',
   },
   openContextMenu: (x, y, menuItems) =>
-    set(state => {
-      console.log(x, y)
-      return {
-        isOpen: true,
-        position: { x, y },
-        transformOrigin: {
-          vertical: y > window.innerHeight - 200 ? 'bottom' : 'top',
-          horizontal: x > window.innerWidth - 200 ? 'right' : 'left',
-        },
-        menuItems,
-      }
+    set({
+      isOpen: true,
+      position: { x, y },
+      transformOrigin: {
+        vertical: y > window.innerHeight - 200 ? 'bottom' : 'top',
+        horizontal: x > window.innerWidth - 200 ? 'right' : 'left',
+      },
+      menuItems,
     }),
   closeContextMenu: () =>
     set({

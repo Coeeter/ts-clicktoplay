@@ -110,7 +110,9 @@ export const QueueItem = ({
             >
               {song.title}
             </span>
-            <span className="text-sm text-slate-300/50">{song.artist}</span>
+            <span className="text-sm text-slate-300/50">
+              {song.artist?.length ? song.artist : 'Unknown'}
+            </span>
           </div>
         </div>
       </div>
