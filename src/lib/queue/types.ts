@@ -31,7 +31,7 @@ export type InsertSongsToQueueProps = {
 
 export type RemoveSongsFromQueueProps = {
   session: Session;
-  songIds: SongId[];
+  queueItemIds: QueueItemId[];
 };
 
 export type MoveSongsInQueueProps = {

@@ -59,13 +59,16 @@ export const checkLinkedListNodesAreInOrder = <T>(
   });
 };
 
-export const checkLinkedListsAreEqual = <T>(
+export const checkLinkedListsAreEqual = (
   linkedList1: LinkedList,
   linkedList2: LinkedList,
   isSorted: boolean = false,
   firstItemId: string | null = null,
   useShuffledValue: boolean = false
 ): boolean => {
+  if (linkedList1.length !== linkedList2.length) {
+    return false;
+  }
   const sortedLinkedList1 = isSorted
     ? linkedList1
     : sortLinkedList(linkedList1, firstItemId, useShuffledValue);

@@ -5,13 +5,18 @@ import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
 import { useRef } from 'react';
 import { useContextMenuStore } from '@/store/ContextMenuStore';
+import { useQueueStore } from '@/store/QueueStore';
 
 type SongItemProps = {
   song: Song;
   playSong: () => void;
 };
 
-const getContextMenuItems = (playSong: () => void) => {
+const getContextMenuItems = (
+  songId: string,
+  playSong: () => void,
+  addToQueue: (song: string) => void
+) => {
   return [
     {
       label: 'Play',
@@ -19,7 +24,7 @@ const getContextMenuItems = (playSong: () => void) => {
     },
     {
       label: 'Add to Queue',
-      onClick: () => {},
+      onClick: () => addToQueue(songId),
     },
     {
       label: 'Add to Playlist',
@@ -44,6 +49,7 @@ export const SongItem = ({ song, playSong }: SongItemProps) => {
   const artist = song.artist?.length ? song.artist : 'Unknown';
 
   const showContextMenu = useContextMenuStore(state => state.openContextMenu);
+  const addToQueue = useQueueStore(state => state.addSongToQueue);
 
   return (
     <Link
@@ -51,7 +57,11 @@ export const SongItem = ({ song, playSong }: SongItemProps) => {
       onContextMenu={e => {
         e.preventDefault();
         e.stopPropagation();
-        showContextMenu(e.pageX, e.pageY, getContextMenuItems(playSong));
+        showContextMenu(
+          e.pageX,
+          e.pageY,
+          getContextMenuItems(song.id, playSong, addToQueue)
+        );
       }}
       onClick={e => {
         e.preventDefault();

@@ -30,4 +30,6 @@ export type QueueActions = {
     nextId: QueueItemId | null,
     newOrder: QueueItem[]
   ) => void;
+  addSongToQueue: (songId: SongId) => void;
+  removeSongFromQueue: (queueItemId: QueueItemId) => void;
 };

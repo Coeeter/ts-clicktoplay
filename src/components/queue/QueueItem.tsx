@@ -20,6 +20,7 @@ export const QueueItem = ({
 }: QueuItemProps) => {
   const isPlaying = useQueueStore(state => state.isPlaying && isCurrentItem);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
+  const removeFromQueue = useQueueStore(state => state.removeSongFromQueue);
   const setCurrentlyPlayingId = useQueueStore(
     state => state.setCurrentlyPlayingId
   );
@@ -48,7 +49,15 @@ export const QueueItem = ({
             },
           },
           {
-            label: 'Add to Queue',
+            label: 'Remove from Queue',
+            onClick: () => removeFromQueue(queueItem.id),
+          },
+          {
+            label: 'Play Next',
+            onClick: () => {},
+          },
+          {
+            label: 'Play Last',
             onClick: () => {},
           },
           {
@@ -56,7 +65,7 @@ export const QueueItem = ({
             onClick: () => {},
           },
           {
-            label: 'Add to Library',
+            label: 'Add to Favorites',
             onClick: () => {},
           },
         ]);
