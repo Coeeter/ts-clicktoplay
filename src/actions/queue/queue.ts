@@ -1,5 +1,5 @@
 import { Session } from 'next-auth';
-import { prisma } from '../database';
+import { prisma } from '../../lib/database';
 import {
   BadRequestError,
   LinkedList,
@@ -119,12 +119,17 @@ export const updateCurrentSongInQueue = async ({
   session,
   currentQueueItemId,
 }: UpdateCurrentSongInQueueProps): Promise<Queue> => {
+  const { items } = await getQueue(session);
+  const currentItem = items.find(item => item.id === currentQueueItemId);
+  if (!currentItem) {
+    throw new NotFoundError('Song not found in queue');
+  }
   return await prisma.queue.update({
     where: {
       id: session.user.id,
     },
     data: {
-      currentlyPlayingId: currentQueueItemId,
+      currentlyPlayingId: currentItem.id,
     },
     include: {
       playlist: true,
@@ -279,16 +284,16 @@ export const removeSongsFromQueue = async ({
 
 export const moveSongsInQueue = async ({
   session,
-  songIds,
+  queueItemIds,
   nextId,
   prevId,
 }: MoveSongsInQueueProps): Promise<Queue> => {
   const queue = await getQueue(session);
   const { items, shuffle } = queue;
-  const songsToMove = songIds.map(songId => {
-    const item = items.find(item => item.songId === songId);
+  const songsToMove = queueItemIds.map(id => {
+    const item = items.find(item => item.id === id);
     if (!item) {
-      throw new NotFoundError(`Song ${songId} not found in queue`);
+      throw new NotFoundError(`Queue Item ${id} not found in queue`);
     }
     return item;
   });

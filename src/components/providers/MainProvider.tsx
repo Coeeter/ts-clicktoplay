@@ -1,6 +1,6 @@
 'use client';
 
-import { Queue } from '@/lib/queue';
+import { Queue } from '@/actions/queue';
 import { useQueueStore } from '@/store/QueueStore';
 import { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';

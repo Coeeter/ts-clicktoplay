@@ -1,4 +1,4 @@
-import { getSongs } from '@/lib/songs';
+import { getSongs } from '@/actions/songs';
 import { SongDetail } from './SongDetail';
 import { VolumeTrackbar } from './VolumeTrackbar';
 import { SongPlayer } from './SongPlayer';

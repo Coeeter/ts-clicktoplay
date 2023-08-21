@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
-import { deleteFileFromS3, getPresignedUploadUrl } from '../s3';
-import { prisma } from '../database';
+import { deleteFileFromS3, getPresignedUploadUrl } from '../../lib/s3';
+import { prisma } from '../../lib/database';
 import { ForbiddenError, NotFoundError } from '@/utils/response';
 import {
   CreateSongProps,
@@ -40,7 +40,7 @@ export const createSong = async (createSongProps: CreateSongProps) => {
   });
 };
 
-export const getUpdateFileUploadUrl = async ({
+export const getUpdateAlbumCoverUploadUrl = async ({
   id,
   fileType,
   extension,

@@ -3,7 +3,7 @@ import { MdHome, MdSearch } from 'react-icons/md';
 
 import { getServerSession } from '@/lib/auth';
 import { SidebarItem, SidebarItemProps } from './SidebarItem';
-import { getCreatedPlaylists } from '@/lib/playlist/playlist';
+import { getCreatedPlaylists } from '@/actions/playlist/playlist';
 
 const sidebarItems: SidebarItemProps[] = [
   {

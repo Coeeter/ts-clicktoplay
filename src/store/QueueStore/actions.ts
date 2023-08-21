@@ -1,9 +1,9 @@
-import { Queue, QueueItemId } from '@/lib/queue';
+import { Queue, QueueItemId } from '@/actions/queue';
 import { QueueState } from './types';
-import { Playlist } from '@/lib/playlist';
-import { SongId } from '@/lib/songs';
+import { Playlist } from '@/actions/playlist';
+import { SongId } from '@/actions/songs';
 import { sortLinkedList } from '@/utils/linkedList';
-import { createQueueItems, generateQueueItemId } from '@/lib/queue/helper';
+import { createQueueItems, generateQueueItemId } from '@/actions/queue/helper';
 import { QueueItem, RepeatMode } from '@prisma/client';
 import { initialState } from './QueueStore';
 
@@ -238,7 +238,7 @@ const reorderItems = (
     fetch(`/api/queue/reorder`, {
       method: 'POST',
       body: JSON.stringify({
-        songIds: reorderedItems.map(item => item.songId),
+        queueItemIds: reorderedItems.map(item => item.id),
         prevId,
         nextId,
       }),

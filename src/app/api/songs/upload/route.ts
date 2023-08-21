@@ -1,19 +1,21 @@
-import { createSong, getSongFileUploadUrl } from '@/lib/songs';
-import {
-  createJsonResponse,
-  extractSearchParams,
-  protectedApiRoute,
-} from '@/utils';
+import { createSong, getSongFileUploadUrl } from '@/actions/songs';
+import { createSongSchema, getUploadUrlSchema } from '@/schema/song';
+import { extractSearchParams, protectedApiRoute, zodParse } from '@/utils';
 
-export const GET = protectedApiRoute(async req => {
-  const url = await getSongFileUploadUrl(extractSearchParams(req.url));
-  return createJsonResponse({ url });
-});
+export const GET = protectedApiRoute(async req => ({
+  body: {
+    url: await getSongFileUploadUrl(
+      zodParse(getUploadUrlSchema)(extractSearchParams(req.url))
+    ),
+  },
+}));
 
-export const POST = protectedApiRoute(async (req, session) => {
-  const { id } = await createSong({
-    ...(await req.json()),
-    session: session!,
-  });
-  return createJsonResponse({ id });
-});
+export const POST = protectedApiRoute(async (req, session) => ({
+  status: 201,
+  body: {
+    id: await createSong({
+      session: session!,
+      ...zodParse(createSongSchema)(await req.json()),
+    }),
+  },
+}));
