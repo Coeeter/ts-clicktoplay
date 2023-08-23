@@ -37,6 +37,17 @@ export const ContextMenu = () => {
     };
   }, [closeMenu]);
 
+  useEffect(() => {
+    const onContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      closeMenu();
+    }
+    window.addEventListener('contextmenu', onContextMenu);
+    return () => {
+      window.removeEventListener('contextmenu', onContextMenu);
+    }
+  }, [])
+
   return (
     <div
       ref={ref}
