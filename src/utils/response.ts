@@ -16,66 +16,83 @@ export const createJsonResponse = (
 };
 
 export const createErrorResponse = (
-  error: string,
+  error: string | { error: any },
   status: number = 500,
   responseInit?: ResponseInit
 ) => {
-  return createJsonResponse({ error }, status, responseInit);
+  if (typeof error === 'string') {
+    error = { error };
+  }
+  return createJsonResponse(error, status, responseInit);
 };
 
 export const createUnauthorizedResponse = (
-  error: string = 'You must be logged in to perform this action',
+  error:
+    | string
+    | { error: any } = 'You must be logged in to perform this action',
   responseInit?: ResponseInit
 ) => {
   return createErrorResponse(error, 401, responseInit);
 };
 
 export const createNotFoundResponse = (
-  error: string = 'Not found',
+  error: string | { error: any } = 'Not found',
   responseInit?: ResponseInit
 ) => {
   return createErrorResponse(error, 404, responseInit);
 };
 
 export const createForbiddenResponse = (
-  error: string = 'You are not allowed to perform this action',
+  error: string | { error: any } = 'You are not allowed to perform this action',
   responseInit?: ResponseInit
 ) => {
   return createErrorResponse(error, 403, responseInit);
 };
 
 export class ApiError extends Error {
-  constructor(message: string, public status: number = 500) {
-    super(message);
+  error: string | { error: any };
+
+  constructor(error: string | { error: any }, public status: number = 500) {
+    if (typeof error === 'string') {
+      error = { error };
+    }
+    super(error.error);
+    this.error = error;
   }
 
   getResponse() {
-    return createErrorResponse(this.message, this.status);
+    return createErrorResponse(this.error, this.status);
   }
 }
 
 export class BadRequestError extends ApiError {
-  constructor(message: string = 'Bad request') {
-    super(message, 400);
+  constructor(error: string | { error: any } = 'Bad request') {
+    super(error, 400);
   }
 }
 
 export class UnauthorizedError extends ApiError {
   constructor(
-    message: string = 'You must be logged in to perform this action'
+    error:
+      | string
+      | { error: any } = 'You must be logged in to perform this action'
   ) {
-    super(message, 401);
+    super(error, 401);
   }
 }
 
 export class ForbiddenError extends ApiError {
-  constructor(message: string = 'You are not allowed to perform this action') {
-    super(message, 403);
+  constructor(
+    error:
+      | string
+      | { error: any } = 'You are not allowed to perform this action'
+  ) {
+    super(error, 403);
   }
 }
 
 export class NotFoundError extends ApiError {
-  constructor(message: string = 'Not found') {
-    super(message, 404);
+  constructor(error: string | { error: any } = 'Not found') {
+    super(error, 404);
   }
 }

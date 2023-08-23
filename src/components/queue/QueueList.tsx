@@ -7,7 +7,7 @@ import { Reorder } from 'framer-motion';
 import { QueueItem } from './QueueItem';
 import { useEffect, useState } from 'react';
 import { sortLinkedList } from '@/utils/linkedList';
-import { QueueItemId } from '@/lib/queue';
+import { QueueItemId } from '@/actions/queue';
 
 type QueueListProps = {
   songs: Song[];
@@ -54,6 +54,7 @@ export const QueueList = ({ songs }: QueueListProps) => {
     try {
       setIsDragging(false);
       if (!currentlyDragging) return;
+      if (nextPlayingItems.length <= 1) return;
       const currentlyDraggingItem = items.find(
         item => item.id === currentlyDragging
       );

@@ -1,6 +1,6 @@
-import { Playlist } from '@/lib/playlist';
-import { Queue, QueueItemId } from '@/lib/queue';
-import { SongId } from '@/lib/songs';
+import { Playlist } from '@/actions/playlist';
+import { Queue, QueueItemId } from '@/actions/queue';
+import { SongId } from '@/actions/songs';
 import { QueueItem, RepeatMode } from '@prisma/client';
 
 export type QueueState = Omit<Queue, 'id' | 'playlist'> & {
@@ -30,4 +30,6 @@ export type QueueActions = {
     nextId: QueueItemId | null,
     newOrder: QueueItem[]
   ) => void;
+  addSongToQueue: (songId: SongId) => void;
+  removeSongFromQueue: (queueItemId: QueueItemId) => void;
 };

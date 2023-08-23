@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { Sidebar } from '@/components/navigation/sidebar/Sidebar';
 import { Navbar } from '@/components/navigation/navbar/Navbar';
 import { getServerSession } from '@/lib/auth';
-import { getQueue } from '@/lib/queue';
+import { getQueue } from '@/actions/queue';
 import { Toast } from '@/components/Toast';
 import { MainProvider } from '@/components/providers/MainProvider';
 import { SongControlPanel } from '@/components/songs/controlPanel/SongControlPanel';
@@ -38,7 +38,7 @@ export default async function RootLayout({
               <Sidebar />
               <div className="flex flex-col w-full gap-3">
                 <Navbar />
-                <main className='p-6'>{children}</main>
+                <main className="p-6">{children}</main>
               </div>
             </div>
             <ContextMenu />

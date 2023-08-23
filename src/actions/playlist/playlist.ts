@@ -1,5 +1,5 @@
 import { Session } from 'next-auth';
-import { prisma } from '../database';
+import { prisma } from '../../lib/database';
 import {
   AddSongsToPlaylistProps,
   CreatePlaylistProps,

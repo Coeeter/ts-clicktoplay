@@ -1,28 +1,29 @@
-import { getUpdateFileUploadUrl, updateSong } from '@/lib/songs';
-import {
-  createJsonResponse,
-  extractSearchParams,
-  protectedApiRoute,
-} from '@/utils';
+import { getUpdateAlbumCoverUploadUrl, updateSong } from '@/actions/songs';
+import { getUploadImageUrlSchema, updateSongSchema } from '@/schema/song';
+import { extractSearchParams, protectedApiRoute, zodParse } from '@/utils';
 
 export const GET = protectedApiRoute<{ id: string }>(
-  async (req, session, params) => {
-    const url = await getUpdateFileUploadUrl({
-      ...extractSearchParams(req.url),
-      id: params?.id,
-      session: session!,
-    });
-    return createJsonResponse({ url });
-  }
+  async (req, session, params) => ({
+    body: {
+      url: await getUpdateAlbumCoverUploadUrl({
+        session: session!,
+        ...zodParse(getUploadImageUrlSchema)({
+          ...extractSearchParams(req.url),
+          ...params,
+        }),
+      }),
+    },
+  })
 );
 
 export const PUT = protectedApiRoute<{ id: string }>(
-  async (req, session, params) => {
-    const result = await updateSong({
-      ...(await req.json()),
-      id: params?.id,
+  async (req, session, params) => ({
+    body: await updateSong({
       session: session!,
-    });
-    return createJsonResponse(result);
-  }
+      ...zodParse(updateSongSchema)({
+        ...extractSearchParams(req.url),
+        ...params,
+      }),
+    }),
+  })
 );

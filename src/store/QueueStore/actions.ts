@@ -1,9 +1,9 @@
-import { Queue, QueueItemId } from '@/lib/queue';
+import { Queue, QueueItemId } from '@/actions/queue';
 import { QueueState } from './types';
-import { Playlist } from '@/lib/playlist';
-import { SongId } from '@/lib/songs';
+import { Playlist } from '@/actions/playlist';
+import { SongId } from '@/actions/songs';
 import { sortLinkedList } from '@/utils/linkedList';
-import { createQueueItems, generateQueueItemId } from '@/lib/queue/helper';
+import { createQueueItems, generateQueueItemId } from '@/actions/queue/helper';
 import { QueueItem, RepeatMode } from '@prisma/client';
 import { initialState } from './QueueStore';
 
@@ -96,8 +96,8 @@ const playPlaylist = (
         state.queueId!
       ).map(item => ({
         id: item.id!,
-        prevId: item.prevId!,
-        nextId: item.nextId!,
+        prevId: item.prevId ?? null,
+        nextId: item.nextId ?? null,
         songId: item.songId!,
         queueId: state.queueId!,
         shuffledNextId: null,
@@ -105,7 +105,8 @@ const playPlaylist = (
       })),
       currentlyPlayingId: generateQueueItemId(
         state.queueId,
-        songId ?? items[0].id
+        songId ?? items[0].id,
+        1
       ),
       currentTime: 0,
       isPlaying: true,
@@ -123,14 +124,14 @@ const playSong = (
     }
     const newItems = createQueueItems(songs, state.queueId!).map(item => ({
       id: item.id!,
-      prevId: item.prevId!,
-      nextId: item.nextId!,
+      prevId: item.prevId ?? null,
+      nextId: item.nextId ?? null,
       songId: item.songId!,
       queueId: state.queueId!,
       shuffledNextId: null,
       shuffledPrevId: null,
     }));
-    const newCurrentlyPlayingId = generateQueueItemId(state.queueId!, song);
+    const newCurrentlyPlayingId = generateQueueItemId(state.queueId!, song, 1);
     if (state.items.length) {
       const sortedOldItems = sortLinkedList(state.items);
       const isSameState =
@@ -149,7 +150,7 @@ const playSong = (
     return {
       playlistId: null,
       items: newItems,
-      currentlyPlayingId: generateQueueItemId(state.queueId!, song),
+      currentlyPlayingId: newCurrentlyPlayingId,
       currentTime: 0,
       isPlaying: true,
     };
@@ -237,7 +238,7 @@ const reorderItems = (
     fetch(`/api/queue/reorder`, {
       method: 'POST',
       body: JSON.stringify({
-        songIds: reorderedItems.map(item => item.songId),
+        queueItemIds: reorderedItems.map(item => item.id),
         prevId,
         nextId,
       }),
@@ -260,6 +261,87 @@ const reorderItems = (
   };
 };
 
+const addSongToQueue = (
+  songId: SongId
+): ((state: QueueState) => Partial<QueueState>) => {
+  return state => {
+    if (!state.queueId) {
+      throw new Error('Must be logged in to add songs to queue');
+    }
+    fetch(`/api/queue/add`, {
+      method: 'POST',
+      body: JSON.stringify({
+        songId,
+      }),
+    });
+    const sortedItems = sortLinkedList(state.items, null, state.shuffle);
+    const count = sortedItems.filter(item => item.songId === songId).length;
+    const newQueueItemId = generateQueueItemId(
+      state.queueId,
+      songId,
+      count + 1
+    );
+    const prevItem = sortedItems.find(item => !item.nextId);
+    if (prevItem) prevItem.nextId = newQueueItemId;
+    const prevShuffledItem = state.shuffle
+      ? sortedItems.find(item => !item.shuffledNextId)
+      : null;
+    if (prevShuffledItem) prevShuffledItem.shuffledNextId = newQueueItemId;
+    sortedItems.push({
+      id: newQueueItemId,
+      prevId: prevItem?.id ?? null,
+      nextId: null,
+      songId,
+      queueId: state.queueId,
+      shuffledNextId: null,
+      shuffledPrevId: state.shuffle ? prevShuffledItem?.id ?? null : null,
+    });
+    return {
+      items: sortedItems,
+    };
+  };
+};
+
+const removeSongFromQueue = (
+  queueItemId: QueueItemId
+): ((state: QueueState) => Partial<QueueState>) => {
+  return state => {
+    if (!state.queueId) {
+      throw new Error('Must be logged in to remove songs from queue');
+    }
+    fetch(`/api/queue/remove`, {
+      method: 'POST',
+      body: JSON.stringify({
+        queueItemId,
+      }),
+    });
+    const nextIdKey = state.shuffle ? 'shuffledNextId' : 'nextId';
+    const prevIdKey = state.shuffle ? 'shuffledPrevId' : 'prevId';
+    const prevItem = state.items.find(item => item[nextIdKey] === queueItemId);
+    const nextItem = state.items.find(item => item[prevIdKey] === queueItemId);
+    const newItems = state.items
+      .filter(item => item.id !== queueItemId)
+      .map(item => {
+        if (item.id === prevItem?.id) {
+          return {
+            ...item,
+            [nextIdKey]: nextItem?.id ?? null,
+          };
+        }
+        if (item.id === nextItem?.id) {
+          return {
+            ...item,
+            [prevIdKey]: prevItem?.id ?? null,
+          };
+        }
+        return item;
+      });
+    return {
+      items: newItems,
+    };
+  };
+};
+
 export {
   setQueue,
   setIsPlaying,
@@ -274,4 +356,6 @@ export {
   setRepeat,
   clearQueue,
   reorderItems,
+  addSongToQueue,
+  removeSongFromQueue,
 };

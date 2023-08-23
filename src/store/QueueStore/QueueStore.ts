@@ -2,11 +2,13 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { QueueActions, QueueState } from './types';
 import {
+  addSongToQueue,
   clearQueue,
   playNext,
   playPlaylist,
   playPrev,
   playSong,
+  removeSongFromQueue,
   reorderItems,
   setCurrentTime,
   setCurrentlyPlayingId,
@@ -47,6 +49,8 @@ export const useQueueStore = create<QueueState & QueueActions>()(
       clearQueue: () => set(clearQueue),
       resetState: () => set(initialState),
       reorderItems: (...args) => set(reorderItems(...args)),
+      addSongToQueue: songId => set(addSongToQueue(songId)),
+      removeSongFromQueue: queueItemId => set(removeSongFromQueue(queueItemId)),
     }),
     {
       name: 'queue-store',
