@@ -4,7 +4,7 @@ import { Song } from '@prisma/client';
 import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
 import { useRef } from 'react';
-import { useContextMenuStore } from '@/store/ContextMenuStore';
+import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { useQueueStore } from '@/store/QueueStore';
 
 type SongItemProps = {
@@ -16,7 +16,7 @@ const getContextMenuItems = (
   songId: string,
   playSong: () => void,
   addToQueue: (song: string) => void
-) => {
+): ContextMenuItem[] => {
   return [
     {
       label: 'Play',
@@ -29,6 +29,20 @@ const getContextMenuItems = (
     {
       label: 'Add to Playlist',
       onClick: () => {},
+      subMenu: [
+        {
+          label: 'Playlist 1',
+          onClick: () => {},
+        },
+        {
+          label: 'Playlist 2',
+          onClick: () => {},
+        },
+        {
+          label: 'Playlist 3',
+          onClick: () => {},
+        },
+      ]
     },
     {
       label: 'Add to Library',
