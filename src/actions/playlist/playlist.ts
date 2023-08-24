@@ -117,28 +117,24 @@ export const addSongsToPlaylist = async ({
   const lastItem = items.find(item => !item.nextId);
   const playlistItems = createPlaylistItems(songIds, playlistId);
   playlistItems[0].prevId = lastItem?.id;
-  return await prisma.playlist.update({
-    where: { id },
-    data: {
-      items: {
-        createMany: {
-          data: playlistItems,
-        },
-        update: {
-          where: {
-            id: lastItem?.id,
-          },
-          data: {
-            nextId: playlistItems[0].id,
-          },
-        },
-      },
-    },
-    include: {
-      items: true,
-      creator: true,
-    },
-  });
+  await prisma.$transaction([
+    prisma.playlistItem.createMany({
+      data: playlistItems.map(item => ({ ...item, playlistId })),
+    }),
+    ...(lastItem
+      ? [
+          prisma.playlistItem.update({
+            where: {
+              id: lastItem?.id,
+            },
+            data: {
+              nextId: playlistItems[0].id,
+            },
+          }),
+        ]
+      : []),
+  ]);
+  return await getPlaylistById(id);
 };
 
 export const removeSongsFromPlaylist = async ({
@@ -175,22 +171,30 @@ export const removeSongsFromPlaylist = async ({
         },
       },
     }),
-    prisma.playlistItem.update({
-      where: {
-        id: prevItem?.id,
-      },
-      data: {
-        nextId: nextItem?.id,
-      },
-    }),
-    prisma.playlistItem.update({
-      where: {
-        id: nextItem?.id,
-      },
-      data: {
-        prevId: prevItem?.id,
-      },
-    }),
+    ...(prevItem
+      ? [
+          prisma.playlistItem.update({
+            where: {
+              id: prevItem?.id,
+            },
+            data: {
+              nextId: nextItem?.id,
+            },
+          }),
+        ]
+      : []),
+    ...(nextItem
+      ? [
+          prisma.playlistItem.update({
+            where: {
+              id: nextItem?.id,
+            },
+            data: {
+              prevId: prevItem?.id,
+            },
+          }),
+        ]
+      : []),
   ]);
   return await getPlaylistById(id);
 };
@@ -235,8 +239,8 @@ export const moveSongsInPlaylist = async ({
     throw new NotFoundError('nextId not found in playlist');
   }
   if (
-    (newPrevItem && newPrevItem?.nextId !== newNextItem?.id) ||
-    (newNextItem && newNextItem?.prevId !== newPrevItem?.id)
+    (newPrevItem && newPrevItem?.nextId !== (newNextItem?.id ?? null)) ||
+    (newNextItem && newNextItem?.prevId !== (newPrevItem?.id ?? null))
   ) {
     throw new BadRequestError('Invalid nextId or prevId');
   }
@@ -257,38 +261,54 @@ export const moveSongsInPlaylist = async ({
         nextId,
       },
     }),
-    prisma.playlistItem.update({
-      where: {
-        id: newPrevItem?.id,
-      },
-      data: {
-        nextId: firstItem.id,
-      },
-    }),
-    prisma.playlistItem.update({
-      where: {
-        id: newNextItem?.id,
-      },
-      data: {
-        prevId: lastItem.id,
-      },
-    }),
-    prisma.playlistItem.update({
-      where: {
-        id: oldPrevItem?.id,
-      },
-      data: {
-        nextId: lastItem.nextId,
-      },
-    }),
-    prisma.playlistItem.update({
-      where: {
-        id: oldNextItem?.id,
-      },
-      data: {
-        prevId: firstItem.prevId,
-      },
-    }),
+    ...(newPrevItem
+      ? [
+          prisma.playlistItem.update({
+            where: {
+              id: newPrevItem?.id,
+            },
+            data: {
+              nextId: firstItem.id,
+            },
+          }),
+        ]
+      : []),
+    ...(newNextItem
+      ? [
+          prisma.playlistItem.update({
+            where: {
+              id: newNextItem?.id,
+            },
+            data: {
+              prevId: lastItem.id,
+            },
+          }),
+        ]
+      : []),
+    ...(oldPrevItem
+      ? [
+          prisma.playlistItem.update({
+            where: {
+              id: oldPrevItem?.id,
+            },
+            data: {
+              nextId: lastItem.nextId,
+            },
+          }),
+        ]
+      : []),
+    ...(oldNextItem
+      ? [
+          prisma.playlistItem.update({
+            where: {
+              id: oldNextItem?.id,
+            },
+            data: {
+              prevId: firstItem.prevId,
+            },
+          }),
+        ]
+      : []),
   ]);
   return await getPlaylistById(id);
 };
