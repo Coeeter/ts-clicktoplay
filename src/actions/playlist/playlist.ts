@@ -114,6 +114,9 @@ export const addSongsToPlaylist = async ({
     );
   }
   const { id, items } = playlist;
+  if (songIds.some(songId => items.some(item => item.songId === songId))) {
+    throw new BadRequestError('Song already exists in playlist');
+  }
   const lastItem = items.find(item => !item.nextId);
   const playlistItems = createPlaylistItems(songIds, playlistId);
   playlistItems[0].prevId = lastItem?.id;
