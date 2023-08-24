@@ -4,8 +4,10 @@ import { Song } from '@prisma/client';
 import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
 import { useRef } from 'react';
-import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
+import { ContextMenuItem } from '@/store/ContextMenuStore';
 import { useQueueStore } from '@/store/QueueStore';
+import { useContextMenu } from '@/hooks/useContextMenu';
+import { ToastMode, useToastStore } from '@/store/ToastStore';
 
 type SongItemProps = {
   song: Song;
@@ -15,7 +17,12 @@ type SongItemProps = {
 const getContextMenuItems = (
   songId: string,
   playSong: () => void,
-  addToQueue: (song: string) => void
+  addToQueue: (song: string) => void,
+  showToast: (
+    message: string,
+    mode: ToastMode,
+    duration?: number | undefined
+  ) => void
 ): ContextMenuItem[] => {
   return [
     {
@@ -24,7 +31,10 @@ const getContextMenuItems = (
     },
     {
       label: 'Add to Queue',
-      onClick: () => addToQueue(songId),
+      onClick: () => {
+        addToQueue(songId);
+        showToast('Added to Queue', 'success');
+      },
     },
     {
       label: 'Add to Playlist',
@@ -42,7 +52,7 @@ const getContextMenuItems = (
           label: 'Playlist 3',
           onClick: () => {},
         },
-      ]
+      ],
     },
     {
       label: 'Add to Library',
@@ -62,21 +72,16 @@ export const SongItem = ({ song, playSong }: SongItemProps) => {
   const albumCover = song.albumCover ?? '/album-cover.png';
   const artist = song.artist?.length ? song.artist : 'Unknown';
 
-  const showContextMenu = useContextMenuStore(state => state.openContextMenu);
+  const { contextMenuHandler } = useContextMenu();
   const addToQueue = useQueueStore(state => state.addSongToQueue);
+  const showToast = useToastStore(state => state.createToast);
 
   return (
     <Link
       href={`/songs/${song.id}`}
-      onContextMenu={e => {
-        e.preventDefault();
-        e.stopPropagation();
-        showContextMenu(
-          e.pageX,
-          e.pageY,
-          getContextMenuItems(song.id, playSong, addToQueue)
-        );
-      }}
+      onContextMenu={contextMenuHandler(
+        getContextMenuItems(song.id, playSong, addToQueue, showToast)
+      )}
       onClick={e => {
         e.preventDefault();
         if (
