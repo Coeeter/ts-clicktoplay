@@ -3,6 +3,7 @@ export type ContextMenuItem = {
   onClick?: () => void;
   href?: string;
   divider?: boolean;
+  selectable?: boolean;
   subMenu?: ContextMenuItem[];
 };
 

@@ -1,67 +1,20 @@
 'use client';
-
 import { Song } from '@prisma/client';
 import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
 import { useRef } from 'react';
-import { ContextMenuItem } from '@/store/ContextMenuStore';
 import { useQueueStore } from '@/store/QueueStore';
 import { useContextMenu } from '@/hooks/useContextMenu';
-import { ToastMode, useToastStore } from '@/store/ToastStore';
+import { useToastStore } from '@/store/ToastStore';
+import { Playlist } from '@/actions/playlist';
 
 type SongItemProps = {
   song: Song;
+  playlists: Playlist[];
   playSong: () => void;
 };
 
-const getContextMenuItems = (
-  songId: string,
-  playSong: () => void,
-  addToQueue: (song: string) => void,
-  showToast: (
-    message: string,
-    mode: ToastMode,
-    duration?: number | undefined
-  ) => void
-): ContextMenuItem[] => {
-  return [
-    {
-      label: 'Play',
-      onClick: playSong,
-    },
-    {
-      label: 'Add to Queue',
-      onClick: () => {
-        addToQueue(songId);
-        showToast('Added to Queue', 'success');
-      },
-    },
-    {
-      label: 'Add to Playlist',
-      onClick: () => {},
-      subMenu: [
-        {
-          label: 'Playlist 1',
-          onClick: () => {},
-        },
-        {
-          label: 'Playlist 2',
-          onClick: () => {},
-        },
-        {
-          label: 'Playlist 3',
-          onClick: () => {},
-        },
-      ],
-    },
-    {
-      label: 'Add to Library',
-      onClick: () => {},
-    },
-  ];
-};
-
-export const SongItem = ({ song, playSong }: SongItemProps) => {
+export const SongItem = ({ song, playlists, playSong }: SongItemProps) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const minutes = Math.floor(song.duration / 60);
@@ -79,9 +32,40 @@ export const SongItem = ({ song, playSong }: SongItemProps) => {
   return (
     <Link
       href={`/songs/${song.id}`}
-      onContextMenu={contextMenuHandler(
-        getContextMenuItems(song.id, playSong, addToQueue, showToast)
-      )}
+      onContextMenu={contextMenuHandler([
+        {
+          label: 'Play',
+          onClick: playSong,
+        },
+        {
+          label: 'Add to Queue',
+          onClick: () => {
+            addToQueue(song.id);
+            showToast('Added to Queue', 'success');
+          },
+        },
+        {
+          label: 'Add to Playlist',
+          subMenu: [
+            {
+              label: 'New Playlist',
+              onClick: () => {},
+              divider: true,
+            },
+            ...playlists.map(playlist => ({
+              label: playlist.title,
+              onClick: () => {},
+            })),
+            ...(!playlists.length
+              ? [{ label: 'No playlists found', selectable: false }]
+              : []),
+          ],
+        },
+        {
+          label: 'Add to Library',
+          onClick: () => {},
+        },
+      ])}
       onClick={e => {
         e.preventDefault();
         if (

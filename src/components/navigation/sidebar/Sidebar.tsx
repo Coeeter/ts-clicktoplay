@@ -31,9 +31,7 @@ export const Sidebar = async () => {
       </div>
       <div className="flex-grow bg-slate-800 rounded-md">
         <div className="px-4 py-3 gap-3 flex flex-col">
-          <h2 className="text-lg text-slate-300 font-semibold">
-            Your Library
-          </h2>
+          <h2 className="text-lg text-slate-300 font-semibold">Your Library</h2>
           {session?.user ? (
             playlists.length === 0 ? (
               <p className="text-md text-slate-300/50 font-semibold">

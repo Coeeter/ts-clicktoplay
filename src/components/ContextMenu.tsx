@@ -119,8 +119,12 @@ const MenuItem = ({
     p-3
     rounded-md
     group
-    hover:bg-slate-700
-    ${item.subMenu ? 'cursor-default' : 'cursor-pointer'}
+    ${item.selectable != false ? 'hover:bg-slate-700' : ''}
+    ${
+      item.subMenu || item.selectable == false
+        ? 'cursor-default'
+        : 'cursor-pointer'
+    }
     ${showDropdown && item.subMenu ? 'bg-slate-700' : ''}
   `
     .split(/\s+/)
@@ -172,25 +176,32 @@ const MenuItem = ({
     </>
   );
 
-  return item.href ? (
-    <Link
-      href={item.href}
-      onClick={close}
-      className={className}
-      onMouseEnter={() => onMouseEnter?.()}
-    >
-      {children}
-    </Link>
-  ) : (
-    <button
-      className={className}
-      onClick={() => {
-        item.onClick?.();
-        close();
-      }}
-      onMouseEnter={() => onMouseEnter?.()}
-    >
-      {children}
-    </button>
+  return (
+    <>
+      {item.href ? (
+        <Link
+          href={item.href}
+          onClick={close}
+          className={className}
+          onMouseEnter={() => onMouseEnter?.()}
+        >
+          {children}
+        </Link>
+      ) : (
+        <button
+          className={className}
+          onClick={() => {
+            item.onClick?.();
+            close();
+          }}
+          onMouseEnter={() => onMouseEnter?.()}
+        >
+          {children}
+        </button>
+      )}
+      {item.divider && (
+        <div className="h-[2px] bg-slate-500 rounded-full w-full my-1" />
+      )}
+    </>
   );
 };
