@@ -77,10 +77,10 @@ export const createPlaylist = async ({
       }
     }
   })
-  let number = playlistWithCommonTitle.length + 1;
+  const number = playlistWithCommonTitle.length + 1;
   const result = await prisma.playlist.create({
     data: {
-      title: title + (number > 0 ? ` #${number}` : ''),
+      title: title + (number > 1 ? ` #${number}` : ''),
       image,
       creatorId: session.user.id,
     },

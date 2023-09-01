@@ -101,7 +101,7 @@ export const SongItem = ({ song, playlists, playSong }: SongItemProps) => {
         e.defaultPrevented = false;
       }}
     >
-      <div className="flex flex-col gap-2 bg-slate-800 p-3 rounded-md w-48 group cursor-pointer hover:bg-slate-700 transition-colors duration-300">
+      <div className="flex flex-col gap-2 bg-gradient-to-b from-slate-900 to-slate-100/5 p-3 rounded-md w-48 group cursor-pointer hover:bg-slate-700 transition-colors duration-300">
         <div className="relative">
           <img
             src={albumCover}
