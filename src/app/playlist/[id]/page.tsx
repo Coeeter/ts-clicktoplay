@@ -1,5 +1,6 @@
 import { Playlist, getPlaylistById } from '@/actions/playlist';
 import { getSongs } from '@/actions/songs';
+import { QueueList } from '@/components/queue/QueueList';
 import { NotFoundError, sortLinkedList } from '@/utils';
 import { redirect } from 'next/navigation';
 
@@ -20,12 +21,16 @@ export default async function PlaylistScreen({
     if (!song) throw new NotFoundError('Song not found');
     return song;
   });
-  const totalDurationInMinutes = songsInPlaylist.reduce(
-    (acc, song) => acc + song.duration,
-    0
+  const totalDurationInMinutes = Math.floor(
+    songsInPlaylist.reduce((acc, song) => acc + song.duration, 0) / 60
   );
-  const totalDuration = Math.floor(totalDurationInMinutes / 60);
 
+  const hours = Math.floor(totalDurationInMinutes / 60);
+  const minutes = totalDurationInMinutes % 60;
+  const isInMinutes = totalDurationInMinutes < 60;
+  const totalDuration = isInMinutes
+    ? `${totalDurationInMinutes} min`
+    : `${hours} hr ${minutes > 0 ? `${minutes} min` : ''}`;
 
   return (
     <div className="flex flex-col gap-4">
@@ -36,7 +41,7 @@ export default async function PlaylistScreen({
           className="w-48 shadow-2xl aspect-square rounded-md bg-slate-100 object-cover"
         />
         <div className="flex flex-col justify-end">
-          <span className='text-lg'>Playlist</span>
+          <span className="text-lg">Playlist</span>
           <div className="text-6xl text-slate-200 font-bold mb-6">
             {playlist.title}
           </div>
@@ -44,7 +49,7 @@ export default async function PlaylistScreen({
             <span className="text-slate-200 font-semibold">
               {playlist.creator.name + ' • ' + playlist.items.length + ' songs'}
             </span>
-            {', around ' + totalDuration + ' minutes'}
+            {', around ' + totalDuration}
           </span>
         </div>
       </div>
@@ -53,9 +58,7 @@ export default async function PlaylistScreen({
           {'Songs in ' + playlist.title}
         </div>
         <div className="flex flex-col gap-4">
-          {playlist.items.map(playlistItem => {
-            const song = songs.find(song => song.id === playlistItem.songId);
-            if (!song) return null;
+          {songsInPlaylist.map(song => {
             return (
               <div className="flex gap-3 p-3">
                 <img
