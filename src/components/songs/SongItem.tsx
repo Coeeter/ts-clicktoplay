@@ -1,43 +1,24 @@
 'use client';
-
 import { Song } from '@prisma/client';
 import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
 import { useRef } from 'react';
-import { useContextMenuStore } from '@/store/ContextMenuStore';
 import { useQueueStore } from '@/store/QueueStore';
+import { useContextMenu } from '@/hooks/useContextMenu';
+import { useToastStore } from '@/store/ToastStore';
+import {
+  Playlist,
+  addSongsToPlaylist,
+  createPlaylist,
+} from '@/actions/playlist';
 
 type SongItemProps = {
   song: Song;
+  playlists: Playlist[];
   playSong: () => void;
 };
 
-const getContextMenuItems = (
-  songId: string,
-  playSong: () => void,
-  addToQueue: (song: string) => void
-) => {
-  return [
-    {
-      label: 'Play',
-      onClick: playSong,
-    },
-    {
-      label: 'Add to Queue',
-      onClick: () => addToQueue(songId),
-    },
-    {
-      label: 'Add to Playlist',
-      onClick: () => {},
-    },
-    {
-      label: 'Add to Library',
-      onClick: () => {},
-    },
-  ];
-};
-
-export const SongItem = ({ song, playSong }: SongItemProps) => {
+export const SongItem = ({ song, playlists, playSong }: SongItemProps) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const minutes = Math.floor(song.duration / 60);
@@ -48,21 +29,67 @@ export const SongItem = ({ song, playSong }: SongItemProps) => {
   const albumCover = song.albumCover ?? '/album-cover.png';
   const artist = song.artist?.length ? song.artist : 'Unknown';
 
-  const showContextMenu = useContextMenuStore(state => state.openContextMenu);
+  const { contextMenuHandler } = useContextMenu();
   const addToQueue = useQueueStore(state => state.addSongToQueue);
+  const showToast = useToastStore(state => state.createToast);
 
   return (
     <Link
       href={`/songs/${song.id}`}
-      onContextMenu={e => {
-        e.preventDefault();
-        e.stopPropagation();
-        showContextMenu(
-          e.pageX,
-          e.pageY,
-          getContextMenuItems(song.id, playSong, addToQueue)
-        );
-      }}
+      onContextMenu={contextMenuHandler([
+        {
+          label: 'Play',
+          onClick: playSong,
+        },
+        {
+          label: 'Add to Queue',
+          onClick: () => {
+            addToQueue(song.id);
+            showToast('Added to Queue', 'success');
+          },
+        },
+        {
+          label: 'Add to Playlist',
+          subMenu: [
+            {
+              label: 'New Playlist',
+              onClick: async () => {
+                const playlist = await createPlaylist({
+                  title: song.title,
+                  image: song.albumCover,
+                });
+                await addSongsToPlaylist({
+                  playlistId: playlist.id,
+                  songIds: [song.id],
+                });
+                showToast(`Added to playlist '${playlist.title}'`, 'success');
+              },
+              divider: true,
+            },
+            ...playlists.map(playlist => ({
+              label: playlist.title,
+              onClick: async () => {
+                try {
+                  await addSongsToPlaylist({
+                    playlistId: playlist.id,
+                    songIds: [song.id],
+                  });
+                  showToast(`Added to playlist '${playlist.title}'`, 'success');
+                } catch (e) {
+                  if (e instanceof Error) showToast(e.message, 'error');
+                }
+              },
+            })),
+            ...(!playlists.length
+              ? [{ label: 'No playlists found', selectable: false }]
+              : []),
+          ],
+        },
+        {
+          label: 'Add to Library',
+          onClick: () => {},
+        },
+      ])}
       onClick={e => {
         e.preventDefault();
         if (
@@ -74,7 +101,7 @@ export const SongItem = ({ song, playSong }: SongItemProps) => {
         e.defaultPrevented = false;
       }}
     >
-      <div className="flex flex-col gap-2 bg-slate-800 p-3 rounded-md w-48 group cursor-pointer hover:bg-slate-700 transition-colors duration-300">
+      <div className="flex flex-col gap-2 bg-gradient-to-b from-slate-900 to-slate-100/5 p-3 rounded-md w-48 group cursor-pointer hover:bg-slate-700 transition-colors duration-300">
         <div className="relative">
           <img
             src={albumCover}

@@ -89,23 +89,24 @@ const playPlaylist = (
         songId: songId ?? items[0].songId,
       }),
     });
+    const newItems = createQueueItems(
+      items.map(item => item.songId),
+      state.queueId!
+    ).map(item => ({
+      id: item.id!,
+      prevId: item.prevId ?? null,
+      nextId: item.nextId ?? null,
+      songId: item.songId!,
+      queueId: state.queueId!,
+      shuffledNextId: null,
+      shuffledPrevId: null,
+    }));
     return {
       playlistId: playlist.id,
-      items: createQueueItems(
-        items.map(item => item.id),
-        state.queueId!
-      ).map(item => ({
-        id: item.id!,
-        prevId: item.prevId ?? null,
-        nextId: item.nextId ?? null,
-        songId: item.songId!,
-        queueId: state.queueId!,
-        shuffledNextId: null,
-        shuffledPrevId: null,
-      })),
+      items: newItems,
       currentlyPlayingId: generateQueueItemId(
         state.queueId,
-        songId ?? items[0].id,
+        songId ?? items[0].songId,
         1
       ),
       currentTime: 0,
@@ -132,7 +133,7 @@ const playSong = (
       shuffledPrevId: null,
     }));
     const newCurrentlyPlayingId = generateQueueItemId(state.queueId!, song, 1);
-    if (state.items.length) {
+    if (state.items.length === newItems.length) {
       const sortedOldItems = sortLinkedList(state.items);
       const isSameState =
         newItems.every(

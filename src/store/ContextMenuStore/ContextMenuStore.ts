@@ -14,8 +14,8 @@ export const useContextMenuStore = create<ContextMenuStore>(set => ({
       isOpen: true,
       position: { x, y },
       transformOrigin: {
-        vertical: y > window.innerHeight - 200 ? 'bottom' : 'top',
-        horizontal: x > window.innerWidth - 200 ? 'right' : 'left',
+        vertical: y > window.innerHeight - 420 ? 'bottom' : 'top',
+        horizontal: x > window.innerWidth - 420 ? 'right' : 'left',
       },
       menuItems,
     }),

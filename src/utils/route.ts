@@ -42,14 +42,6 @@ type PublicApiRouteType = <Params>(
   params: { params: Params }
 ) => Promise<NextResponse<any> | void>;
 
-const authChecker = async () => {
-  const session = await getServerSession();
-  if (!session?.user) {
-    throw new UnauthorizedError('You must be logged in to perform this action');
-  }
-  return session;
-};
-
 const errorHandler = async (
   e: any,
   req: NextRequest,
@@ -78,7 +70,10 @@ export const protectedApiRoute: ProtectedApiRouteType = <Params>(
   return async (request: NextRequest, { params }: { params: Params }) => {
     let session: Session | null = null;
     try {
-      session = await authChecker();
+      session = await getServerSession();
+      if (!session?.user) {
+        throw new UnauthorizedError('You must be logged in to perform this action');
+      }
       const result = await handler(request, session, params);
       if (!result) return new NextResponse(null, { status: 204 });
       return createJsonResponse(result.body, result.status, {

@@ -9,8 +9,8 @@ export type PlaylistItemId = string;
 export type Playlist = Awaited<ReturnType<typeof getCreatedPlaylists>>[0];
 
 export type CreatePlaylistProps = {
-  session: Session;
   title: string;
+  image: string | null;
 };
 
 export type UpdatePlaylistProps = {
@@ -36,6 +36,5 @@ export type MoveSongsInPlaylistProps = {
 };
 
 export type DeletePlaylistProps = {
-  session: Session;
   playlistId: PlaylistId;
 };

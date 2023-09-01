@@ -12,8 +12,8 @@ export type CreateSongProps = {
   url: string;
   title: string;
   duration: number;
-  artist: string;
-  albumCover?: string | null;
+  artist: string | null;
+  albumCover: string | null;
   session: Session;
 };
 

@@ -2,6 +2,9 @@ export type ContextMenuItem = {
   label: string;
   onClick?: () => void;
   href?: string;
+  divider?: boolean;
+  selectable?: boolean;
+  subMenu?: ContextMenuItem[];
 };
 
 export type ContextMenuState = {

@@ -12,10 +12,8 @@ export const GET = protectedApiRoute(async req => ({
 
 export const POST = protectedApiRoute(async (req, session) => ({
   status: 201,
-  body: {
-    id: await createSong({
-      session: session!,
-      ...zodParse(createSongSchema)(await req.json()),
-    }),
-  },
+  body: await createSong({
+    session: session!,
+    ...zodParse(createSongSchema)(await req.json()),
+  }),
 }));

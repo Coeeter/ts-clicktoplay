@@ -4,8 +4,14 @@ import { Song } from '@prisma/client';
 import { SongItem } from './SongItem';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
+import { Playlist } from '@/actions/playlist';
 
-export const SongList = ({ songs }: { songs: Song[] }) => {
+type SongListProps = {
+  songs: Song[];
+  playlists: Playlist[];
+};
+
+export const SongList = ({ songs, playlists }: SongListProps) => {
   const playSong = useQueueStore(state => state.playSong);
   const shuffle = useQueueStore(state => state.shuffle);
   const setShuffle = useQueueStore(state => state.setShuffle);
@@ -17,6 +23,7 @@ export const SongList = ({ songs }: { songs: Song[] }) => {
         <SongItem
           key={song.id}
           song={song}
+          playlists={playlists}
           playSong={() => {
             try {
               playSong(

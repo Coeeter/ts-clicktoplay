@@ -33,7 +33,7 @@ export const createSong = async (createSongProps: CreateSongProps) => {
       url: createSongProps.url,
       title: createSongProps.title,
       duration: createSongProps.duration,
-      artist: createSongProps.artist,
+      artist: createSongProps.artist ?? '',
       albumCover: createSongProps.albumCover,
       uploaderId: createSongProps.session.user.id,
     },
