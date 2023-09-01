@@ -1,8 +1,19 @@
 import { Playlist, getPlaylistById } from '@/actions/playlist';
 import { getSongs } from '@/actions/songs';
-import { QueueList } from '@/components/queue/QueueList';
 import { NotFoundError, sortLinkedList } from '@/utils';
+import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const playlist = await getPlaylistById(params.id);
+  return {
+    title: `${playlist.title} - playlist by ${playlist.creator.name} | ClickToPlay`,
+  };
+}
 
 export default async function PlaylistScreen({
   params: { id },

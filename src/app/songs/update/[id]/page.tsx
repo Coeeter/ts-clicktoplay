@@ -2,6 +2,11 @@ import { prisma } from '@/lib/database';
 import { redirect } from 'next/navigation';
 import { UpdateSongForm } from './UpdateSongForm';
 import { WithAuth } from '@/components/server/WithAuth';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Update Song | ClickToPlay',
+}
 
 export default async function UpdateSongPage({
   params: { id },
