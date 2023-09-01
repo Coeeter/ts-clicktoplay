@@ -21,8 +21,8 @@ export const PUT = protectedApiRoute<{ id: string }>(
     body: await updateSong({
       session: session!,
       ...zodParse(updateSongSchema)({
-        ...extractSearchParams(req.url),
         ...params,
+        ...(await req.json()),
       }),
     }),
   })

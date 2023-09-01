@@ -47,8 +47,8 @@ export const getUploadUrlSchema = z
 
 export const createSongSchema = z.object({
   title: z.string().min(1).max(100),
-  artist: z.string().min(1).max(100),
-  albumCover: z.string().url(),
+  artist: z.string().max(100).nullable(),
+  albumCover: z.string().url().nullable(),
   url: z.string().url(),
   duration: z.number().min(0),
 });

@@ -6,7 +6,11 @@ import { useRef } from 'react';
 import { useQueueStore } from '@/store/QueueStore';
 import { useContextMenu } from '@/hooks/useContextMenu';
 import { useToastStore } from '@/store/ToastStore';
-import { Playlist } from '@/actions/playlist';
+import {
+  Playlist,
+  addSongsToPlaylist,
+  createPlaylist,
+} from '@/actions/playlist';
 
 type SongItemProps = {
   song: Song;
@@ -49,12 +53,32 @@ export const SongItem = ({ song, playlists, playSong }: SongItemProps) => {
           subMenu: [
             {
               label: 'New Playlist',
-              onClick: () => {},
+              onClick: async () => {
+                const playlist = await createPlaylist({
+                  title: song.title,
+                  image: song.albumCover,
+                });
+                await addSongsToPlaylist({
+                  playlistId: playlist.id,
+                  songIds: [song.id],
+                });
+                showToast(`Added to playlist '${playlist.title}'`, 'success');
+              },
               divider: true,
             },
             ...playlists.map(playlist => ({
               label: playlist.title,
-              onClick: () => {},
+              onClick: async () => {
+                try {
+                  await addSongsToPlaylist({
+                    playlistId: playlist.id,
+                    songIds: [song.id],
+                  });
+                  showToast(`Added to playlist '${playlist.title}'`, 'success');
+                } catch (e) {
+                  if (e instanceof Error) showToast(e.message, 'error');
+                }
+              },
             })),
             ...(!playlists.length
               ? [{ label: 'No playlists found', selectable: false }]

@@ -33,6 +33,7 @@ model Playlist {
   title     String
   creator   User           @relation(fields: [creatorId], references: [id])
   creatorId String
+  image     String?
   queues    Queue[]
   items     PlaylistItem[]
   libraries LibraryItem[]  @ignore

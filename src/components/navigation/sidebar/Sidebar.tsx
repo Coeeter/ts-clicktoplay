@@ -1,9 +1,9 @@
-import Link from 'next/link';
 import { MdHome, MdSearch } from 'react-icons/md';
 
 import { getServerSession } from '@/lib/auth';
 import { SidebarItem, SidebarItemProps } from './SidebarItem';
 import { getCreatedPlaylists } from '@/actions/playlist/playlist';
+import { SidebarPlaylistItem } from './SidebarPlaylistItem';
 
 const sidebarItems: SidebarItemProps[] = [
   {
@@ -38,15 +38,9 @@ export const Sidebar = async () => {
                 No playlists found
               </p>
             ) : (
-              <div className="flex flex-col gap-3">
-                {playlists.map(({ id, title }) => (
-                  <Link
-                    key={id}
-                    href={`/playlist/${id}`}
-                    className={`text-md hover:text-slate-200 duration-150 font-semiboldtext-slate-300/50`}
-                  >
-                    {title}
-                  </Link>
+              <div className="flex flex-col gap-1">
+                {playlists.map(playlist => (
+                  <SidebarPlaylistItem playlist={playlist} />
                 ))}
               </div>
             )

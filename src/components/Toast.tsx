@@ -45,7 +45,7 @@ const ToastItem = ({ toast }: { toast: ToastType }) => {
       initial={{ opacity: 0, y: 50, scale: 0.3 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.5 }}
-      className={`text-slate-200 p-4 rounded-md shadow-md flex gap-4 w-64 items-center ${
+      className={`text-slate-200 p-4 rounded-md shadow-md flex gap-4 w-80 items-center ${
         toast.mode == 'error'
           ? 'bg-red-600'
           : toast.mode == 'warning'

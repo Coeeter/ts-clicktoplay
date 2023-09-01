@@ -178,7 +178,11 @@ const MenuItem = ({
 
   return (
     <>
-      {item.href ? (
+      {item.subMenu ? (
+        <div className={className} onMouseEnter={() => onMouseEnter?.()}>
+          {children}
+        </div>
+      ) : item.href ? (
         <Link
           href={item.href}
           onClick={close}

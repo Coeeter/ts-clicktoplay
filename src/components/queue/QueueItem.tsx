@@ -97,7 +97,7 @@ export const QueueItem = ({
             <img
               src={song.albumCover ?? '/album-cover.png'}
               alt="album cover"
-              className="w-full h-full rounded-md"
+              className="w-full h-full rounded-md object-cover"
             />
           </div>
           <div className="flex flex-col items-start">

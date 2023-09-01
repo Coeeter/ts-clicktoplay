@@ -1,3 +1,5 @@
+'use server';
+
 import { Session } from 'next-auth';
 import { prisma } from '../../lib/database';
 import {
@@ -15,6 +17,8 @@ import {
   checkLinkedListNodesAreInOrder,
 } from '@/utils';
 import { createPlaylistItems } from './helper';
+import { revalidatePath } from 'next/cache';
+import { getServerSession } from '@/lib/auth';
 
 export const getCreatedPlaylists = async (session: Session) => {
   const playlists = await prisma.playlist.findMany({
@@ -62,12 +66,22 @@ export const searchPlaylists = async (query: string) => {
 };
 
 export const createPlaylist = async ({
-  session,
   title,
+  image,
 }: CreatePlaylistProps) => {
-  return await prisma.playlist.create({
+  const session = (await getServerSession())!;
+  const playlistWithCommonTitle = await prisma.playlist.findMany({
+    where: {
+      title: {
+        startsWith: title,
+      }
+    }
+  })
+  let number = playlistWithCommonTitle.length + 1;
+  const result = await prisma.playlist.create({
     data: {
-      title,
+      title: title + (number > 0 ? ` #${number}` : ''),
+      image,
       creatorId: session.user.id,
     },
     include: {
@@ -75,6 +89,8 @@ export const createPlaylist = async ({
       creator: true,
     },
   });
+  revalidatePath('/');
+  return result;
 };
 
 export const updatePlaylist = async ({
@@ -103,10 +119,10 @@ export const updatePlaylist = async ({
 };
 
 export const addSongsToPlaylist = async ({
-  session,
   playlistId,
   songIds,
-}: AddSongsToPlaylistProps) => {
+}: Omit<AddSongsToPlaylistProps, 'session'>) => {
+  const session = (await getServerSession())!;
   const playlist = await getPlaylistById(playlistId);
   if (playlist.creatorId !== session.user.id) {
     throw new UnauthorizedError(
@@ -119,7 +135,7 @@ export const addSongsToPlaylist = async ({
   }
   const lastItem = items.find(item => !item.nextId);
   const playlistItems = createPlaylistItems(songIds, playlistId);
-  playlistItems[0].prevId = lastItem?.id;
+  playlistItems[0].prevId = lastItem?.id ?? null;
   await prisma.$transaction([
     prisma.playlistItem.createMany({
       data: playlistItems.map(item => ({ ...item, playlistId })),
@@ -137,7 +153,9 @@ export const addSongsToPlaylist = async ({
         ]
       : []),
   ]);
-  return await getPlaylistById(id);
+  const result = await getPlaylistById(id);
+  revalidatePath('/');
+  return result;
 };
 
 export const removeSongsFromPlaylist = async ({
@@ -317,18 +335,20 @@ export const moveSongsInPlaylist = async ({
 };
 
 export const deletePlaylist = async ({
-  session,
   playlistId,
 }: DeletePlaylistProps) => {
+  const session = (await getServerSession())!;
   const playlist = await getPlaylistById(playlistId);
   if (playlist.creatorId !== session.user.id) {
     throw new UnauthorizedError(
       'You are not authorized to delete this playlist'
     );
   }
-  return await prisma.playlist.delete({
+  const result = await prisma.playlist.delete({
     where: {
       id: playlistId,
     },
   });
+  revalidatePath('/');
+  return result;
 };
