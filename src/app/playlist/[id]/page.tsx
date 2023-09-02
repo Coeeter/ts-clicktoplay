@@ -1,5 +1,6 @@
 import { Playlist, getPlaylistById } from '@/actions/playlist';
 import { getSongs } from '@/actions/songs';
+import { PlaylistItem } from '@/components/playlist/PlaylistItem';
 import { NotFoundError, sortLinkedList } from '@/utils';
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
@@ -45,7 +46,7 @@ export default async function PlaylistScreen({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-4">
+      <header className="flex gap-4">
         <img
           src={playlist.image ?? '/playlist-cover.png'}
           alt={playlist.title}
@@ -63,33 +64,29 @@ export default async function PlaylistScreen({
             {', around ' + totalDuration}
           </span>
         </div>
-      </div>
-      <div className="flex flex-col gap-4">
-        <div className="text-2xl text-slate-200 font-semibold">
-          {'Songs in ' + playlist.title}
-        </div>
-        <div className="flex flex-col gap-4">
-          {songsInPlaylist.map(song => {
-            return (
-              <div className="flex gap-3 p-3">
-                <img
-                  src={song.albumCover ?? '/album-cover.png'}
-                  alt={song.title}
-                  className="w-14 aspect-square rounded-md bg-slate-100 object-cover"
-                />
-                <div className="flex flex-col justify-between">
-                  <div className="text-md text-slate-200 font-semibold">
-                    {song.title}
-                  </div>
-                  <span className="text-sm truncate">
-                    {song.artist ?? 'Unknown'}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      </header>
+      <thead className="px-6 py-3 text-slate-300/50 font-semibold border-b-2 border-slate-300/20">
+        <tr className="grid grid-cols-3">
+          <th className="flex gap-6">
+            <div className="w-8 text-center">#</div>
+            <div>Title</div>
+          </th>
+          <th className='text-start'>Date added</th>
+          <th className="text-end">Time</th>
+        </tr>
+      </thead>
+      <ul className="flex flex-col gap-2">
+        {songsInPlaylist.map((song, index) => {
+          return (
+            <PlaylistItem
+              key={song.id}
+              song={song}
+              playlist={playlist}
+              listOrder={index + 1}
+            />
+          );
+        })}
+      </ul>
     </div>
   );
 }

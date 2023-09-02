@@ -52,6 +52,20 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
 
   const ref = useRef<ReactPlayer>(null);
   const currentTimeRef = useRef(currentTime);
+  const titleRef = useRef('');
+
+  useEffect(() => {
+    titleRef.current = document.title;
+  }, [window.location.pathname])
+
+  useEffect(() => {
+    if (!currentSong) return;
+    if (isPlaying) {
+      document.title = `${currentSong.title} • ${currentSong.artist} | ClickToPlay`;
+    } else {
+      document.title = titleRef.current;
+    }
+  }, [currentSong?.title, isPlaying, window.location.pathname]);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -122,8 +136,8 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
     navigator.mediaSession.metadata = getMetadata(currentSong);
     return () => {
       navigator.mediaSession.metadata = null;
-    }
-  }, [currentSong])
+    };
+  }, [currentSong]);
 
   return (
     <div className="flex-1 flex flex-col justify-center items-center">

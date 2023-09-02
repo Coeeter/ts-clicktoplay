@@ -40,7 +40,7 @@ export const Sidebar = async () => {
             ) : (
               <div className="flex flex-col gap-1">
                 {playlists.map(playlist => (
-                  <SidebarPlaylistItem playlist={playlist} />
+                  <SidebarPlaylistItem key={playlist.id} playlist={playlist} />
                 ))}
               </div>
             )

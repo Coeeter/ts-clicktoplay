@@ -22,6 +22,7 @@
     "@types/react-dom": "18.2.6",
     "autoprefixer": "10.4.14",
     "aws-sdk": "^2.1415.0",
+    "date-fns": "^2.30.0",
     "framer-motion": "^10.12.18",
     "lodash": "^4.17.21",
     "music-metadata": "^8.1.4",
