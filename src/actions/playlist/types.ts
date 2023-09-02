@@ -14,9 +14,10 @@ export type CreatePlaylistProps = {
 };
 
 export type UpdatePlaylistProps = {
-  session: Session;
   playlistId: PlaylistId;
   title: string;
+  image: string | null;
+  description: string | null;
 };
 
 export type AddSongsToPlaylistProps = {

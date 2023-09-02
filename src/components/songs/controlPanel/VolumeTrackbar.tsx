@@ -24,7 +24,11 @@ export const VolumeTrackbar = () => {
 
   useEffect(() => {
     const onKeyEvent = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement) return;
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      )
+        return;
       if (event.key === 'm') {
         event.preventDefault();
         return setVolume(volumeRef.current === 0 ? 50 : 0);

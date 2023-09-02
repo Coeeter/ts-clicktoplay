@@ -20,6 +20,8 @@ import {
 import { createPlaylistItems } from './helper';
 import { revalidatePath } from 'next/cache';
 import { getServerSession } from '@/lib/auth';
+import { getPresignedUploadUrl } from '@/lib/s3';
+import { randomUUID } from 'crypto';
 
 export const getCreatedPlaylists = async (session: Session) => {
   const playlists = await prisma.playlist.findMany({
@@ -91,29 +93,55 @@ export const createPlaylist = async ({ title, image }: CreatePlaylistProps) => {
   return result;
 };
 
-export const updatePlaylist = async ({
-  session,
-  playlistId,
-  title,
-}: UpdatePlaylistProps) => {
+export const getPlaylistUpdateImageUrl = async (
+  playlistId: string,
+  extension: string,
+  fileType: string
+) => {
+  const session = (await getServerSession())!;
   const playlist = await getPlaylistById(playlistId);
   if (playlist.creatorId !== session.user.id) {
     throw new UnauthorizedError(
       'You are not authorized to update this playlist'
     );
   }
-  return await prisma.playlist.update({
+  let key = `images/${randomUUID()}.${extension ?? 'jpg'}`;
+  const presignedUrl = await getPresignedUploadUrl({
+    key: key,
+    contentType: fileType ?? 'image/jpeg',
+  });
+  return presignedUrl;
+};
+
+export const updatePlaylist = async ({
+  playlistId,
+  title,
+  description,
+  image,
+}: UpdatePlaylistProps) => {
+  const session = (await getServerSession())!;
+  const playlist = await getPlaylistById(playlistId);
+  if (playlist.creatorId !== session.user.id) {
+    throw new UnauthorizedError(
+      'You are not authorized to update this playlist'
+    );
+  }
+  const result = await prisma.playlist.update({
     where: {
       id: playlistId,
     },
     data: {
       title,
+      description,
+      image,
     },
     include: {
       items: true,
       creator: true,
     },
   });
+  revalidatePath('/');
+  return result;
 };
 
 export const addSongsToPlaylist = async ({

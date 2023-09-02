@@ -7,6 +7,7 @@ import { useToastStore } from '@/store/ToastStore';
 import { MdVolumeUp } from 'react-icons/md';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useEditPlaylistModalStore } from '@/store/EditPlaylistModalStore';
 
 type SidebarPlaylistItemProps = {
   playlist: Playlist;
@@ -22,6 +23,7 @@ export const SidebarPlaylistItem = ({ playlist }: SidebarPlaylistItemProps) => {
   const isPlaying = useQueueStore(state => state.isPlaying);
   const pathname = usePathname();
   const router = useRouter();
+  const openEditPlaylistModal = useEditPlaylistModalStore(state => state.open);
 
   return (
     <Link
@@ -31,13 +33,11 @@ export const SidebarPlaylistItem = ({ playlist }: SidebarPlaylistItemProps) => {
       onContextMenu={contextMenuHandler([
         {
           label: 'Play',
-          onClick: () => {
-            playPlaylist(playlist, null);
-          },
+          onClick: () => playPlaylist(playlist, null),
         },
         {
           label: 'Edit Playlist',
-          onClick: () => {},
+          onClick: () => openEditPlaylistModal(playlist),
         },
         {
           label: 'Delete',

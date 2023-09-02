@@ -4,6 +4,7 @@ import {
   getPlaylistById,
 } from '@/actions/playlist';
 import { getSongs } from '@/actions/songs';
+import { OpenEditModal } from '@/components/playlist/OpenEditModal';
 import { PlaylistItemList } from '@/components/playlist/PlaylistItemList';
 import { getServerSession } from '@/lib/auth';
 import { NotFoundError, sortLinkedList } from '@/utils';
@@ -54,16 +55,25 @@ export default async function PlaylistScreen({
   return (
     <div className="flex flex-col gap-4">
       <header className="flex gap-4">
-        <img
-          src={playlist.image ?? '/playlist-cover.png'}
-          alt={playlist.title}
-          className="w-48 shadow-2xl aspect-square rounded-md bg-slate-100 object-cover cursor-pointer"
-        />
+        <OpenEditModal session={session} playlist={playlist}>
+          <img
+            src={playlist.image ?? '/playlist-cover.png'}
+            alt={playlist.title}
+            className="w-48 shadow-2xl h-48 rounded-xl bg-slate-100 object-cover cursor-pointer"
+          />
+        </OpenEditModal>
         <div className="flex flex-col justify-end">
           <span className="text-lg">Playlist</span>
-          <div className="text-6xl text-slate-200 font-bold mb-6 cursor-pointer">
-            {playlist.title}
-          </div>
+          <OpenEditModal session={session} playlist={playlist}>
+            <div className="text-6xl text-slate-200 font-bold mb-6 cursor-pointer">
+              {playlist.title}
+            </div>
+            {playlist.description && (
+              <div className="text-md line-clamp-2 text-slate-300/50 max-w-12 mb-3 cursor-pointer">
+                {playlist.description}
+              </div>
+            )}
+          </OpenEditModal>
           <span className="text-md truncate">
             <span className="text-slate-200 font-semibold">
               {playlist.creator.name + ' • ' + playlist.items.length + ' songs'}

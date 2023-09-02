@@ -28,15 +28,16 @@ model User {
 }
 
 model Playlist {
-  id        String         @id @default(cuid()) @map("_id")
-  createdAt DateTime       @default(now())
-  title     String
-  creator   User           @relation(fields: [creatorId], references: [id])
-  creatorId String
-  image     String?
-  queues    Queue[]
-  items     PlaylistItem[]
-  libraries LibraryItem[]  @ignore
+  id          String         @id @default(cuid()) @map("_id")
+  createdAt   DateTime       @default(now())
+  title       String
+  creator     User           @relation(fields: [creatorId], references: [id])
+  creatorId   String
+  image       String?
+  description String?
+  queues      Queue[]
+  items       PlaylistItem[]
+  libraries   LibraryItem[]  @ignore
 }
 
 model PlaylistItem {

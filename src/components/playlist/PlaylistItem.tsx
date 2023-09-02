@@ -66,16 +66,11 @@ export const PlaylistItem = ({
 
   const playSong = () => {
     if (isDragging) return;
-    if (currentlyPlayingPlaylist !== playlistId) {
-      playPlaylist(playlist, song.id);
-      if (shuffle) setShuffle(true);
-      return;
+    if (currentlyPlayingPlaylist === playlistId && isCurrentItem) {
+      return setIsPlaying(!isPlaying);
     }
-    if (isCurrentItem) return setIsPlaying(!isPlaying);
-    if (!queueItem) return;
-    setCurrentlyPlayingId(queueItem.id);
+    playPlaylist(playlist, song.id);
     if (shuffle) setShuffle(true);
-    setIsPlaying(true);
   };
 
   return (
