@@ -13,6 +13,7 @@ import {
 } from 'react-icons/md';
 import { TbRepeat, TbRepeatOnce } from 'react-icons/tb';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 type SongPlayerProps = {
   songs: Song[];
@@ -54,9 +55,11 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
   const currentTimeRef = useRef(currentTime);
   const titleRef = useRef('');
 
+  const pathname = usePathname();
+
   useEffect(() => {
     titleRef.current = document.title;
-  }, [window.location.pathname])
+  }, [pathname]);
 
   useEffect(() => {
     if (!currentSong) return;
@@ -65,7 +68,7 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
     } else {
       document.title = titleRef.current;
     }
-  }, [currentSong?.title, isPlaying, window.location.pathname]);
+  }, [currentSong?.title, isPlaying, pathname]);
 
   useEffect(() => {
     if (!ref.current) return;

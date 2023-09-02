@@ -6,6 +6,7 @@ import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { MdVolumeUp } from 'react-icons/md';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 
 type SidebarPlaylistItemProps = {
   playlist: Playlist;
@@ -19,10 +20,14 @@ export const SidebarPlaylistItem = ({ playlist }: SidebarPlaylistItemProps) => {
     state => state.playlistId === playlist.id
   );
   const isPlaying = useQueueStore(state => state.isPlaying);
+  const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <Link
-      className="p-2 rounded-md hover:bg-slate-700 w-full flex justify-between items-center"
+      className={`p-2 rounded-md hover:bg-slate-700 w-full flex justify-between items-center ${
+        pathname.startsWith(`/playlist/${playlist.id}`) ? 'bg-slate-700' : ''
+      }`}
       onContextMenu={contextMenuHandler([
         {
           label: 'Play',
@@ -40,6 +45,7 @@ export const SidebarPlaylistItem = ({ playlist }: SidebarPlaylistItemProps) => {
             await deletePlaylist({
               playlistId: playlist.id,
             });
+            router.replace('/');
             createToast('Playlist deleted', 'success');
           },
         },

@@ -20,7 +20,6 @@ export type UpdatePlaylistProps = {
 };
 
 export type AddSongsToPlaylistProps = {
-  session: Session;
   playlistId: PlaylistId;
   songIds: SongId[];
 };
@@ -28,7 +27,6 @@ export type AddSongsToPlaylistProps = {
 export type RemoveSongsFromPlaylistProps = AddSongsToPlaylistProps;
 
 export type MoveSongsInPlaylistProps = {
-  session: Session;
   playlistId: PlaylistId;
   songIds: SongId[];
   prevId: PlaylistItemId | null;

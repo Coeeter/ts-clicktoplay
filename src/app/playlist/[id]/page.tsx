@@ -1,6 +1,11 @@
-import { Playlist, getPlaylistById } from '@/actions/playlist';
+import {
+  Playlist,
+  getCreatedPlaylists,
+  getPlaylistById,
+} from '@/actions/playlist';
 import { getSongs } from '@/actions/songs';
-import { PlaylistItem } from '@/components/playlist/PlaylistItem';
+import { PlaylistItemList } from '@/components/playlist/PlaylistItemList';
+import { getServerSession } from '@/lib/auth';
 import { NotFoundError, sortLinkedList } from '@/utils';
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
@@ -27,6 +32,8 @@ export default async function PlaylistScreen({
   } catch (e) {
     redirect('/');
   }
+  let session = await getServerSession();
+  const playlists = session ? await getCreatedPlaylists(session) : [];
   const songs = await getSongs();
   const songsInPlaylist = sortLinkedList(playlist.items).map(playlistItem => {
     const song = songs.find(song => song.id === playlistItem.songId);
@@ -50,11 +57,11 @@ export default async function PlaylistScreen({
         <img
           src={playlist.image ?? '/playlist-cover.png'}
           alt={playlist.title}
-          className="w-48 shadow-2xl aspect-square rounded-md bg-slate-100 object-cover"
+          className="w-48 shadow-2xl aspect-square rounded-md bg-slate-100 object-cover cursor-pointer"
         />
         <div className="flex flex-col justify-end">
           <span className="text-lg">Playlist</span>
-          <div className="text-6xl text-slate-200 font-bold mb-6">
+          <div className="text-6xl text-slate-200 font-bold mb-6 cursor-pointer">
             {playlist.title}
           </div>
           <span className="text-md truncate">
@@ -65,28 +72,19 @@ export default async function PlaylistScreen({
           </span>
         </div>
       </header>
-      <thead className="px-6 py-3 text-slate-300/50 font-semibold border-b-2 border-slate-300/20">
-        <tr className="grid grid-cols-3">
-          <th className="flex gap-6">
-            <div className="w-8 text-center">#</div>
-            <div>Title</div>
-          </th>
-          <th className='text-start'>Date added</th>
-          <th className="text-end">Time</th>
-        </tr>
-      </thead>
-      <ul className="flex flex-col gap-2">
-        {songsInPlaylist.map((song, index) => {
-          return (
-            <PlaylistItem
-              key={song.id}
-              song={song}
-              playlist={playlist}
-              listOrder={index + 1}
-            />
-          );
-        })}
-      </ul>
+      <header className="grid grid-cols-3 px-6 py-3 text-slate-300/50 font-semibold border-b-2 border-slate-300/20">
+        <div className="flex gap-6">
+          <div className="w-8 text-center">#</div>
+          <div>Title</div>
+        </div>
+        <div className="text-start">Date added</div>
+        <div className="text-end">Time</div>
+      </header>
+      <PlaylistItemList
+        songs={songsInPlaylist}
+        playlist={playlist}
+        createdPlaylists={playlists}
+      />
     </div>
   );
 }
