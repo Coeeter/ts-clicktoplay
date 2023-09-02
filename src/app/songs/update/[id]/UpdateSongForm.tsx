@@ -53,7 +53,7 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
       if (albumCover) {
         const { url } = await fetch(
           `/api/songs/update/${song.id}?fileType=${
-            albumCover[0].type
+            albumCover[0]?.type ?? 'image/' + albumCover[0].name.split('.').pop()
           }&extension=${albumCover[0].name.split('.').pop()}`
         ).then(res => res.json());
         await fetch(url, {
