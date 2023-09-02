@@ -18,7 +18,9 @@ type FormValues = {
 };
 
 export const EditPlaylistModal = () => {
-  const { isOpen, playlist, close } = useEditPlaylistModalStore();
+  const isOpen = useEditPlaylistModalStore(state => state.isOpen);
+  const playlist = useEditPlaylistModalStore(state => state.playlist);
+  const close = useEditPlaylistModalStore(state => state.close);
   const ref = useRef<HTMLFormElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const createToast = useToastStore(state => state.createToast);
