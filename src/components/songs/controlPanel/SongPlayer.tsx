@@ -85,7 +85,11 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement) return;
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      )
+        return;
       if (event.key === ' ') {
         event.preventDefault();
         return setIsPlaying(!isPlaying);
