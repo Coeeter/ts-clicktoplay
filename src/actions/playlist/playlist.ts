@@ -8,6 +8,7 @@ import {
   DeletePlaylistProps,
   MoveSongsInPlaylistProps,
   Playlist,
+  RemoveSongsFromPlaylistProps,
   UpdatePlaylistProps,
 } from './types';
 import {
@@ -65,18 +66,15 @@ export const searchPlaylists = async (query: string) => {
   return playlists;
 };
 
-export const createPlaylist = async ({
-  title,
-  image,
-}: CreatePlaylistProps) => {
+export const createPlaylist = async ({ title, image }: CreatePlaylistProps) => {
   const session = (await getServerSession())!;
   const playlistWithCommonTitle = await prisma.playlist.findMany({
     where: {
       title: {
         startsWith: title,
-      }
-    }
-  })
+      },
+    },
+  });
   const number = playlistWithCommonTitle.length + 1;
   const result = await prisma.playlist.create({
     data: {
@@ -121,7 +119,7 @@ export const updatePlaylist = async ({
 export const addSongsToPlaylist = async ({
   playlistId,
   songIds,
-}: Omit<AddSongsToPlaylistProps, 'session'>) => {
+}: AddSongsToPlaylistProps) => {
   const session = (await getServerSession())!;
   const playlist = await getPlaylistById(playlistId);
   if (playlist.creatorId !== session.user.id) {
@@ -159,10 +157,10 @@ export const addSongsToPlaylist = async ({
 };
 
 export const removeSongsFromPlaylist = async ({
-  session,
   playlistId,
   songIds,
-}: AddSongsToPlaylistProps): Promise<Playlist> => {
+}: RemoveSongsFromPlaylistProps): Promise<Playlist> => {
+  const session = (await getServerSession())!;
   const playlist = await getPlaylistById(playlistId);
   if (playlist.creatorId !== session.user.id) {
     throw new UnauthorizedError(
@@ -184,49 +182,52 @@ export const removeSongsFromPlaylist = async ({
   const lastItem = playlistItemsToRemove[playlistItemsToRemove.length - 1];
   const prevItem = items.find(item => item.nextId === firstItem.id);
   const nextItem = items.find(item => item.prevId === lastItem.id);
-  await prisma.$transaction([
+  const transaction: any[] = [
     prisma.playlistItem.deleteMany({
       where: {
         id: {
-          in: songIds,
+          in: playlistItemsToRemove.map(item => item.id),
         },
       },
     }),
-    ...(prevItem
-      ? [
-          prisma.playlistItem.update({
-            where: {
-              id: prevItem?.id,
-            },
-            data: {
-              nextId: nextItem?.id,
-            },
-          }),
-        ]
-      : []),
-    ...(nextItem
-      ? [
-          prisma.playlistItem.update({
-            where: {
-              id: nextItem?.id,
-            },
-            data: {
-              prevId: prevItem?.id,
-            },
-          }),
-        ]
-      : []),
-  ]);
-  return await getPlaylistById(id);
+  ];
+  if (prevItem) {
+    transaction.push(
+      prisma.playlistItem.update({
+        where: {
+          id: prevItem?.id,
+        },
+        data: {
+          nextId: nextItem?.id,
+        },
+      })
+    );
+  }
+  if (nextItem) {
+    transaction.push(
+      prisma.playlistItem.update({
+        where: {
+          id: nextItem?.id,
+        },
+        data: {
+          prevId: prevItem?.id,
+        },
+      })
+    );
+  }
+  await prisma.$transaction(transaction);
+  const result = await getPlaylistById(id);
+  revalidatePath('/');
+  return result;
 };
 
 export const moveSongsInPlaylist = async ({
-  session,
   playlistId,
   songIds,
   prevId,
   nextId,
 }: MoveSongsInPlaylistProps): Promise<Playlist> => {
+  const session = (await getServerSession())!;
   const playlist = await getPlaylistById(playlistId);
   if (playlist.creatorId !== session.user.id) {
     throw new UnauthorizedError(
@@ -331,12 +332,12 @@ export const moveSongsInPlaylist = async ({
         ]
       : []),
   ]);
-  return await getPlaylistById(id);
+  const result = await getPlaylistById(id);
+  revalidatePath('/');
+  return result;
 };
 
-export const deletePlaylist = async ({
-  playlistId,
-}: DeletePlaylistProps) => {
+export const deletePlaylist = async ({ playlistId }: DeletePlaylistProps) => {
   const session = (await getServerSession())!;
   const playlist = await getPlaylistById(playlistId);
   if (playlist.creatorId !== session.user.id) {

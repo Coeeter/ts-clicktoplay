@@ -1,8 +1,25 @@
-import { Playlist, getPlaylistById } from '@/actions/playlist';
+import {
+  Playlist,
+  getCreatedPlaylists,
+  getPlaylistById,
+} from '@/actions/playlist';
 import { getSongs } from '@/actions/songs';
-import { QueueList } from '@/components/queue/QueueList';
+import { PlaylistItemList } from '@/components/playlist/PlaylistItemList';
+import { getServerSession } from '@/lib/auth';
 import { NotFoundError, sortLinkedList } from '@/utils';
+import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const playlist = await getPlaylistById(params.id);
+  return {
+    title: `${playlist.title} - playlist by ${playlist.creator.name} | ClickToPlay`,
+  };
+}
 
 export default async function PlaylistScreen({
   params: { id },
@@ -15,6 +32,8 @@ export default async function PlaylistScreen({
   } catch (e) {
     redirect('/');
   }
+  let session = await getServerSession();
+  const playlists = session ? await getCreatedPlaylists(session) : [];
   const songs = await getSongs();
   const songsInPlaylist = sortLinkedList(playlist.items).map(playlistItem => {
     const song = songs.find(song => song.id === playlistItem.songId);
@@ -34,15 +53,15 @@ export default async function PlaylistScreen({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-4">
+      <header className="flex gap-4">
         <img
           src={playlist.image ?? '/playlist-cover.png'}
           alt={playlist.title}
-          className="w-48 shadow-2xl aspect-square rounded-md bg-slate-100 object-cover"
+          className="w-48 shadow-2xl aspect-square rounded-md bg-slate-100 object-cover cursor-pointer"
         />
         <div className="flex flex-col justify-end">
           <span className="text-lg">Playlist</span>
-          <div className="text-6xl text-slate-200 font-bold mb-6">
+          <div className="text-6xl text-slate-200 font-bold mb-6 cursor-pointer">
             {playlist.title}
           </div>
           <span className="text-md truncate">
@@ -52,33 +71,20 @@ export default async function PlaylistScreen({
             {', around ' + totalDuration}
           </span>
         </div>
-      </div>
-      <div className="flex flex-col gap-4">
-        <div className="text-2xl text-slate-200 font-semibold">
-          {'Songs in ' + playlist.title}
+      </header>
+      <header className="grid grid-cols-3 px-6 py-3 text-slate-300/50 font-semibold border-b-2 border-slate-300/20">
+        <div className="flex gap-6">
+          <div className="w-8 text-center">#</div>
+          <div>Title</div>
         </div>
-        <div className="flex flex-col gap-4">
-          {songsInPlaylist.map(song => {
-            return (
-              <div className="flex gap-3 p-3">
-                <img
-                  src={song.albumCover ?? '/album-cover.png'}
-                  alt={song.title}
-                  className="w-14 aspect-square rounded-md bg-slate-100 object-cover"
-                />
-                <div className="flex flex-col justify-between">
-                  <div className="text-md text-slate-200 font-semibold">
-                    {song.title}
-                  </div>
-                  <span className="text-sm truncate">
-                    {song.artist ?? 'Unknown'}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+        <div className="text-start">Date added</div>
+        <div className="text-end">Time</div>
+      </header>
+      <PlaylistItemList
+        songs={songsInPlaylist}
+        playlist={playlist}
+        createdPlaylists={playlists}
+      />
     </div>
   );
 }

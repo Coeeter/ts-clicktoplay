@@ -13,6 +13,7 @@ import {
 } from 'react-icons/md';
 import { TbRepeat, TbRepeatOnce } from 'react-icons/tb';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 type SongPlayerProps = {
   songs: Song[];
@@ -52,6 +53,22 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
 
   const ref = useRef<ReactPlayer>(null);
   const currentTimeRef = useRef(currentTime);
+  const titleRef = useRef('');
+
+  const pathname = usePathname();
+
+  useEffect(() => {
+    titleRef.current = document.title;
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!currentSong) return;
+    if (isPlaying) {
+      document.title = `${currentSong.title} • ${currentSong.artist} | ClickToPlay`;
+    } else {
+      document.title = titleRef.current;
+    }
+  }, [currentSong?.title, isPlaying, pathname]);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -122,8 +139,8 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
     navigator.mediaSession.metadata = getMetadata(currentSong);
     return () => {
       navigator.mediaSession.metadata = null;
-    }
-  }, [currentSong])
+    };
+  }, [currentSong]);
 
   return (
     <div className="flex-1 flex flex-col justify-center items-center">

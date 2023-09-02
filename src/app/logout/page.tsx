@@ -3,6 +3,11 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from '@/lib/auth';
 
 import LogoutForm from './LogoutForm';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Log Out | ClickToPlay',
+}
 
 export default async function Logout({
   searchParams,

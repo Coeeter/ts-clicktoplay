@@ -1,8 +1,12 @@
-import { S3 } from 'aws-sdk';
+import { PutObjectCommand, S3 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const s3 = new S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+  region: 'ap-southeast-1'
 });
 
 const deleteFileFromS3 = async ({
@@ -24,12 +28,10 @@ const deleteFileFromS3 = async ({
     key = url.split('aws.com/').pop();
   }
 
-  return await s3
-    .deleteObject({
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Key: key!,
-    })
-    .promise();
+  return await s3.deleteObject({
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: key!,
+  });
 };
 
 export const getPresignedUploadUrl = async ({
@@ -39,11 +41,12 @@ export const getPresignedUploadUrl = async ({
   key: string;
   contentType: string;
 }) => {
-  return await s3.getSignedUrlPromise('putObject', {
+  const command = new PutObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET_NAME,
     Key: key,
     ContentType: contentType,
   });
+  return await getSignedUrl(s3, command, { expiresIn: 3600 });
 };
 
 const uploadBufferToS3 = async ({
@@ -55,14 +58,12 @@ const uploadBufferToS3 = async ({
   key: string;
   contentType: string;
 }) => {
-  return await s3
-    .upload({
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Key: key,
-      Body: buffer,
-      ContentType: contentType,
-    })
-    .promise();
+  return await s3.putObject({
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: key,
+    Body: buffer,
+    ContentType: contentType,
+  });
 };
 
 export { deleteFileFromS3, uploadBufferToS3 };
