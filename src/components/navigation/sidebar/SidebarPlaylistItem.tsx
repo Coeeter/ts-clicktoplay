@@ -8,12 +8,17 @@ import { MdVolumeUp } from 'react-icons/md';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEditPlaylistModalStore } from '@/store/EditPlaylistModalStore';
+import { Session } from 'next-auth';
 
 type SidebarPlaylistItemProps = {
   playlist: Playlist;
+  session: Session | null;
 };
 
-export const SidebarPlaylistItem = ({ playlist }: SidebarPlaylistItemProps) => {
+export const SidebarPlaylistItem = ({
+  playlist,
+  session,
+}: SidebarPlaylistItemProps) => {
   const { contextMenuHandler } = useContextMenu();
   const createToast = useToastStore(state => state.createToast);
   const playPlaylist = useQueueStore(state => state.playPlaylist);
@@ -35,20 +40,24 @@ export const SidebarPlaylistItem = ({ playlist }: SidebarPlaylistItemProps) => {
           label: 'Play',
           onClick: () => playPlaylist(playlist, null),
         },
-        {
-          label: 'Edit Playlist',
-          onClick: () => openEditPlaylistModal(playlist),
-        },
-        {
-          label: 'Delete',
-          onClick: async () => {
-            await deletePlaylist({
-              playlistId: playlist.id,
-            });
-            router.replace('/');
-            createToast('Playlist deleted', 'success');
-          },
-        },
+        ...(playlist.creatorId === session?.user?.id
+          ? [
+              {
+                label: 'Edit Playlist',
+                onClick: () => openEditPlaylistModal(playlist),
+              },
+              {
+                label: 'Delete',
+                onClick: async () => {
+                  await deletePlaylist({
+                    playlistId: playlist.id,
+                  });
+                  router.replace('/');
+                  createToast('Playlist deleted', 'success');
+                },
+              },
+            ]
+          : []),
       ])}
       href={`/playlist/${playlist.id}`}
     >

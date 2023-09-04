@@ -24,7 +24,7 @@ export const updateSongSchema = z.object({
   id: songIdSchema,
   title: z.string().min(1).max(100),
   artist: z.string().min(1).max(100),
-  albumCover: z.string().url(),
+  albumCover: z.string().url().nullable(),
 });
 
 export const getUploadUrlSchema = z

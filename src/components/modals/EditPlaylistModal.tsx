@@ -1,15 +1,14 @@
 'use client';
 
-import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { useEditPlaylistModalStore } from '@/store/EditPlaylistModalStore';
-import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { MdClose, MdEdit } from 'react-icons/md';
+import { useEffect, useState } from 'react';
+import { MdEdit } from 'react-icons/md';
 import { TextField } from '../forms/TextField';
 import { Button } from '../forms/Button';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { getPlaylistUpdateImageUrl, updatePlaylist } from '@/actions/playlist';
 import { useToastStore } from '@/store/ToastStore';
+import { Modal } from './Modal';
 
 type FormValues = {
   title: string;
@@ -21,7 +20,6 @@ export const EditPlaylistModal = () => {
   const isOpen = useEditPlaylistModalStore(state => state.isOpen);
   const playlist = useEditPlaylistModalStore(state => state.playlist);
   const close = useEditPlaylistModalStore(state => state.close);
-  const ref = useRef<HTMLFormElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const createToast = useToastStore(state => state.createToast);
 
@@ -30,14 +28,16 @@ export const EditPlaylistModal = () => {
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
-    getValues,
     watch,
+    reset,
   } = useForm<FormValues>({
     defaultValues: {
       title: playlist?.title,
       description: playlist?.description ?? '',
     },
   });
+
+  const image = watch('image');
 
   const onSubmit: SubmitHandler<FormValues> = async data => {
     let imageUrl = playlist!.image;
@@ -68,106 +68,84 @@ export const EditPlaylistModal = () => {
     createToast('Playlist updated!', 'success');
   };
 
-  useOutsideClick({
-    ref,
-    callback: close,
-  });
+  useEffect(() => {
+    if (!playlist) return;
+    reset();
+    setValue('title', playlist.title);
+    setValue('description', playlist.description ?? '');
+    setPreview(playlist.image ?? null);
+  }, [isOpen]);
 
   useEffect(() => {
-    if (playlist) {
-      setValue('title', playlist.title);
-      setValue('description', playlist.description ?? '');
-    }
-  }, [playlist?.title, playlist?.description]);
-
-  useEffect(() => {
-    const fileList = getValues('image');
-    if (!fileList) return;
-    if (fileList.length === 0) return;
-    const file = fileList[0];
+    if (!image) return;
+    if (image.length === 0) return;
+    const file = image[0];
     const url = URL.createObjectURL(file);
     setPreview(url);
-  }, [watch('image')]);
+  }, [image]);
 
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.files;
       if (!items?.length) return;
       setValue('image', items);
-    }
+    };
     window.addEventListener('paste', onPaste);
     return () => {
       window.removeEventListener('paste', onPaste);
-    }
-  }, [])
+    };
+  }, []);
 
   return (
-    <AnimatePresence>
-      {isOpen && playlist && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
-          <motion.form
-            key="edit-playlist-modal"
-            ref={ref}
-            className="bg-slate-800 p-6 rounded-md min-w-[450px] w-1/3 max-w-[550px]"
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl text-white font-bold">Edit Playlist</h1>
-              <button onClick={close} type="button">
-                <MdClose className="text-2xl text-white cursor-pointer" />
-              </button>
-            </div>
-            <div className="w-full flex gap-3">
-              <div className="w-56 shadow-2xl h-56 rounded-md group relative">
-                <img
-                  src={preview ?? playlist.image ?? '/playlist-cover.png'}
-                  alt={playlist.title}
-                  className="w-56 shadow-2xl h-56 rounded-xl bg-slate-100 object-cover cursor-pointer"
-                />
-                <label
-                  htmlFor="file"
-                  className="cursor-pointer absolute inset-0 gap-2 bg-slate-900/50 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <MdEdit className="text-white text-6xl" />
-                  <input
-                    id="file"
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    {...register('image')}
-                  />
-                </label>
-              </div>
-              <div className="flex flex-col flex-1 gap-2">
-                <TextField
-                  label="Title"
-                  error={errors.title?.message}
-                  {...register('title', { required: 'Title is required!' })}
-                />
-                <TextField
-                  label="Description"
-                  variant="textarea"
-                  height="flex-1"
-                  error={errors.description?.message}
-                  {...register('description', {
-                    maxLength: {
-                      value: 200,
-                      message: 'Description cannot be longer than 200 characters!',
-                    },
-                  })}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end mt-6">
-              <Button className="w-32" type="submit" isLoading={isSubmitting}>
-                Save
-              </Button>
-            </div>
-          </motion.form>
+    <Modal isOpen={isOpen && !!playlist} close={close} title="Edit Playlist">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="w-full flex gap-3">
+          <div className="w-56 shadow-2xl h-56 rounded-md group relative">
+            <img
+              src={preview ?? '/playlist-cover.png'}
+              alt={playlist?.title ?? ''}
+              className="w-56 shadow-2xl h-56 rounded-xl bg-slate-100 object-cover cursor-pointer"
+            />
+            <label
+              htmlFor="file"
+              className="cursor-pointer absolute inset-0 gap-2 bg-slate-900/50 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <MdEdit className="text-white text-6xl" />
+              <input
+                id="file"
+                type="file"
+                className="hidden"
+                accept="image/*"
+                {...register('image')}
+              />
+            </label>
+          </div>
+          <div className="flex flex-col flex-1 gap-2">
+            <TextField
+              label="Title"
+              error={errors.title?.message}
+              {...register('title', { required: 'Title is required!' })}
+            />
+            <TextField
+              label="Description"
+              variant="textarea"
+              height="flex-1"
+              error={errors.description?.message}
+              {...register('description', {
+                maxLength: {
+                  value: 200,
+                  message: 'Description cannot be longer than 200 characters!',
+                },
+              })}
+            />
+          </div>
         </div>
-      )}
-    </AnimatePresence>
+        <div className="flex justify-end mt-6">
+          <Button className="w-32" type="submit" isLoading={isSubmitting}>
+            Save
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 };
