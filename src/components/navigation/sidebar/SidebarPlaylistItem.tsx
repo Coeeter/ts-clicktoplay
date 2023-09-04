@@ -1,14 +1,13 @@
 'use client';
 
-import { Playlist, deletePlaylist } from '@/actions/playlist';
+import { Playlist } from '@/actions/playlist';
 import { useContextMenu } from '@/hooks/useContextMenu';
+import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 import { useQueueStore } from '@/store/QueueStore';
-import { useToastStore } from '@/store/ToastStore';
-import { MdVolumeUp } from 'react-icons/md';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEditPlaylistModalStore } from '@/store/EditPlaylistModalStore';
 import { Session } from 'next-auth';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { MdVolumeUp } from 'react-icons/md';
 
 type SidebarPlaylistItemProps = {
   playlist: Playlist;
@@ -20,15 +19,13 @@ export const SidebarPlaylistItem = ({
   session,
 }: SidebarPlaylistItemProps) => {
   const { contextMenuHandler } = useContextMenu();
-  const createToast = useToastStore(state => state.createToast);
   const playPlaylist = useQueueStore(state => state.playPlaylist);
   const isPlaylistPlaying = useQueueStore(
     state => state.playlistId === playlist.id
   );
   const isPlaying = useQueueStore(state => state.isPlaying);
   const pathname = usePathname();
-  const router = useRouter();
-  const openEditPlaylistModal = useEditPlaylistModalStore(state => state.open);
+  const openPlaylistModal = usePlaylistModalStore(state => state.open);
 
   return (
     <Link
@@ -44,17 +41,11 @@ export const SidebarPlaylistItem = ({
           ? [
               {
                 label: 'Edit Playlist',
-                onClick: () => openEditPlaylistModal(playlist),
+                onClick: () => openPlaylistModal(playlist, 'edit'),
               },
               {
                 label: 'Delete',
-                onClick: async () => {
-                  await deletePlaylist({
-                    playlistId: playlist.id,
-                  });
-                  router.replace('/');
-                  createToast('Playlist deleted', 'success');
-                },
+                onClick: async () => openPlaylistModal(playlist, 'delete'),
               },
             ]
           : []),

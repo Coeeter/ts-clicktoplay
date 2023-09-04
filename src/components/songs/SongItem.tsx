@@ -58,10 +58,11 @@ export const SongItem = ({ song, playlists, playSong }: SongItemProps) => {
                   title: song.title,
                   image: song.albumCover,
                 });
-                await addSongsToPlaylist({
+                const [error] = await addSongsToPlaylist({
                   playlistId: playlist.id,
                   songIds: [song.id],
                 });
+                if (error) return showToast(error, 'error');
                 showToast(`Added to playlist '${playlist.title}'`, 'success');
               },
               divider: true,
@@ -69,15 +70,12 @@ export const SongItem = ({ song, playlists, playSong }: SongItemProps) => {
             ...playlists.map(playlist => ({
               label: playlist.title,
               onClick: async () => {
-                try {
-                  await addSongsToPlaylist({
-                    playlistId: playlist.id,
-                    songIds: [song.id],
-                  });
-                  showToast(`Added to playlist '${playlist.title}'`, 'success');
-                } catch (e) {
-                  if (e instanceof Error) showToast(e.message, 'error');
-                }
+                const [error] = await addSongsToPlaylist({
+                  playlistId: playlist.id,
+                  songIds: [song.id],
+                });
+                if (error) return showToast(error, 'error');
+                showToast(`Added to playlist '${playlist.title}'`, 'success');
               },
             })),
             ...(!playlists.length

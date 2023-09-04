@@ -1,10 +1,6 @@
-import {
-  Playlist,
-  getCreatedPlaylists,
-  getPlaylistById,
-} from '@/actions/playlist';
+import { getCreatedPlaylists, getPlaylistById } from '@/actions/playlist';
 import { getSongs } from '@/actions/songs';
-import { OpenEditModal } from '@/components/playlist/OpenEditModal';
+import { OpenPlaylistModal } from '@/components/playlist/OpenEditModal';
 import { PlaylistItemList } from '@/components/playlist/PlaylistItemList';
 import { getServerSession } from '@/lib/auth';
 import { NotFoundError, sortLinkedList } from '@/utils';
@@ -16,7 +12,8 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }): Promise<Metadata> {
-  const playlist = await getPlaylistById(params.id);
+  const [error, playlist] = await getPlaylistById(params.id);
+  if (error || !playlist) return { title: 'ClickToPlay' };
   return {
     title: `${playlist.title} - playlist by ${playlist.creator.name} | ClickToPlay`,
   };
@@ -27,12 +24,8 @@ export default async function PlaylistScreen({
 }: {
   params: { id: string };
 }) {
-  let playlist: Playlist;
-  try {
-    playlist = await getPlaylistById(id);
-  } catch (e) {
-    redirect('/');
-  }
+  const [error, playlist] = await getPlaylistById(id);
+  if (error || !playlist) redirect('/');
   let session = await getServerSession();
   const playlists = session ? await getCreatedPlaylists(session) : [];
   const songs = await getSongs();
@@ -55,16 +48,16 @@ export default async function PlaylistScreen({
   return (
     <div className="flex flex-col gap-4">
       <header className="flex gap-4">
-        <OpenEditModal session={session} playlist={playlist}>
+        <OpenPlaylistModal session={session} playlist={playlist} type="edit">
           <img
             src={playlist.image ?? '/playlist-cover.png'}
             alt={playlist.title}
             className="w-48 shadow-2xl h-48 rounded-xl bg-slate-100 object-cover cursor-pointer"
           />
-        </OpenEditModal>
+        </OpenPlaylistModal>
         <div className="flex flex-col justify-end">
           <span className="text-lg">Playlist</span>
-          <OpenEditModal session={session} playlist={playlist}>
+          <OpenPlaylistModal session={session} playlist={playlist} type="edit">
             <div className="text-6xl text-slate-200 font-bold mb-6 cursor-pointer">
               {playlist.title}
             </div>
@@ -73,7 +66,7 @@ export default async function PlaylistScreen({
                 {playlist.description}
               </div>
             )}
-          </OpenEditModal>
+          </OpenPlaylistModal>
           <span className="text-md truncate">
             <span className="text-slate-200 font-semibold">
               {playlist.creator.name + ' • ' + playlist.items.length + ' songs'}

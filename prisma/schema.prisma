@@ -38,6 +38,8 @@ model Playlist {
   queues      Queue[]
   items       PlaylistItem[]
   libraries   LibraryItem[]  @ignore
+
+  @@unique([creatorId, title])
 }
 
 model PlaylistItem {

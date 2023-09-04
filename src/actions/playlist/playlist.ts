@@ -28,6 +28,9 @@ export const getCreatedPlaylists = async (session: Session) => {
     where: {
       creatorId: session.user.id,
     },
+    orderBy: {
+      createdAt: 'asc',
+    },
     include: {
       items: true,
       creator: true,
@@ -36,20 +39,29 @@ export const getCreatedPlaylists = async (session: Session) => {
   return playlists;
 };
 
-export const getPlaylistById = async (id: string): Promise<Playlist> => {
-  const playlist = await prisma.playlist.findUnique({
-    where: {
-      id,
-    },
-    include: {
-      items: true,
-      creator: true,
-    },
-  });
-  if (!playlist) {
-    throw new NotFoundError('Playlist not found');
+export const getPlaylistById = async (
+  id: string
+): Promise<[string | null, Playlist | null]> => {
+  try {
+    const playlist = await prisma.playlist.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        items: true,
+        creator: true,
+      },
+    });
+    if (!playlist) {
+      throw new NotFoundError('Playlist not found');
+    }
+    return [null, playlist];
+  } catch (e) {
+    if (e instanceof Error) {
+      return [e.message, null];
+    }
+    return ['An error has occured', null];
   }
-  return playlist;
 };
 
 export const searchPlaylists = async (query: string) => {
@@ -97,20 +109,30 @@ export const getPlaylistUpdateImageUrl = async (
   playlistId: string,
   extension: string,
   fileType: string
-) => {
-  const session = (await getServerSession())!;
-  const playlist = await getPlaylistById(playlistId);
-  if (playlist.creatorId !== session.user.id) {
-    throw new UnauthorizedError(
-      'You are not authorized to update this playlist'
-    );
+): Promise<[error: string | null, url: string | null]> => {
+  try {
+    const session = (await getServerSession())!;
+    const [error, playlist] = await getPlaylistById(playlistId);
+    if (error) {
+      throw new NotFoundError('Playlist not found');
+    }
+    if (playlist!.creatorId !== session.user.id) {
+      throw new UnauthorizedError(
+        'You are not authorized to update this playlist'
+      );
+    }
+    let key = `images/${randomUUID()}.${extension ?? 'jpg'}`;
+    const presignedUrl = await getPresignedUploadUrl({
+      key: key,
+      contentType: fileType ?? 'image/jpeg',
+    });
+    return [null, presignedUrl];
+  } catch (e) {
+    if (e instanceof Error) {
+      return [e.message, null];
+    }
+    return ['An error has occured', null];
   }
-  let key = `images/${randomUUID()}.${extension ?? 'jpg'}`;
-  const presignedUrl = await getPresignedUploadUrl({
-    key: key,
-    contentType: fileType ?? 'image/jpeg',
-  });
-  return presignedUrl;
 };
 
 export const updatePlaylist = async ({
@@ -118,135 +140,171 @@ export const updatePlaylist = async ({
   title,
   description,
   image,
-}: UpdatePlaylistProps) => {
-  const session = (await getServerSession())!;
-  const playlist = await getPlaylistById(playlistId);
-  if (playlist.creatorId !== session.user.id) {
-    throw new UnauthorizedError(
-      'You are not authorized to update this playlist'
-    );
+}: UpdatePlaylistProps): Promise<
+  [error: string | null, playlist: Playlist | null]
+> => {
+  try {
+    const session = (await getServerSession())!;
+    const [error, playlist] = await getPlaylistById(playlistId);
+    if (error) {
+      throw new NotFoundError('Playlist not found');
+    }
+    if (playlist!.creatorId !== session.user.id) {
+      throw new UnauthorizedError(
+        'You are not authorized to update this playlist'
+      );
+    }
+    const result = await prisma.playlist.update({
+      where: {
+        id: playlistId,
+      },
+      data: {
+        title,
+        description,
+        image,
+      },
+      include: {
+        items: true,
+        creator: true,
+      },
+    });
+    revalidatePath('/');
+    return [null, result];
+  } catch (e) {
+    if (e instanceof Error) {
+      return [e.message, null];
+    }
+    return ['An error has occured', null];
   }
-  const result = await prisma.playlist.update({
-    where: {
-      id: playlistId,
-    },
-    data: {
-      title,
-      description,
-      image,
-    },
-    include: {
-      items: true,
-      creator: true,
-    },
-  });
-  revalidatePath('/');
-  return result;
 };
 
 export const addSongsToPlaylist = async ({
   playlistId,
   songIds,
-}: AddSongsToPlaylistProps) => {
-  const session = (await getServerSession())!;
-  const playlist = await getPlaylistById(playlistId);
-  if (playlist.creatorId !== session.user.id) {
-    throw new UnauthorizedError(
-      'You are not authorized to update this playlist'
-    );
+}: AddSongsToPlaylistProps): Promise<
+  [error: string | null, playlist: Playlist | null]
+> => {
+  try {
+    const session = (await getServerSession())!;
+    const [error, playlist] = await getPlaylistById(playlistId);
+    if (error) {
+      throw new NotFoundError('Playlist not found');
+    }
+    if (playlist!.creatorId !== session.user.id) {
+      throw new UnauthorizedError(
+        'You are not authorized to update this playlist'
+      );
+    }
+    const { id, items } = playlist!;
+    if (songIds.some(songId => items.some(item => item.songId === songId))) {
+      throw new BadRequestError('Song already exists in playlist');
+    }
+    const lastItem = items.find(item => !item.nextId);
+    const playlistItems = createPlaylistItems(songIds, playlistId);
+    playlistItems[0].prevId = lastItem?.id ?? null;
+    await prisma.$transaction([
+      prisma.playlistItem.createMany({
+        data: playlistItems.map(item => ({ ...item, playlistId })),
+      }),
+      ...(lastItem
+        ? [
+            prisma.playlistItem.update({
+              where: {
+                id: lastItem?.id,
+              },
+              data: {
+                nextId: playlistItems[0].id,
+              },
+            }),
+          ]
+        : []),
+    ]);
+    const result = await getPlaylistById(id);
+    revalidatePath('/');
+    return result;
+  } catch (e) {
+    if (e instanceof Error) {
+      return [e.message, null];
+    }
+    return ['An error has occured', null];
   }
-  const { id, items } = playlist;
-  if (songIds.some(songId => items.some(item => item.songId === songId))) {
-    throw new BadRequestError('Song already exists in playlist');
-  }
-  const lastItem = items.find(item => !item.nextId);
-  const playlistItems = createPlaylistItems(songIds, playlistId);
-  playlistItems[0].prevId = lastItem?.id ?? null;
-  await prisma.$transaction([
-    prisma.playlistItem.createMany({
-      data: playlistItems.map(item => ({ ...item, playlistId })),
-    }),
-    ...(lastItem
-      ? [
-          prisma.playlistItem.update({
-            where: {
-              id: lastItem?.id,
-            },
-            data: {
-              nextId: playlistItems[0].id,
-            },
-          }),
-        ]
-      : []),
-  ]);
-  const result = await getPlaylistById(id);
-  revalidatePath('/');
-  return result;
 };
 
 export const removeSongsFromPlaylist = async ({
   playlistId,
   songIds,
-}: RemoveSongsFromPlaylistProps): Promise<Playlist> => {
-  const session = (await getServerSession())!;
-  const playlist = await getPlaylistById(playlistId);
-  if (playlist.creatorId !== session.user.id) {
-    throw new UnauthorizedError(
-      'You are not authorized to update this playlist'
-    );
-  }
-  const { id, items } = playlist;
-  const playlistItemsToRemove = songIds.map(songId => {
-    const item = items.find(item => item.songId === songId);
-    if (!item) {
-      throw new NotFoundError('Song not found in playlist');
+}: RemoveSongsFromPlaylistProps): Promise<
+  [error: string | null, playlist: Playlist | null]
+> => {
+  try {
+    const session = (await getServerSession())!;
+    const [error, playlist] = await getPlaylistById(playlistId);
+    if (error) {
+      throw new NotFoundError('Playlist not found');
     }
-    return item;
-  });
-  if (!checkLinkedListNodesAreInOrder(playlistItemsToRemove, true)) {
-    throw new BadRequestError('Playlist items are not in order');
-  }
-  const firstItem = playlistItemsToRemove[0];
-  const lastItem = playlistItemsToRemove[playlistItemsToRemove.length - 1];
-  const prevItem = items.find(item => item.nextId === firstItem.id);
-  const nextItem = items.find(item => item.prevId === lastItem.id);
-  const transaction: any[] = [
-    prisma.playlistItem.deleteMany({
-      where: {
-        id: {
-          in: playlistItemsToRemove.map(item => item.id),
-        },
-      },
-    }),
-  ];
-  if (prevItem) {
-    transaction.push(
-      prisma.playlistItem.update({
+    if (playlist!.creatorId !== session.user.id) {
+      throw new UnauthorizedError(
+        'You are not authorized to update this playlist'
+      );
+    }
+    const { id, items } = playlist!;
+    const playlistItemsToRemove = songIds.map(songId => {
+      const item = items.find(item => item.songId === songId);
+      if (!item) {
+        throw new NotFoundError('Song not found in playlist');
+      }
+      return item;
+    });
+    if (!checkLinkedListNodesAreInOrder(playlistItemsToRemove, true)) {
+      throw new BadRequestError('Playlist items are not in order');
+    }
+    const firstItem = playlistItemsToRemove[0];
+    const lastItem = playlistItemsToRemove[playlistItemsToRemove.length - 1];
+    const prevItem = items.find(item => item.nextId === firstItem.id);
+    const nextItem = items.find(item => item.prevId === lastItem.id);
+    const transaction: any[] = [
+      prisma.playlistItem.deleteMany({
         where: {
-          id: prevItem?.id,
+          id: {
+            in: playlistItemsToRemove.map(item => item.id),
+          },
         },
-        data: {
-          nextId: nextItem?.id,
-        },
-      })
-    );
+      }),
+    ];
+    if (prevItem) {
+      transaction.push(
+        prisma.playlistItem.update({
+          where: {
+            id: prevItem?.id,
+          },
+          data: {
+            nextId: nextItem?.id,
+          },
+        })
+      );
+    }
+    if (nextItem) {
+      transaction.push(
+        prisma.playlistItem.update({
+          where: {
+            id: nextItem?.id,
+          },
+          data: {
+            prevId: prevItem?.id,
+          },
+        })
+      );
+    }
+    await prisma.$transaction(transaction);
+    const result = await getPlaylistById(id);
+    revalidatePath('/');
+    return result;
+  } catch (e) {
+    if (e instanceof Error) {
+      return [e.message, null];
+    }
+    return ['An error has occured', null];
   }
-  if (nextItem) {
-    transaction.push(
-      prisma.playlistItem.update({
-        where: {
-          id: nextItem?.id,
-        },
-        data: {
-          prevId: prevItem?.id,
-        },
-      })
-    );
-  }
-  await prisma.$transaction(transaction);
-  const result = await getPlaylistById(id);
-  revalidatePath('/');
-  return result;
 };
 
 export const moveSongsInPlaylist = async ({
@@ -254,130 +312,156 @@ export const moveSongsInPlaylist = async ({
   songIds,
   prevId,
   nextId,
-}: MoveSongsInPlaylistProps): Promise<Playlist> => {
-  const session = (await getServerSession())!;
-  const playlist = await getPlaylistById(playlistId);
-  if (playlist.creatorId !== session.user.id) {
-    throw new UnauthorizedError(
-      'You are not authorized to update this playlist'
-    );
-  }
-  const { id, items } = playlist;
-  const playlistItemsToMove = songIds.map(songId => {
-    const item = items.find(item => item.songId === songId);
-    if (!item) {
-      throw new NotFoundError('Song not found in playlist');
+}: MoveSongsInPlaylistProps): Promise<
+  [error: string | null, playlist: Playlist | null]
+> => {
+  try {
+    const session = (await getServerSession())!;
+    const [error, playlist] = await getPlaylistById(playlistId);
+    if (error) {
+      throw new NotFoundError('Playlist not found');
     }
-    return item;
-  });
-  if (!checkLinkedListNodesAreInOrder(playlistItemsToMove, true)) {
-    throw new BadRequestError('Playlist items are not in order');
+    if (playlist!.creatorId !== session.user.id) {
+      throw new UnauthorizedError(
+        'You are not authorized to update this playlist'
+      );
+    }
+    const { id, items } = playlist!;
+    const playlistItemsToMove = songIds.map((songId: string) => {
+      const item = items.find(item => item.songId === songId);
+      if (!item) {
+        throw new NotFoundError('Song not found in playlist');
+      }
+      return item;
+    });
+    if (!checkLinkedListNodesAreInOrder(playlistItemsToMove, true)) {
+      throw new BadRequestError('Playlist items are not in order');
+    }
+    const firstItem = playlistItemsToMove[0];
+    const lastItem = playlistItemsToMove[playlistItemsToMove.length - 1];
+    const oldPrevItem = items.find(item => item.nextId === firstItem.id);
+    const oldNextItem = items.find(item => item.prevId === lastItem.id);
+    const newPrevItem = items.find(item => prevId === item.id);
+    const newNextItem = items.find(item => nextId === item.id);
+    if (!prevId && !nextId) {
+      throw new BadRequestError('nextId or prevId is required');
+    }
+    if (prevId && !newPrevItem) {
+      throw new NotFoundError('prevId not found in playlist');
+    }
+    if (nextId && !newNextItem) {
+      throw new NotFoundError('nextId not found in playlist');
+    }
+    if (
+      (newPrevItem && newPrevItem?.nextId !== (newNextItem?.id ?? null)) ||
+      (newNextItem && newNextItem?.prevId !== (newPrevItem?.id ?? null))
+    ) {
+      throw new BadRequestError('Invalid nextId or prevId');
+    }
+    await prisma.$transaction([
+      prisma.playlistItem.update({
+        where: {
+          id: firstItem.id,
+        },
+        data: {
+          prevId,
+        },
+      }),
+      prisma.playlistItem.update({
+        where: {
+          id: lastItem.id,
+        },
+        data: {
+          nextId,
+        },
+      }),
+      ...(newPrevItem
+        ? [
+            prisma.playlistItem.update({
+              where: {
+                id: newPrevItem?.id,
+              },
+              data: {
+                nextId: firstItem.id,
+              },
+            }),
+          ]
+        : []),
+      ...(newNextItem
+        ? [
+            prisma.playlistItem.update({
+              where: {
+                id: newNextItem?.id,
+              },
+              data: {
+                prevId: lastItem.id,
+              },
+            }),
+          ]
+        : []),
+      ...(oldPrevItem
+        ? [
+            prisma.playlistItem.update({
+              where: {
+                id: oldPrevItem?.id,
+              },
+              data: {
+                nextId: lastItem.nextId,
+              },
+            }),
+          ]
+        : []),
+      ...(oldNextItem
+        ? [
+            prisma.playlistItem.update({
+              where: {
+                id: oldNextItem?.id,
+              },
+              data: {
+                prevId: firstItem.prevId,
+              },
+            }),
+          ]
+        : []),
+    ]);
+    const result = await getPlaylistById(id);
+    revalidatePath('/');
+    return result;
+  } catch (e) {
+    if (e instanceof Error) {
+      return [e.message, null];
+    }
+    return ['An error has occured', null];
   }
-  const firstItem = playlistItemsToMove[0];
-  const lastItem = playlistItemsToMove[playlistItemsToMove.length - 1];
-  const oldPrevItem = items.find(item => item.nextId === firstItem.id);
-  const oldNextItem = items.find(item => item.prevId === lastItem.id);
-  const newPrevItem = items.find(item => prevId === item.id);
-  const newNextItem = items.find(item => nextId === item.id);
-  if (!prevId && !nextId) {
-    throw new BadRequestError('nextId or prevId is required');
-  }
-  if (prevId && !newPrevItem) {
-    throw new NotFoundError('prevId not found in playlist');
-  }
-  if (nextId && !newNextItem) {
-    throw new NotFoundError('nextId not found in playlist');
-  }
-  if (
-    (newPrevItem && newPrevItem?.nextId !== (newNextItem?.id ?? null)) ||
-    (newNextItem && newNextItem?.prevId !== (newPrevItem?.id ?? null))
-  ) {
-    throw new BadRequestError('Invalid nextId or prevId');
-  }
-  await prisma.$transaction([
-    prisma.playlistItem.update({
-      where: {
-        id: firstItem.id,
-      },
-      data: {
-        prevId,
-      },
-    }),
-    prisma.playlistItem.update({
-      where: {
-        id: lastItem.id,
-      },
-      data: {
-        nextId,
-      },
-    }),
-    ...(newPrevItem
-      ? [
-          prisma.playlistItem.update({
-            where: {
-              id: newPrevItem?.id,
-            },
-            data: {
-              nextId: firstItem.id,
-            },
-          }),
-        ]
-      : []),
-    ...(newNextItem
-      ? [
-          prisma.playlistItem.update({
-            where: {
-              id: newNextItem?.id,
-            },
-            data: {
-              prevId: lastItem.id,
-            },
-          }),
-        ]
-      : []),
-    ...(oldPrevItem
-      ? [
-          prisma.playlistItem.update({
-            where: {
-              id: oldPrevItem?.id,
-            },
-            data: {
-              nextId: lastItem.nextId,
-            },
-          }),
-        ]
-      : []),
-    ...(oldNextItem
-      ? [
-          prisma.playlistItem.update({
-            where: {
-              id: oldNextItem?.id,
-            },
-            data: {
-              prevId: firstItem.prevId,
-            },
-          }),
-        ]
-      : []),
-  ]);
-  const result = await getPlaylistById(id);
-  revalidatePath('/');
-  return result;
 };
 
-export const deletePlaylist = async ({ playlistId }: DeletePlaylistProps) => {
-  const session = (await getServerSession())!;
-  const playlist = await getPlaylistById(playlistId);
-  if (playlist.creatorId !== session.user.id) {
-    throw new UnauthorizedError(
-      'You are not authorized to delete this playlist'
-    );
+export const deletePlaylist = async ({
+  playlistId,
+}: DeletePlaylistProps): Promise<
+  [error: string | null, playlistId: string | null]
+> => {
+  try {
+    const session = (await getServerSession())!;
+    const [error, playlist] = await getPlaylistById(playlistId);
+    if (error) {
+      throw new NotFoundError('Playlist not found');
+    }
+    if (playlist!.creatorId !== session.user.id) {
+      throw new UnauthorizedError(
+        'You are not authorized to delete this playlist'
+      );
+    }
+    const result = await prisma.playlist.delete({
+      where: {
+        id: playlistId,
+      },
+    });
+    revalidatePath('/');
+    return [null, result.id];
+  } catch (e) {
+    if (e instanceof Error) {
+      return [e.message, null];
+    }
+    return ['An error has occured', null];
   }
-  const result = await prisma.playlist.delete({
-    where: {
-      id: playlistId,
-    },
-  });
-  revalidatePath('/');
-  return result;
 };

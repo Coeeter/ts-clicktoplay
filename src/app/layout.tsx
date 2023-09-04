@@ -9,7 +9,8 @@ import { Toast } from '@/components/Toast';
 import { MainProvider } from '@/components/providers/MainProvider';
 import { SongControlPanel } from '@/components/songs/controlPanel/SongControlPanel';
 import { ContextMenu } from '@/components/ContextMenu';
-import { EditPlaylistModal } from '@/components/modals/EditPlaylistModal';
+import { EditPlaylistModal } from '@/components/modals/PlaylistModal/EditPlaylistModal';
+import { DeletePlaylistModal } from '@/components/modals/PlaylistModal/DeletePlaylistModal';
 
 export const metadata: Metadata = {
   title: 'ClickToPlay',
@@ -47,6 +48,7 @@ export default async function RootLayout({
             <SongControlPanel />
           </div>
           <EditPlaylistModal />
+          <DeletePlaylistModal />
         </MainProvider>
       </body>
     </html>

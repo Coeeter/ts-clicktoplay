@@ -1,14 +1,14 @@
 'use client';
 
-import { useEditPlaylistModalStore } from '@/store/EditPlaylistModalStore';
+import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 import { useEffect, useState } from 'react';
 import { MdEdit } from 'react-icons/md';
-import { TextField } from '../forms/TextField';
-import { Button } from '../forms/Button';
+import { TextField } from '../../forms/TextField';
+import { Button } from '../../forms/Button';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { getPlaylistUpdateImageUrl, updatePlaylist } from '@/actions/playlist';
 import { useToastStore } from '@/store/ToastStore';
-import { Modal } from './Modal';
+import { Modal } from '../Modal';
 
 type FormValues = {
   title: string;
@@ -17,9 +17,10 @@ type FormValues = {
 };
 
 export const EditPlaylistModal = () => {
-  const isOpen = useEditPlaylistModalStore(state => state.isOpen);
-  const playlist = useEditPlaylistModalStore(state => state.playlist);
-  const close = useEditPlaylistModalStore(state => state.close);
+  const isOpen = usePlaylistModalStore(state => state.isOpen);
+  const playlist = usePlaylistModalStore(state => state.playlist);
+  const close = usePlaylistModalStore(state => state.close);
+  const type = usePlaylistModalStore(state => state.type);
   const [preview, setPreview] = useState<string | null>(null);
   const createToast = useToastStore(state => state.createToast);
 
@@ -30,6 +31,7 @@ export const EditPlaylistModal = () => {
     setValue,
     watch,
     reset,
+    setError,
   } = useForm<FormValues>({
     defaultValues: {
       title: playlist?.title,
@@ -44,11 +46,12 @@ export const EditPlaylistModal = () => {
     if (data.image && data.image.length) {
       const extension = data.image[0].name.split('.').pop() ?? 'jpg';
       const fileType = data.image[0].type;
-      const url = await getPlaylistUpdateImageUrl(
+      const [error, url] = await getPlaylistUpdateImageUrl(
         playlist!.id,
         extension,
         fileType
       );
+      if (error || !url) return createToast('Failed to upload image!', 'error');
       await fetch(url, {
         method: 'PUT',
         body: data.image[0],
@@ -58,12 +61,18 @@ export const EditPlaylistModal = () => {
       });
       imageUrl = url.split('?')[0];
     }
-    await updatePlaylist({
+    const [error] = await updatePlaylist({
       playlistId: playlist!.id,
       title: data.title,
       description: data.description,
       image: imageUrl,
     });
+    if (error) {
+      if (error.indexOf('Unique constraint failed on the constraint') !== -1) {
+        return setError('title', { message: 'Title should be unique!' });
+      }
+      return createToast('Failed to update playlist!', 'error');
+    }
     close();
     createToast('Playlist updated!', 'success');
   };
@@ -97,7 +106,11 @@ export const EditPlaylistModal = () => {
   }, []);
 
   return (
-    <Modal isOpen={isOpen && !!playlist} close={close} title="Edit Playlist">
+    <Modal
+      isOpen={isOpen && type === 'edit' && !!playlist}
+      close={close}
+      title="Edit Playlist"
+    >
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="w-full flex gap-3">
           <div className="w-56 shadow-2xl h-56 rounded-md group relative">
