@@ -5,6 +5,7 @@ import { PlaylistItem } from './PlaylistItem';
 import { Playlist, moveSongsInPlaylist } from '@/actions/playlist';
 import { Reorder } from 'framer-motion';
 import { useState } from 'react';
+import { useToastStore } from '@/store/ToastStore';
 
 type PlaylistItemListProps = {
   songs: Song[];
@@ -22,6 +23,7 @@ export const PlaylistItemList = ({
     null
   );
   const [isDragging, setIsDragging] = useState(false);
+  const showToast = useToastStore(state => state.createToast);
 
   const onDragStart = (songId: string) => {
     return () => {
@@ -40,12 +42,13 @@ export const PlaylistItemList = ({
       const nextId =
         index === playlistItems.length - 1 ? null : playlistItems[index + 1].id;
       const prevId = index === 0 ? null : playlistItems[index - 1].id;
-      await moveSongsInPlaylist({
+      const [error] = await moveSongsInPlaylist({
         playlistId: playlist.id,
         songIds: [currentlyDragging],
         nextId: playlist.items.find(item => item.songId === nextId)?.id ?? null,
         prevId: playlist.items.find(item => item.songId === prevId)?.id ?? null,
       });
+      if (error) showToast(error, 'error');
     } finally {
       setCurrentlyDragging(null);
     }

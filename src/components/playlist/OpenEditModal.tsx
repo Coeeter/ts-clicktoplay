@@ -1,28 +1,33 @@
 'use client';
 
 import { Playlist } from '@/actions/playlist';
-import { useEditPlaylistModalStore } from '@/store/EditPlaylistModalStore';
+import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 import { Session } from 'next-auth';
 
 type OpenEditModalProps = {
   session: Session | null;
   playlist: Playlist;
+  type: 'edit' | 'delete';
   children: React.ReactNode;
 };
 
-export const OpenEditModal = ({
+export const OpenPlaylistModal = ({
   session,
   playlist,
+  type,
   children,
 }: OpenEditModalProps) => {
-  const open = useEditPlaylistModalStore(state => state.open);
+  const open = usePlaylistModalStore(state => state.open);
 
   if (!session || playlist.creator.id !== session.user.id) {
     return <>{children}</>;
   }
 
   return (
-    <div className="flex flex-col justify-end" onClick={() => open(playlist)}>
+    <div
+      className="flex flex-col justify-end"
+      onClick={() => open(playlist, type)}
+    >
       {children}
     </div>
   );

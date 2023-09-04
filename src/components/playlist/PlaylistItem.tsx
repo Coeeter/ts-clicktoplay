@@ -185,10 +185,11 @@ const getPlaylistContextMenuItems = ({
     {
       label: 'Remove from Playlist',
       onClick: async () => {
-        await removeSongsFromPlaylist({
+        const [error] = await removeSongsFromPlaylist({
           playlistId,
           songIds: [song.id],
         });
+        if (error) return createToast(error, 'error');
         createToast('Song removed from playlist', 'success');
       },
     },
@@ -209,10 +210,11 @@ const getPlaylistContextMenuItems = ({
               title: song.title,
               image: song.albumCover,
             });
-            await addSongsToPlaylist({
+            const [error] = await addSongsToPlaylist({
               playlistId: playlist.id,
               songIds: [song.id],
             });
+            if (error) return createToast(error, 'error');
             createToast(`Added to playlist '${playlist.title}'`, 'success');
           },
           divider: true,
@@ -220,15 +222,12 @@ const getPlaylistContextMenuItems = ({
         ...playlists.map(playlist => ({
           label: playlist.title,
           onClick: async () => {
-            try {
-              await addSongsToPlaylist({
-                playlistId: playlist.id,
-                songIds: [song.id],
-              });
-              createToast(`Added to playlist '${playlist.title}'`, 'success');
-            } catch (e) {
-              if (e instanceof Error) createToast(e.message, 'error');
-            }
+            const [error] = await addSongsToPlaylist({
+              playlistId: playlist.id,
+              songIds: [song.id],
+            });
+            if (error) return createToast(error, 'error');
+            createToast(`Added to playlist '${playlist.title}'`, 'success');
           },
         })),
         ...(!playlists.length

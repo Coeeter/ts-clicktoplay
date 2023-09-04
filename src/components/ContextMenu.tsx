@@ -144,7 +144,8 @@ const MenuItem = ({
           key={'sub-menu'}
           className="absolute z-50 w-52 bg-slate-600 rounded-md shadow-2xl p-1"
           style={{
-            top: 0,
+            top: transformOrigin.vertical === 'top' ? '0' : undefined,
+            bottom: transformOrigin.vertical === 'bottom' ? '0' : undefined,
             left: transformOrigin.horizontal === 'left' ? '100%' : 'auto',
             right: transformOrigin.horizontal === 'right' ? '100%' : 'auto',
             transformOrigin: `${transformOrigin.vertical} ${transformOrigin.horizontal}`,
