@@ -1,11 +1,13 @@
 import { getCreatedPlaylists, getPlaylistById } from '@/actions/playlist';
 import { getSongs } from '@/actions/songs';
 import { OpenPlaylistModal } from '@/components/playlist/OpenEditModal';
+import { PlaylistPlayButton } from '@/components/playlist/PlayButton';
 import { PlaylistItemList } from '@/components/playlist/PlaylistItemList';
 import { getServerSession } from '@/lib/auth';
 import { NotFoundError, sortLinkedList } from '@/utils';
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { MdFavorite, MdMoreHoriz } from 'react-icons/md';
 
 export async function generateMetadata({
   params,
@@ -75,7 +77,18 @@ export default async function PlaylistScreen({
           </span>
         </div>
       </header>
-      <header className="grid grid-cols-3 px-6 py-3 text-slate-300/50 font-semibold border-b-2 border-slate-300/20">
+      <section className="flex gap-4 mt-3">
+        <PlaylistPlayButton playlist={playlist} />
+        {playlist.creatorId !== session?.user.id && (
+          <button className="text-blue-500 p-3 rounded-full transition hover:scale-[1.1]">
+            <MdFavorite className="w-8 h-8" />
+          </button>
+        )}
+        <button className="text-slate-300/50 hover:text-slate-300/75 p-3 rounded-full transition">
+          <MdMoreHoriz className="w-8 h-8" />
+        </button>
+      </section>
+      <header className="grid grid-cols-3 px-6 py-3 bg-slate-900 text-slate-300/50 font-semibold border-b-2 border-slate-300/20 sticky top-0">
         <div className="flex gap-6">
           <div className="w-8 text-center">#</div>
           <div>Title</div>

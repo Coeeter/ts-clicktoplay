@@ -35,9 +35,6 @@ export const PlaylistItem = ({
   const currentlyPlayingItem = useQueueStore(state =>
     state.items.find(item => item.id === state.currentlyPlayingId)
   );
-  const setCurrentlyPlayingId = useQueueStore(
-    state => state.setCurrentlyPlayingId
-  );
   const playPlaylist = useQueueStore(state => state.playPlaylist);
   const addSongToQueue = useQueueStore(state => state.addSongToQueue);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
