@@ -1,5 +1,6 @@
 import { getCreatedPlaylists, getPlaylistById } from '@/actions/playlist';
 import { getSongs } from '@/actions/songs';
+import { MoreOptionsButton } from '@/components/playlist/MoreOptionsButton';
 import { OpenPlaylistModal } from '@/components/playlist/OpenEditModal';
 import { PlaylistPlayButton } from '@/components/playlist/PlayButton';
 import { PlaylistItemList } from '@/components/playlist/PlaylistItemList';
@@ -7,7 +8,7 @@ import { getServerSession } from '@/lib/auth';
 import { NotFoundError, sortLinkedList } from '@/utils';
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { MdFavorite, MdMoreHoriz } from 'react-icons/md';
+import { MdFavorite } from 'react-icons/md';
 
 export async function generateMetadata({
   params,
@@ -84,9 +85,7 @@ export default async function PlaylistScreen({
             <MdFavorite className="w-8 h-8" />
           </button>
         )}
-        <button className="text-slate-300/50 hover:text-slate-300/75 p-3 rounded-full transition">
-          <MdMoreHoriz className="w-8 h-8" />
-        </button>
+        <MoreOptionsButton playlist={playlist} session={session} />
       </section>
       <header className="grid grid-cols-3 px-6 py-3 bg-slate-900 text-slate-300/50 font-semibold border-b-2 border-slate-300/20 sticky top-0">
         <div className="flex gap-6">
