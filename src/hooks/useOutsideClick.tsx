@@ -18,6 +18,7 @@ export const useOutsideClick = ({
       !ignoreRef?.current?.contains(event.target as Node) &&
       event.target !== ignoreRef?.current
     ) {
+      event.preventDefault();
       callback();
     }
   };
