@@ -101,7 +101,7 @@ export default async function PlaylistScreen({
           <div>Title</div>
         </div>
         <div className="text-start">Date added</div>
-        <div className="text-end">Time</div>
+        <div className="text-end mr-8">Time</div>
       </header>
       <PlaylistItemList
         songs={songsInPlaylist}

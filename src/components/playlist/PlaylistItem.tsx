@@ -18,8 +18,12 @@ import {
   removeFavoriteSongFromLibrary,
 } from '@/actions/library';
 import { usePathname } from 'next/navigation';
-import { MdFavorite, MdFavoriteBorder } from 'react-icons/md';
+import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
 import { useMounted } from '@/hooks/useMounted';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useContextMenuStore } from '@/store/ContextMenuStore';
+import { ContextMenuButton } from '../ContextMenu/ContextMenuButton';
 
 type PlaylistItemProps = {
   song: Song;
@@ -38,6 +42,7 @@ export const PlaylistItem = ({
   listOrder,
   isFavorite,
 }: PlaylistItemProps) => {
+  const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const isPlaying = useQueueStore(state => state.isPlaying);
   const currentlyPlayingItem = useQueueStore(state =>
     state.items.find(item => item.id === state.currentlyPlayingId)
@@ -52,6 +57,7 @@ export const PlaylistItem = ({
   const setShuffle = useQueueStore(state => state.setShuffle);
   const isCurrentItem = currentlyPlayingItem?.id === queueItem?.id;
   const { contextMenuHandler } = useContextMenu();
+  const isMenuOpen = useContextMenuStore(state => state.isOpen);
   const createToast = useToastStore(state => state.createToast);
 
   const isMounted = useMounted();
@@ -82,23 +88,32 @@ export const PlaylistItem = ({
     if (shuffle) setShuffle(true);
   };
 
+  const contextMenuItems = getPlaylistContextMenuItems({
+    song,
+    playlists,
+    isCurrentItem,
+    isPlaying,
+    playSong,
+    playlist,
+    addSongToQueue,
+    createToast,
+    pathname,
+    isFavorite,
+  });
+
+  useEffect(() => {
+    if (!isMenuOpen) setIsContextMenuOpen(false);
+  }, [isMenuOpen]);
+
   return (
     <div
-      onContextMenu={contextMenuHandler(
-        getPlaylistContextMenuItems({
-          song,
-          playlists,
-          isCurrentItem,
-          isPlaying,
-          playSong,
-          playlist,
-          addSongToQueue,
-          createToast,
-          pathname,
-          isFavorite,
-        })
-      )}
-      className="w-full grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors bg-slate-900 hover:bg-slate-700 group"
+      onContextMenu={e => {
+        setIsContextMenuOpen(true);
+        contextMenuHandler(contextMenuItems)(e);
+      }}
+      className={`w-full grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors group ${
+        isContextMenuOpen ? 'bg-slate-700' : 'bg-slate-900 hover:bg-slate-700'
+      }`}
     >
       <div className="flex items-center gap-6">
         <div
@@ -152,16 +167,17 @@ export const PlaylistItem = ({
             />
           </div>
           <div className="flex flex-col items-start">
-            <span
-              className={`text-md font-bold ${
+            <Link
+              className={`text-md font-bold hover:underline ${
                 isCurrentItem &&
                 playlist.id === currentlyPlayingItem?.playlistId
                   ? 'text-blue-500'
                   : 'text-slate-300'
               }`}
+              href={`/song/${song.id}`}
             >
               {song.title}
-            </span>
+            </Link>
             <span className="text-sm text-slate-300/50">
               {song.artist?.length ? song.artist : 'Unknown'}
             </span>
@@ -169,7 +185,7 @@ export const PlaylistItem = ({
         </div>
       </div>
       <span className="text-slate-300/50">{timeAdded}</span>
-      <div className="text-slate-300/50 flex items-center justify-end gap-4">
+      <div className="text-slate-300/50 flex items-center justify-end">
         <button
           className="text-2xl cursor-pointer"
           onClick={async () => {
@@ -193,10 +209,23 @@ export const PlaylistItem = ({
           {isFavorite ? (
             <MdFavorite className="text-blue-700 hover:text-blue-600" />
           ) : (
-            <MdFavoriteBorder className="hidden group-hover:inline hover:text-slate-200" />
+            <MdFavoriteBorder className="opacity-0 group-hover:opacity-100 hover:text-slate-200" />
           )}
         </button>
-        {new Date(song.duration * 1000).toISOString().substring(14, 19)}
+        <span className="ml-4 mr-2">
+          {new Date(song.duration * 1000).toISOString().substring(14, 19)}
+        </span>
+        <ContextMenuButton
+          className={`w-6 h-6 text-2xl text-slate-300/50 hover:text-slate-300 cursor-pointer ${
+            isContextMenuOpen
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100'
+          }`}
+          contextMenuItems={contextMenuItems}
+          onContextMenuOpen={() => setIsContextMenuOpen(true)}
+        >
+          <MdMoreHoriz />
+        </ContextMenuButton>
       </div>
     </div>
   );
