@@ -1,4 +1,3 @@
-import { Session } from 'next-auth';
 import { getCreatedPlaylists } from './playlist';
 import { SongId } from '../songs';
 
@@ -25,7 +24,10 @@ export type AddSongsToPlaylistProps = {
   songIds: SongId[];
 };
 
-export type RemoveSongsFromPlaylistProps = AddSongsToPlaylistProps;
+export type RemoveSongFromPlaylistProps = {
+  playlistId: PlaylistId;
+  songId: SongId;
+};
 
 export type MoveSongsInPlaylistProps = {
   playlistId: PlaylistId;

@@ -8,5 +8,17 @@ export default async function Home() {
   const session = await getServerSession();
   const playlists = session ? await getCreatedPlaylists(session) : [];
 
-  return <SongList songs={songs} playlists={playlists} />;
+  const favoriteSongs =
+    playlists
+      .find(p => p.isFavoritePlaylist)
+      ?.items.map(i => songs.find(s => s.id === i.songId)!) ?? [];
+
+  return (
+    <SongList
+      songs={songs}
+      playlists={playlists.filter(p => !p.isFavoritePlaylist)}
+      session={session}
+      favoriteSongs={favoriteSongs}
+    />
+  );
 }

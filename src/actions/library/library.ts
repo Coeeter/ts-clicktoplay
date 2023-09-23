@@ -1,12 +1,16 @@
+'use server';
+
 import { prisma } from '@/lib/database';
 import { BadRequestError, NotFoundError } from '@/utils';
 import { Session } from 'next-auth';
 import {
-  AddPlaylistToLibraryProps,
   Library,
   MovePlaylistInLibraryProps,
   RemovePlaylistFromLibraryProps,
 } from './types';
+import { addSongsToPlaylist, removeSongFromPlaylist } from '../playlist';
+import { revalidatePath } from 'next/cache';
+import { getServerSession } from '@/lib/auth';
 
 export const getLibrary = async (session: Session) => {
   return await prisma.library.upsert({
@@ -24,35 +28,76 @@ export const getLibrary = async (session: Session) => {
   });
 };
 
-export const addPlaylistToLibrary = async ({
-  session,
-  playlistId,
-}: AddPlaylistToLibraryProps): Promise<Library> => {
-  const { id, items } = await getLibrary(session);
-  if (items.some(item => item.playlistId === playlistId)) {
-    throw new BadRequestError('Playlist already in library');
-  }
-  const lastItem = items.find(item => !item.nextId);
-  await prisma.$transaction(async tx => {
-    const createdItem = await tx.libraryItem.create({
-      data: {
-        playlistId,
-        prevId: lastItem?.id,
-        libraryId: id,
-      },
-    });
-    if (lastItem) {
-      await tx.libraryItem.update({
-        where: {
-          id: lastItem.id,
-        },
-        data: {
-          nextId: createdItem.id,
-        },
-      });
-    }
+export const addFavoriteSongToLibrary = async ({
+  songId,
+  path,
+}: {
+  songId: string;
+  path: string;
+}): Promise<[error: string | null, library: Library | null]> => {
+  const session = await getServerSession();
+  if (!session) return ['Session not found', null];
+  const favoritePlaylist = await prisma.playlist.upsert({
+    where: {
+      id: session.user.id,
+    },
+    update: {},
+    create: {
+      id: session.user.id,
+      title: 'Favorite Songs',
+      description: 'Your favorite songs',
+      creatorId: session.user.id,
+      isFavoritePlaylist: true,
+    },
   });
-  return await getLibrary(session);
+  const [err, updatedPlaylist] = await addSongsToPlaylist({
+    playlistId: favoritePlaylist.id,
+    songIds: [songId],
+    path: path,
+  });
+  if (err || !updatedPlaylist) return [err, null];
+  const library = await getLibrary(session);
+  if (library.items.find(item => item.playlistId === favoritePlaylist.id)) {
+    return [null, library];
+  }
+  await prisma.libraryItem.create({
+    data: {
+      playlistId: favoritePlaylist.id,
+      libraryId: library.id,
+    },
+  });
+  revalidatePath(path);
+  return [null, await getLibrary(session)];
+};
+
+export const removeFavoriteSongFromLibrary = async ({
+  songId,
+  path,
+}: {
+  songId: string;
+  path: string;
+}): Promise<[error: string | null, library: Library | null]> => {
+  const session = await getServerSession();
+  if (!session) return ['Session not found', null];
+  const favoritePlaylist = await prisma.playlist.findFirst({
+    where: {
+      creatorId: session.user.id,
+      isFavoritePlaylist: true,
+    },
+  });
+  if (!favoritePlaylist) {
+    return ["Favorite playlist doesn't exist", null];
+  }
+  const [err, updatedPlaylist] = await removeSongFromPlaylist({
+    playlistId: favoritePlaylist.id,
+    songId: songId,
+    path: path,
+  });
+  if (err || !updatedPlaylist) {
+    return [err, null];
+  }
+  revalidatePath(path);
+  return [null, await getLibrary(session)];
 };
 
 export const removePlaylistFromLibrary = async ({

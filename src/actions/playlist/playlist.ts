@@ -8,7 +8,7 @@ import {
   DeletePlaylistProps,
   MoveSongsInPlaylistProps,
   Playlist,
-  RemoveSongsFromPlaylistProps,
+  RemoveSongFromPlaylistProps,
   UpdatePlaylistProps,
 } from './types';
 import {
@@ -80,7 +80,13 @@ export const searchPlaylists = async (query: string) => {
   return playlists;
 };
 
-export const createPlaylist = async ({ title, image }: CreatePlaylistProps) => {
+export const createPlaylist = async ({
+  title,
+  image,
+  path,
+}: CreatePlaylistProps & {
+  path: string;
+}) => {
   const session = (await getServerSession())!;
   const playlistWithCommonTitle = await prisma.playlist.findMany({
     where: {
@@ -101,7 +107,7 @@ export const createPlaylist = async ({ title, image }: CreatePlaylistProps) => {
       creator: true,
     },
   });
-  revalidatePath('/');
+  revalidatePath(path);
   return result;
 };
 
@@ -140,9 +146,10 @@ export const updatePlaylist = async ({
   title,
   description,
   image,
-}: UpdatePlaylistProps): Promise<
-  [error: string | null, playlist: Playlist | null]
-> => {
+  path,
+}: UpdatePlaylistProps & {
+  path: string;
+}): Promise<[error: string | null, playlist: Playlist | null]> => {
   try {
     const session = (await getServerSession())!;
     const [error, playlist] = await getPlaylistById(playlistId);
@@ -168,7 +175,7 @@ export const updatePlaylist = async ({
         creator: true,
       },
     });
-    revalidatePath('/');
+    revalidatePath(path);
     return [null, result];
   } catch (e) {
     if (e instanceof Error) {
@@ -181,9 +188,10 @@ export const updatePlaylist = async ({
 export const addSongsToPlaylist = async ({
   playlistId,
   songIds,
-}: AddSongsToPlaylistProps): Promise<
-  [error: string | null, playlist: Playlist | null]
-> => {
+  path,
+}: AddSongsToPlaylistProps & {
+  path: string;
+}): Promise<[error: string | null, playlist: Playlist | null]> => {
   try {
     const session = (await getServerSession())!;
     const [error, playlist] = await getPlaylistById(playlistId);
@@ -220,7 +228,7 @@ export const addSongsToPlaylist = async ({
         : []),
     ]);
     const result = await getPlaylistById(id);
-    revalidatePath('/');
+    revalidatePath(path);
     return result;
   } catch (e) {
     if (e instanceof Error) {
@@ -230,12 +238,13 @@ export const addSongsToPlaylist = async ({
   }
 };
 
-export const removeSongsFromPlaylist = async ({
+export const removeSongFromPlaylist = async ({
   playlistId,
-  songIds,
-}: RemoveSongsFromPlaylistProps): Promise<
-  [error: string | null, playlist: Playlist | null]
-> => {
+  songId,
+  path,
+}: RemoveSongFromPlaylistProps & {
+  path: string;
+}): Promise<[error: string | null, playlist: Playlist | null]> => {
   try {
     const session = (await getServerSession())!;
     const [error, playlist] = await getPlaylistById(playlistId);
@@ -248,26 +257,20 @@ export const removeSongsFromPlaylist = async ({
       );
     }
     const { id, items } = playlist!;
-    const playlistItemsToRemove = songIds.map(songId => {
-      const item = items.find(item => item.songId === songId);
-      if (!item) {
-        throw new NotFoundError('Song not found in playlist');
-      }
-      return item;
-    });
-    if (!checkLinkedListNodesAreInOrder(playlistItemsToRemove, true)) {
-      throw new BadRequestError('Playlist items are not in order');
+    const playlistItemToRemove = items.find(item => item.songId === songId);
+    if (!playlistItemToRemove) {
+      throw new NotFoundError('Song not found in playlist');
     }
-    const firstItem = playlistItemsToRemove[0];
-    const lastItem = playlistItemsToRemove[playlistItemsToRemove.length - 1];
-    const prevItem = items.find(item => item.nextId === firstItem.id);
-    const nextItem = items.find(item => item.prevId === lastItem.id);
+    const prevItem = items.find(
+      item => item.id === playlistItemToRemove.prevId
+    );
+    const nextItem = items.find(
+      item => item.id === playlistItemToRemove.nextId
+    );
     const transaction: any[] = [
-      prisma.playlistItem.deleteMany({
+      prisma.playlistItem.delete({
         where: {
-          id: {
-            in: playlistItemsToRemove.map(item => item.id),
-          },
+          id: playlistItemToRemove.id,
         },
       }),
     ];
@@ -278,7 +281,7 @@ export const removeSongsFromPlaylist = async ({
             id: prevItem?.id,
           },
           data: {
-            nextId: nextItem?.id,
+            nextId: nextItem?.id ?? null,
           },
         })
       );
@@ -290,14 +293,14 @@ export const removeSongsFromPlaylist = async ({
             id: nextItem?.id,
           },
           data: {
-            prevId: prevItem?.id,
+            prevId: prevItem?.id ?? null,
           },
         })
       );
     }
     await prisma.$transaction(transaction);
     const result = await getPlaylistById(id);
-    revalidatePath('/');
+    revalidatePath(path);
     return result;
   } catch (e) {
     if (e instanceof Error) {
@@ -312,9 +315,10 @@ export const moveSongsInPlaylist = async ({
   songIds,
   prevId,
   nextId,
-}: MoveSongsInPlaylistProps): Promise<
-  [error: string | null, playlist: Playlist | null]
-> => {
+  path,
+}: MoveSongsInPlaylistProps & {
+  path: string;
+}): Promise<[error: string | null, playlist: Playlist | null]> => {
   try {
     const session = (await getServerSession())!;
     const [error, playlist] = await getPlaylistById(playlistId);
@@ -425,7 +429,7 @@ export const moveSongsInPlaylist = async ({
         : []),
     ]);
     const result = await getPlaylistById(id);
-    revalidatePath('/');
+    revalidatePath(path);
     return result;
   } catch (e) {
     if (e instanceof Error) {
@@ -437,9 +441,10 @@ export const moveSongsInPlaylist = async ({
 
 export const deletePlaylist = async ({
   playlistId,
-}: DeletePlaylistProps): Promise<
-  [error: string | null, playlistId: string | null]
-> => {
+  path,
+}: DeletePlaylistProps & {
+  path: string;
+}): Promise<[error: string | null, playlistId: string | null]> => {
   try {
     const session = (await getServerSession())!;
     const [error, playlist] = await getPlaylistById(playlistId);
@@ -456,7 +461,7 @@ export const deletePlaylist = async ({
         id: playlistId,
       },
     });
-    revalidatePath('/');
+    revalidatePath(path);
     return [null, result.id];
   } catch (e) {
     if (e instanceof Error) {

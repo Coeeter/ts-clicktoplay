@@ -53,19 +53,27 @@ export default async function PlaylistScreen({
       <header className="flex gap-4">
         <OpenPlaylistModal session={session} playlist={playlist} type="edit">
           <img
-            src={playlist.image ?? '/playlist-cover.png'}
+            src={
+              playlist.isFavoritePlaylist
+                ? '/favorites.png'
+                : playlist.image ?? '/playlist-cover.png'
+            }
             alt={playlist.title}
-            className="w-48 shadow-2xl h-48 rounded-xl bg-slate-100 object-cover cursor-pointer"
+            className={`w-48 shadow-2xl h-48 rounded-xl object-cover ${
+              !playlist.isFavoritePlaylist && !playlist.image
+                ? 'bg-slate-100'
+                : ''
+            }`}
           />
         </OpenPlaylistModal>
         <div className="flex flex-col justify-end">
           <span className="text-lg">Playlist</span>
           <OpenPlaylistModal session={session} playlist={playlist} type="edit">
-            <div className="text-6xl text-slate-200 font-bold mb-6 cursor-pointer">
+            <div className="text-6xl text-slate-200 font-bold mb-6">
               {playlist.title}
             </div>
             {playlist.description && (
-              <div className="text-md line-clamp-2 text-slate-300/50 max-w-12 mb-3 cursor-pointer">
+              <div className="text-md line-clamp-2 text-slate-300/50 max-w-12 mb-3">
                 {playlist.description}
               </div>
             )}
@@ -93,12 +101,18 @@ export default async function PlaylistScreen({
           <div>Title</div>
         </div>
         <div className="text-start">Date added</div>
-        <div className="text-end">Time</div>
+        <div className="text-end mr-8">Time</div>
       </header>
       <PlaylistItemList
         songs={songsInPlaylist}
         playlist={playlist}
-        createdPlaylists={playlists}
+        createdPlaylists={playlists.filter(p => !p.isFavoritePlaylist)}
+        favoriteSongs={
+          playlists
+            .find(p => p.isFavoritePlaylist)
+            ?.items.map(item => songs.find(song => song.id === item.songId)) ??
+          []
+        }
       />
     </div>
   );

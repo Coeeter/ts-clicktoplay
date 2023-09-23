@@ -9,6 +9,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { getPlaylistUpdateImageUrl, updatePlaylist } from '@/actions/playlist';
 import { useToastStore } from '@/store/ToastStore';
 import { Modal } from '../Modal';
+import { usePathname } from 'next/navigation';
 
 type FormValues = {
   title: string;
@@ -17,6 +18,7 @@ type FormValues = {
 };
 
 export const EditPlaylistModal = () => {
+  const pathname = usePathname();
   const isOpen = usePlaylistModalStore(state => state.isOpen);
   const playlist = usePlaylistModalStore(state => state.playlist);
   const close = usePlaylistModalStore(state => state.close);
@@ -66,6 +68,7 @@ export const EditPlaylistModal = () => {
       title: data.title,
       description: data.description,
       image: imageUrl,
+      path: pathname,
     });
     if (error) {
       if (error.indexOf('Unique constraint failed on the constraint') !== -1) {

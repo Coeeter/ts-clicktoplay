@@ -5,6 +5,7 @@ import { Modal } from '../Modal';
 import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 import { deletePlaylist } from '@/actions/playlist';
 import { useToastStore } from '@/store/ToastStore';
+import { usePathname } from 'next/navigation';
 
 export const DeletePlaylistModal = () => {
   const isOpen = usePlaylistModalStore(state => state.isOpen);
@@ -12,6 +13,7 @@ export const DeletePlaylistModal = () => {
   const type = usePlaylistModalStore(state => state.type);
   const playlist = usePlaylistModalStore(state => state.playlist);
   const createToast = useToastStore(state => state.createToast);
+  const pathname = usePathname();
 
   return (
     <Modal
@@ -33,6 +35,7 @@ export const DeletePlaylistModal = () => {
           onClick={async () => {
             const [error] = await deletePlaylist({
               playlistId: playlist!.id,
+              path: pathname,
             });
             if (error) return createToast(error, 'error');
             close();

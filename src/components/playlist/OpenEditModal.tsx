@@ -19,13 +19,17 @@ export const OpenPlaylistModal = ({
 }: OpenEditModalProps) => {
   const open = usePlaylistModalStore(state => state.open);
 
-  if (!session || playlist.creator.id !== session.user.id) {
-    return <>{children}</>;
+  if (
+    !session ||
+    playlist.creator.id !== session.user.id ||
+    playlist.isFavoritePlaylist
+  ) {
+    return <div className='cursor-default'>{children}</div>;
   }
 
   return (
     <div
-      className="flex flex-col justify-end"
+      className="flex flex-col justify-end cursor-pointer"
       onClick={() => open(playlist, type)}
     >
       {children}

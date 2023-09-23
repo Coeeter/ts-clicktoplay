@@ -8,12 +8,19 @@ import { QueueItem } from './QueueItem';
 import { useEffect, useState } from 'react';
 import { sortLinkedList } from '@/utils/linkedList';
 import { QueueItemId } from '@/actions/queue';
+import { Playlist } from '@/actions/playlist';
 
 type QueueListProps = {
   songs: Song[];
+  favoriteSongs: (Song | undefined)[];
+  playlists: Playlist[];
 };
 
-export const QueueList = ({ songs }: QueueListProps) => {
+export const QueueList = ({
+  songs,
+  favoriteSongs,
+  playlists,
+}: QueueListProps) => {
   const [currentlyDragging, setCurrentlyDragging] = useState<null | string>(
     null
   );
@@ -97,6 +104,10 @@ export const QueueList = ({ songs }: QueueListProps) => {
               song={currentlyPlayingSong}
               listOrder={1}
               isDragging={false}
+              playlists={playlists}
+              isFavorite={favoriteSongs.some(
+                favSong => favSong?.id === currentlyPlayingSong.id
+              )}
             />
           ) : (
             <span className="text-slate-300">Nothing is playing</span>
@@ -129,6 +140,10 @@ export const QueueList = ({ songs }: QueueListProps) => {
                     song={song}
                     listOrder={index + 2}
                     isDragging={isDragging}
+                    isFavorite={favoriteSongs.some(
+                      favSong => favSong?.id === song.id
+                    )}
+                    playlists={playlists}
                   />
                 </Reorder.Item>
               );

@@ -6,13 +6,24 @@ import {
   PlaylistId,
   addSongsToPlaylist,
   createPlaylist,
-  removeSongsFromPlaylist,
+  removeSongFromPlaylist,
 } from '@/actions/playlist';
 import { useQueueStore } from '@/store/QueueStore';
 import { Song } from '@prisma/client';
 import { HiPause, HiPlay } from 'react-icons/hi2';
 import { useContextMenu } from '@/hooks/useContextMenu';
 import { useToastStore } from '@/store/ToastStore';
+import {
+  addFavoriteSongToLibrary,
+  removeFavoriteSongFromLibrary,
+} from '@/actions/library';
+import { usePathname } from 'next/navigation';
+import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
+import { useMounted } from '@/hooks/useMounted';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useContextMenuStore } from '@/store/ContextMenuStore';
+import { ContextMenuButton } from '../ContextMenu/ContextMenuButton';
 
 type PlaylistItemProps = {
   song: Song;
@@ -20,6 +31,7 @@ type PlaylistItemProps = {
   playlists: Playlist[];
   isDragging: boolean;
   listOrder: number;
+  isFavorite: boolean;
 };
 
 export const PlaylistItem = ({
@@ -28,7 +40,9 @@ export const PlaylistItem = ({
   playlists,
   isDragging,
   listOrder,
+  isFavorite,
 }: PlaylistItemProps) => {
+  const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const isPlaying = useQueueStore(state => state.isPlaying);
   const currentlyPlayingItem = useQueueStore(state =>
     state.items.find(item => item.id === state.currentlyPlayingId)
@@ -43,7 +57,12 @@ export const PlaylistItem = ({
   const setShuffle = useQueueStore(state => state.setShuffle);
   const isCurrentItem = currentlyPlayingItem?.id === queueItem?.id;
   const { contextMenuHandler } = useContextMenu();
+  const isMenuOpen = useContextMenuStore(state => state.isOpen);
   const createToast = useToastStore(state => state.createToast);
+
+  const isMounted = useMounted();
+
+  const pathname = usePathname();
 
   const addedAt = playlist.items.find(item => item.songId === song.id)?.addedAt;
   if (!addedAt) return null;
@@ -54,9 +73,11 @@ export const PlaylistItem = ({
       new Date(addedAt).getMinutes() === 0 &&
       new Date(addedAt).getSeconds() === 0
     );
-  const timeAdded = !sameDay
-    ? format(new Date(addedAt), 'MMM dd, yyyy')
-    : formatDistance(new Date(addedAt), new Date(), { addSuffix: true });
+  const timeAdded = isMounted
+    ? !sameDay
+      ? format(new Date(addedAt), 'MMM dd, yyyy')
+      : formatDistance(new Date(addedAt), new Date(), { addSuffix: true })
+    : '';
 
   const playSong = () => {
     if (isDragging) return;
@@ -67,26 +88,41 @@ export const PlaylistItem = ({
     if (shuffle) setShuffle(true);
   };
 
+  const contextMenuItems = getPlaylistContextMenuItems({
+    song,
+    playlists,
+    isCurrentItem,
+    isPlaying,
+    playSong,
+    playlist,
+    addSongToQueue,
+    createToast,
+    pathname,
+    isFavorite,
+  });
+
+  useEffect(() => {
+    if (!isMenuOpen) setIsContextMenuOpen(false);
+  }, [isMenuOpen]);
+
   return (
     <div
-      onClick={playSong}
-      onContextMenu={contextMenuHandler(
-        getPlaylistContextMenuItems({
-          song,
-          playlists,
-          isCurrentItem,
-          isPlaying,
-          playSong,
-          playlistId: playlist.id,
-          addSongToQueue,
-          createToast,
-        })
-      )}
-      className="w-full cursor-pointer grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors bg-slate-900 hover:bg-slate-700 group"
+      onContextMenu={e => {
+        setIsContextMenuOpen(true);
+        contextMenuHandler(contextMenuItems)(e);
+      }}
+      className={`w-full grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors group ${
+        isContextMenuOpen ? 'bg-slate-700' : 'bg-slate-900 hover:bg-slate-700'
+      }`}
     >
       <div className="flex items-center gap-6">
-        <div className="w-8 flex justify-center items-center">
-          {isPlaying && isCurrentItem && playlist.id === currentlyPlayingItem?.playlistId ? (
+        <div
+          className="w-8 flex justify-center items-center cursor-pointer"
+          onClick={playSong}
+        >
+          {isPlaying &&
+          isCurrentItem &&
+          playlist.id === currentlyPlayingItem?.playlistId ? (
             <>
               <span className="text-lg font-bold text-blue-500 hidden group-hover:inline">
                 <HiPause />
@@ -101,7 +137,8 @@ export const PlaylistItem = ({
             <>
               <span
                 className={`text-lg font-bold group-hover:hidden ${
-                  isCurrentItem && playlist.id === currentlyPlayingItem?.playlistId
+                  isCurrentItem &&
+                  playlist.id === currentlyPlayingItem?.playlistId
                     ? 'text-blue-500'
                     : 'text-slate-300/50'
                 }`}
@@ -110,7 +147,8 @@ export const PlaylistItem = ({
               </span>
               <span
                 className={`text-lg font-bold group-hover:inline hidden transition-all ${
-                  isCurrentItem && playlist.id === currentlyPlayingItem?.playlistId
+                  isCurrentItem &&
+                  playlist.id === currentlyPlayingItem?.playlistId
                     ? 'text-blue-500'
                     : 'text-slate-300'
                 }`}
@@ -129,15 +167,17 @@ export const PlaylistItem = ({
             />
           </div>
           <div className="flex flex-col items-start">
-            <span
-              className={`text-md font-bold ${
-                isCurrentItem && playlist.id === currentlyPlayingItem?.playlistId
+            <Link
+              className={`text-md font-bold hover:underline ${
+                isCurrentItem &&
+                playlist.id === currentlyPlayingItem?.playlistId
                   ? 'text-blue-500'
                   : 'text-slate-300'
               }`}
+              href={`/song/${song.id}`}
             >
               {song.title}
-            </span>
+            </Link>
             <span className="text-sm text-slate-300/50">
               {song.artist?.length ? song.artist : 'Unknown'}
             </span>
@@ -145,9 +185,48 @@ export const PlaylistItem = ({
         </div>
       </div>
       <span className="text-slate-300/50">{timeAdded}</span>
-      <span className="text-slate-300/50 text-end">
-        {new Date(song.duration * 1000).toISOString().substring(14, 19)}
-      </span>
+      <div className="text-slate-300/50 flex items-center justify-end">
+        <button
+          className="text-2xl cursor-pointer"
+          onClick={async () => {
+            if (isFavorite) {
+              const [error] = await removeFavoriteSongFromLibrary({
+                songId: song.id,
+                path: pathname,
+              });
+              if (error) return createToast(error, 'error');
+              createToast('Removed from Favorites', 'success');
+              return;
+            }
+            const [error] = await addFavoriteSongToLibrary({
+              songId: song.id,
+              path: pathname,
+            });
+            if (error) return createToast(error, 'error');
+            createToast('Added song to Favorites', 'success');
+          }}
+        >
+          {isFavorite ? (
+            <MdFavorite className="text-blue-700 hover:text-blue-600" />
+          ) : (
+            <MdFavoriteBorder className="opacity-0 group-hover:opacity-100 hover:text-slate-200" />
+          )}
+        </button>
+        <span className="ml-4 mr-2">
+          {new Date(song.duration * 1000).toISOString().substring(14, 19)}
+        </span>
+        <ContextMenuButton
+          className={`w-6 h-6 text-2xl text-slate-300/50 hover:text-slate-300 cursor-pointer ${
+            isContextMenuOpen
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100'
+          }`}
+          contextMenuItems={contextMenuItems}
+          onContextMenuOpen={() => setIsContextMenuOpen(true)}
+        >
+          <MdMoreHoriz />
+        </ContextMenuButton>
+      </div>
     </div>
   );
 };
@@ -158,30 +237,38 @@ const getPlaylistContextMenuItems = ({
   isCurrentItem,
   isPlaying,
   playSong,
-  playlistId,
+  playlist,
   addSongToQueue,
   createToast,
+  pathname,
+  isFavorite,
 }: {
   song: Song;
   playlists: Playlist[];
   isCurrentItem: boolean;
   isPlaying: boolean;
   playSong: () => void;
-  playlistId: PlaylistId;
+  playlist: Playlist;
   addSongToQueue: (songId: string) => void;
   createToast: (message: string, type: 'success' | 'error') => void;
+  pathname: string;
+  isFavorite: boolean;
 }) => {
+  const playlistId = playlist.id as PlaylistId;
   return [
     {
       label: isCurrentItem && isPlaying ? 'Pause' : 'Play',
       onClick: playSong,
     },
     {
-      label: 'Remove from Playlist',
+      label: playlist.isFavoritePlaylist
+        ? 'Remove from Favorites'
+        : 'Remove from Playlist',
       onClick: async () => {
-        const [error] = await removeSongsFromPlaylist({
+        const [error] = await removeSongFromPlaylist({
           playlistId,
-          songIds: [song.id],
+          songId: song.id,
+          path: pathname,
         });
         if (error) return createToast(error, 'error');
         createToast('Song removed from playlist', 'success');
@@ -203,10 +290,12 @@ const getPlaylistContextMenuItems = ({
             const playlist = await createPlaylist({
               title: song.title,
               image: song.albumCover,
+              path: pathname,
             });
             const [error] = await addSongsToPlaylist({
               playlistId: playlist.id,
               songIds: [song.id],
+              path: pathname,
             });
             if (error) return createToast(error, 'error');
             createToast(`Added to playlist '${playlist.title}'`, 'success');
@@ -219,6 +308,7 @@ const getPlaylistContextMenuItems = ({
             const [error] = await addSongsToPlaylist({
               playlistId: playlist.id,
               songIds: [song.id],
+              path: pathname,
             });
             if (error) return createToast(error, 'error');
             createToast(`Added to playlist '${playlist.title}'`, 'success');
@@ -229,9 +319,29 @@ const getPlaylistContextMenuItems = ({
           : []),
       ],
     },
-    {
-      label: 'Add to Favorites',
-      onClick: () => {},
-    },
+    ...(playlist.isFavoritePlaylist
+      ? []
+      : [
+          {
+            label: isFavorite ? 'Remove from favorites' : 'Add to Favorites',
+            onClick: async () => {
+              if (isFavorite) {
+                const [error] = await removeFavoriteSongFromLibrary({
+                  songId: song.id,
+                  path: pathname,
+                });
+                if (error) return createToast(error, 'error');
+                createToast('Removed from Favorites', 'success');
+                return;
+              }
+              const [error] = await addFavoriteSongToLibrary({
+                songId: song.id,
+                path: pathname,
+              });
+              if (error) return createToast(error, 'error');
+              createToast('Added song to Favorites', 'success');
+            },
+          },
+        ]),
   ];
 };
