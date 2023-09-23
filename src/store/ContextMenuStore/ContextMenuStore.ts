@@ -9,16 +9,23 @@ export const useContextMenuStore = create<ContextMenuStore>(set => ({
     vertical: 'top',
     horizontal: 'left',
   },
-  openContextMenu: (x, y, menuItems) =>
-    set({
+  openContextMenu: (x, y, menuItems) => {
+    const heightOfMenu = menuItems.length * 50 + 100;
+    const widthOfMenu = 250;
+    const rawY = y - window.scrollY;
+
+    const transformOrigin = {
+      vertical: rawY > window.innerHeight - heightOfMenu ? 'bottom' : 'top',
+      horizontal: x > window.innerWidth - widthOfMenu ? 'right' : 'left',
+    } as const;
+
+    return set({
       isOpen: true,
       position: { x, y },
-      transformOrigin: {
-        vertical: y > window.innerHeight - 420 ? 'bottom' : 'top',
-        horizontal: x > window.innerWidth - 420 ? 'right' : 'left',
-      },
+      transformOrigin: transformOrigin,
       menuItems,
-    }),
+    });
+  },
   closeContextMenu: () =>
     set({
       isOpen: false,
