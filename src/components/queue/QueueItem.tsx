@@ -15,9 +15,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { HiPause, HiPlay } from 'react-icons/hi2';
 import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
-import { ContextMenuItem } from 'c:/Users/nasru/Desktop/Node Projects/ts-clicktoplay/src/store/ContextMenuStore/types';
 import { useEffect, useState } from 'react';
-import { useContextMenuStore } from '@/store/ContextMenuStore';
+import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { ContextMenuButton } from '../ContextMenu/ContextMenuButton';
 
 type QueuItemProps = {
