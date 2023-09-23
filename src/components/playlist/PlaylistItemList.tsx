@@ -69,7 +69,7 @@ export const PlaylistItemList = ({
         return (
           <Reorder.Item
             value={song}
-            key={index}
+            key={song.id}
             className="flex"
             onDragStart={onDragStart(song.id)}
             onDragEnd={onDragEnd}
@@ -77,6 +77,7 @@ export const PlaylistItemList = ({
           >
             <PlaylistItem
               song={song}
+              key={song.id}
               playlist={playlist}
               playlists={createdPlaylists}
               isDragging={isDragging}
