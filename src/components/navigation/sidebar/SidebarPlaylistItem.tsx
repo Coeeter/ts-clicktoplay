@@ -37,7 +37,8 @@ export const SidebarPlaylistItem = ({
           label: 'Play',
           onClick: () => playPlaylist(playlist, null),
         },
-        ...(playlist.creatorId === session?.user?.id
+        ...(playlist.creatorId === session?.user?.id &&
+        !playlist.isFavoritePlaylist
           ? [
               {
                 label: 'Edit Playlist',
@@ -54,14 +55,22 @@ export const SidebarPlaylistItem = ({
     >
       <div className="flex gap-2 items-center">
         <img
-          src={playlist.image ?? '/playlist-cover.png'}
+          src={
+            playlist.isFavoritePlaylist
+              ? '/favorites.png'
+              : playlist.image ?? '/playlist-cover.png'
+          }
           alt={playlist.title}
-          className="w-12 aspect-square rounded-md bg-slate-100 object-cover"
+          className={`w-12 aspect-square rounded-md bg-slate-100 object-cover ${
+            !playlist.isFavoritePlaylist && !playlist.image
+              ? 'bg-slate-100'
+              : ''
+          }`}
         />
         <div className="flex flex-col justify-between whitespace-nowrap overflow-hidden">
           <div
             className={`text-md font-bold ${
-              isPlaying && currentlyPlayingSong?.playlistId === playlist.id
+              currentlyPlayingSong?.playlistId === playlist.id
                 ? 'text-blue-500'
                 : 'text-slate-300'
             }`}

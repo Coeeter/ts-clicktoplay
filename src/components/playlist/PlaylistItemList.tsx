@@ -6,18 +6,22 @@ import { Playlist, moveSongsInPlaylist } from '@/actions/playlist';
 import { Reorder } from 'framer-motion';
 import { useState } from 'react';
 import { useToastStore } from '@/store/ToastStore';
+import { usePathname } from 'next/navigation';
 
 type PlaylistItemListProps = {
   songs: Song[];
   playlist: Playlist;
   createdPlaylists: Playlist[];
+  favoriteSongs: (Song | undefined)[];
 };
 
 export const PlaylistItemList = ({
   songs,
   playlist,
   createdPlaylists,
+  favoriteSongs,
 }: PlaylistItemListProps) => {
+  const pathname = usePathname();
   const [playlistItems, setPlaylistItems] = useState(songs);
   const [currentlyDragging, setCurrentlyDragging] = useState<string | null>(
     null
@@ -47,6 +51,7 @@ export const PlaylistItemList = ({
         songIds: [currentlyDragging],
         nextId: playlist.items.find(item => item.songId === nextId)?.id ?? null,
         prevId: playlist.items.find(item => item.songId === prevId)?.id ?? null,
+        path: pathname,
       });
       if (error) showToast(error, 'error');
     } finally {
@@ -64,19 +69,21 @@ export const PlaylistItemList = ({
         return (
           <Reorder.Item
             value={song}
-            key={song.id}
+            key={index}
             className="flex"
             onDragStart={onDragStart(song.id)}
             onDragEnd={onDragEnd}
             whileDrag={{ scale: 1.05 }}
           >
             <PlaylistItem
-              key={song.id}
               song={song}
               playlist={playlist}
               playlists={createdPlaylists}
               isDragging={isDragging}
               listOrder={index + 1}
+              isFavorite={favoriteSongs.some(
+                favSong => favSong?.id === song.id
+              )}
             />
           </Reorder.Item>
         );

@@ -35,7 +35,8 @@ export const MoreOptionsButton = ({
               label: 'Play',
               onClick: () => playPlaylist(playlist, null),
             },
-            ...(playlist.creatorId === session?.user?.id
+            ...(playlist.creatorId === session?.user?.id &&
+            !playlist.isFavoritePlaylist
               ? [
                   {
                     label: 'Edit Playlist',

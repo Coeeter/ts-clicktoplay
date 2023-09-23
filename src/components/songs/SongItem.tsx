@@ -1,4 +1,5 @@
 'use client';
+
 import { Song } from '@prisma/client';
 import Link from 'next/link';
 import { FaPlay } from 'react-icons/fa';
@@ -11,14 +12,28 @@ import {
   addSongsToPlaylist,
   createPlaylist,
 } from '@/actions/playlist';
+import {
+  addFavoriteSongToLibrary,
+  removeFavoriteSongFromLibrary,
+} from '@/actions/library';
+import { Session } from 'next-auth';
+import { usePathname } from 'next/navigation';
 
 type SongItemProps = {
   song: Song;
   playlists: Playlist[];
   playSong: () => void;
+  session: Session | null;
+  isFavorite: boolean;
 };
 
-export const SongItem = ({ song, playlists, playSong }: SongItemProps) => {
+export const SongItem = ({
+  song,
+  playlists,
+  playSong,
+  session,
+  isFavorite,
+}: SongItemProps) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const minutes = Math.floor(song.duration / 60);
@@ -32,62 +47,100 @@ export const SongItem = ({ song, playlists, playSong }: SongItemProps) => {
   const { contextMenuHandler } = useContextMenu();
   const addToQueue = useQueueStore(state => state.addSongToQueue);
   const showToast = useToastStore(state => state.createToast);
+  const pathname = usePathname();
 
   return (
     <Link
       href={`/songs/${song.id}`}
-      onContextMenu={contextMenuHandler([
-        {
-          label: 'Play',
-          onClick: playSong,
-        },
-        {
-          label: 'Add to Queue',
-          onClick: () => {
-            addToQueue(song.id);
-            showToast('Added to Queue', 'success');
-          },
-        },
-        {
-          label: 'Add to Playlist',
-          subMenu: [
-            {
-              label: 'New Playlist',
-              onClick: async () => {
-                const playlist = await createPlaylist({
-                  title: song.title,
-                  image: song.albumCover,
-                });
-                const [error] = await addSongsToPlaylist({
-                  playlistId: playlist.id,
-                  songIds: [song.id],
-                });
-                if (error) return showToast(error, 'error');
-                showToast(`Added to playlist '${playlist.title}'`, 'success');
+      onContextMenu={contextMenuHandler(
+        session
+          ? [
+              {
+                label: 'Play',
+                onClick: playSong,
               },
-              divider: true,
-            },
-            ...playlists.map(playlist => ({
-              label: playlist.title,
-              onClick: async () => {
-                const [error] = await addSongsToPlaylist({
-                  playlistId: playlist.id,
-                  songIds: [song.id],
-                });
-                if (error) return showToast(error, 'error');
-                showToast(`Added to playlist '${playlist.title}'`, 'success');
+              {
+                label: 'Add to Queue',
+                onClick: () => {
+                  addToQueue(song.id);
+                  showToast('Added to Queue', 'success');
+                },
               },
-            })),
-            ...(!playlists.length
-              ? [{ label: 'No playlists found', selectable: false }]
-              : []),
-          ],
-        },
-        {
-          label: 'Add to Library',
-          onClick: () => {},
-        },
-      ])}
+              {
+                label: 'Add to Playlist',
+                subMenu: [
+                  {
+                    label: 'New Playlist',
+                    onClick: async () => {
+                      const playlist = await createPlaylist({
+                        title: song.title,
+                        image: song.albumCover,
+                        path: pathname,
+                      });
+                      const [error] = await addSongsToPlaylist({
+                        playlistId: playlist.id,
+                        songIds: [song.id],
+                        path: pathname,
+                      });
+                      if (error) return showToast(error, 'error');
+                      showToast(
+                        `Added to playlist '${playlist.title}'`,
+                        'success'
+                      );
+                    },
+                    divider: true,
+                  },
+                  ...playlists.map(playlist => ({
+                    label: playlist.title,
+                    onClick: async () => {
+                      const [error] = await addSongsToPlaylist({
+                        playlistId: playlist.id,
+                        songIds: [song.id],
+                        path: pathname,
+                      });
+                      if (error) return showToast(error, 'error');
+                      showToast(
+                        `Added to playlist '${playlist.title}'`,
+                        'success'
+                      );
+                    },
+                  })),
+                  ...(!playlists.length
+                    ? [{ label: 'No playlists found', selectable: false }]
+                    : []),
+                ],
+              },
+              !isFavorite
+                ? {
+                    label: 'Add to Favorites',
+                    onClick: async () => {
+                      const [error] = await addFavoriteSongToLibrary({
+                        songId: song.id,
+                        path: pathname,
+                      });
+                      if (error) return showToast(error, 'error');
+                      showToast('Added song to Favorites', 'success');
+                    },
+                  }
+                : {
+                    label: 'Remove from Favorites',
+                    onClick: async () => {
+                      const [error] = await removeFavoriteSongFromLibrary({
+                        songId: song.id,
+                        path: pathname,
+                      });
+                      if (error) return showToast(error, 'error');
+                      showToast('Removed song from Favorites', 'success');
+                    },
+                  },
+            ]
+          : [
+              {
+                label: 'You must be logged in to perform this action.',
+                href: '/login',
+              },
+            ]
+      )}
       onClick={e => {
         e.preventDefault();
         if (

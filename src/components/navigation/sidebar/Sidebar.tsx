@@ -20,7 +20,15 @@ const sidebarItems: SidebarItemProps[] = [
 
 export const Sidebar = async () => {
   const session = await getServerSession();
-  const playlists = session ? await getCreatedPlaylists(session) : [];
+  const playlists = session
+    ? (await getCreatedPlaylists(session))
+        .filter(
+          playlist => !playlist.isFavoritePlaylist || playlist.items.length
+        )
+        .sort(
+          (a, b) => Number(b.isFavoritePlaylist) - Number(a.isFavoritePlaylist)
+        )
+    : [];
 
   return (
     <aside className="w-1/4 gap-3 flex flex-col sticky top-3 bottom-3 max-h-[calc(100vh-7rem)]">

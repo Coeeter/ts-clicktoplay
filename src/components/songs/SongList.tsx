@@ -5,13 +5,21 @@ import { SongItem } from './SongItem';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Playlist } from '@/actions/playlist';
+import { Session } from 'next-auth';
 
 type SongListProps = {
   songs: Song[];
   playlists: Playlist[];
+  session: Session | null;
+  favoriteSongs: Song[];
 };
 
-export const SongList = ({ songs, playlists }: SongListProps) => {
+export const SongList = ({
+  songs,
+  playlists,
+  session,
+  favoriteSongs,
+}: SongListProps) => {
   const playSong = useQueueStore(state => state.playSong);
   const shuffle = useQueueStore(state => state.shuffle);
   const setShuffle = useQueueStore(state => state.setShuffle);
@@ -22,8 +30,10 @@ export const SongList = ({ songs, playlists }: SongListProps) => {
       {songs.map(song => (
         <SongItem
           key={song.id}
+          session={session}
           song={song}
           playlists={playlists}
+          isFavorite={favoriteSongs.find(s => s.id === song.id) !== undefined}
           playSong={() => {
             try {
               playSong(

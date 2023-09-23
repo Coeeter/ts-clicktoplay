@@ -1,6 +1,9 @@
+import { addFavoriteSongToLibrary } from '@/actions/library';
 import { useContextMenu } from '@/hooks/useContextMenu';
 import { useQueueStore } from '@/store/QueueStore';
+import { useToastStore } from '@/store/ToastStore';
 import { QueueItem as QueueItemType, Song } from '@prisma/client';
+import { usePathname } from 'next/navigation';
 import { HiPause, HiPlay } from 'react-icons/hi2';
 
 type QueuItemProps = {
@@ -18,12 +21,14 @@ export const QueueItem = ({
   listOrder,
   isDragging,
 }: QueuItemProps) => {
+  const pathname = usePathname();
   const isPlaying = useQueueStore(state => state.isPlaying && isCurrentItem);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const removeFromQueue = useQueueStore(state => state.removeSongFromQueue);
   const setCurrentlyPlayingId = useQueueStore(
     state => state.setCurrentlyPlayingId
   );
+  const createToast = useToastStore(state => state.createToast);
 
   const { contextMenuHandler } = useContextMenu();
 
@@ -56,7 +61,14 @@ export const QueueItem = ({
         },
         {
           label: 'Add to Favorites',
-          onClick: () => {},
+          onClick: async () => {
+            const [error] = await addFavoriteSongToLibrary({
+              songId: song.id,
+              path: pathname,
+            });
+            if (error) return createToast(error, 'error');
+            createToast('Added song to Favorites', 'success');
+          },
         },
       ])}
     >

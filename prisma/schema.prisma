@@ -29,17 +29,19 @@ model User {
 }
 
 model Playlist {
-  id          String         @id @default(cuid()) @map("_id")
-  createdAt   DateTime       @default(now())
-  title       String
-  creator     User           @relation(fields: [creatorId], references: [id])
-  creatorId   String
-  image       String?
-  description String?
-  items       PlaylistItem[]
-  libraries   LibraryItem[]  @ignore
-  queueItems  QueueItem[]    @ignore
-  PlayHistory PlayHistory[]
+  id                 String         @id @default(cuid()) @map("_id")
+  createdAt          DateTime       @default(now())
+  title              String
+  creator            User           @relation(fields: [creatorId], references: [id])
+  creatorId          String
+  image              String?
+  description        String?
+  isPublic           Boolean        @default(true)
+  isFavoritePlaylist Boolean        @default(false)
+  items              PlaylistItem[]
+  libraries          LibraryItem[]  @ignore
+  queueItems         QueueItem[]    @ignore
+  PlayHistory        PlayHistory[]
 
   @@unique([creatorId, title])
 }
