@@ -32,7 +32,7 @@ type ProtectedApiRouteType = <Params>(
 ) => (
   request: NextRequest,
   params: { params: Params }
-) => Promise<NextResponse<any> | void>;
+) => Promise<NextResponse<any>>;
 
 type PublicApiRouteType = <Params>(
   handler: HandlerType<Params>,
@@ -40,7 +40,7 @@ type PublicApiRouteType = <Params>(
 ) => (
   request: NextRequest,
   params: { params: Params }
-) => Promise<NextResponse<any> | void>;
+) => Promise<NextResponse<any>>;
 
 const errorHandler = async (
   e: any,
