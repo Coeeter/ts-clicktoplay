@@ -4,7 +4,7 @@ import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { MdNavigateNext } from 'react-icons/md';
 
 export const ContextMenu = () => {
@@ -13,6 +13,31 @@ export const ContextMenu = () => {
   const menuItems = useContextMenuStore(state => state.menuItems);
   const closeMenu = useContextMenuStore(state => state.closeContextMenu);
   const transformOrigin = useContextMenuStore(state => state.transformOrigin);
+
+  return (
+    <Menu
+      isOpen={isOpen}
+      position={position}
+      menuItems={menuItems}
+      closeMenu={closeMenu}
+      transformOrigin={transformOrigin}
+    />
+  );
+};
+
+const Menu = ({
+  isOpen,
+  position,
+  menuItems,
+  closeMenu,
+  transformOrigin,
+}: {
+  isOpen: boolean;
+  position: { x: number; y: number };
+  menuItems: ContextMenuItem[];
+  closeMenu: () => void;
+  transformOrigin: { vertical: 'top' | 'bottom'; horizontal: 'left' | 'right' };
+}) => {
   const transformOriginAsString = `${transformOrigin.vertical} ${transformOrigin.horizontal}`;
   const [hoveredItem, setHoveredItem] = useState('');
 
@@ -110,8 +135,10 @@ const MenuItem = ({
   showDropdown?: boolean;
 }) => {
   const className = `
-    block
+    flex
+    items-center
     relative
+    justify-between
     w-full
     text-start
     text-sm
@@ -132,47 +159,57 @@ const MenuItem = ({
     .trim();
   const close = useContextMenuStore(state => state.closeContextMenu);
   const transformOrigin = useContextMenuStore(state => state.transformOrigin);
+  const position = useContextMenuStore(state => state.position);
+
+  const ref = useRef<HTMLDivElement>(null);
+
+  const willHorizontalOverflow = (element: HTMLElement) => {
+    const subMenuWidth = element.clientWidth * 2 + 100;
+    return position.x + subMenuWidth > window.innerWidth;
+  };
+
+  const willVerticalOverflow = (element: HTMLElement) => {
+    if (!item.subMenu) return false;
+    const subMenuHeight = item.subMenu.length * 50 + 100;
+    const menuHeight = element.clientHeight + subMenuHeight + 100;
+    return position.y + menuHeight > window.innerHeight;
+  };
+
+  const subMenuTransformOrigin = useMemo(() => {
+    if (!ref.current || !item.subMenu) return transformOrigin;
+    return {
+      horizontal:
+        willHorizontalOverflow(ref.current) &&
+        transformOrigin.horizontal === 'left'
+          ? 'right'
+          : transformOrigin.horizontal,
+      vertical:
+        willVerticalOverflow(ref.current) && transformOrigin.vertical === 'top'
+          ? 'bottom'
+          : transformOrigin.vertical,
+    };
+  }, [transformOrigin, ref.current]);
+
+  const subMenuPosition = useMemo(() => {
+    if (!ref.current || !item.subMenu) return position;
+    return {
+      x: willHorizontalOverflow(ref.current) ? 0 : ref.current.clientWidth,
+      y: willVerticalOverflow(ref.current) ? ref.current.offsetHeight : 0,
+    };
+  }, [position, ref.current]);
 
   const children = (
     <>
       {item.label}
-      {item.subMenu && (
-        <MdNavigateNext className="text-lg absolute right-2 top-1/2 -translate-y-1/2" />
-      )}
-      {item.subMenu && showDropdown && (
-        <motion.div
-          key={'sub-menu'}
-          className="absolute z-50 w-52 bg-slate-600 rounded-md shadow-2xl p-1"
-          style={{
-            top: transformOrigin.vertical === 'top' ? '0' : undefined,
-            bottom: transformOrigin.vertical === 'bottom' ? '0' : undefined,
-            left: transformOrigin.horizontal === 'left' ? '100%' : 'auto',
-            right: transformOrigin.horizontal === 'right' ? '100%' : 'auto',
-            transformOrigin: `${transformOrigin.vertical} ${transformOrigin.horizontal}`,
-          }}
-          initial={{
-            opacity: 0,
-            x: 10,
-            scale: 0.5,
-            y: -10,
-          }}
-          animate={{
-            opacity: 1,
-            x: 0,
-            scale: 1,
-            y: 0,
-          }}
-          exit={{
-            opacity: 0,
-            x: 10,
-            scale: 0.5,
-            y: -10,
-          }}
-        >
-          {item.subMenu.map((item, i) => {
-            return <MenuItem key={i} item={item} />;
-          })}
-        </motion.div>
+      {item.subMenu && <MdNavigateNext className="text-lg" />}
+      {item.subMenu && showDropdown && ref.current && (
+        <Menu
+          isOpen={true}
+          position={subMenuPosition}
+          menuItems={item.subMenu}
+          closeMenu={close}
+          transformOrigin={subMenuTransformOrigin}
+        />
       )}
     </>
   );
@@ -180,7 +217,11 @@ const MenuItem = ({
   return (
     <>
       {item.subMenu ? (
-        <div className={className} onMouseEnter={() => onMouseEnter?.()}>
+        <div
+          ref={ref}
+          className={className}
+          onMouseEnter={() => onMouseEnter?.()}
+        >
           {children}
         </div>
       ) : item.href ? (

@@ -14,12 +14,15 @@ import {
 import { TbRepeat, TbRepeatOnce } from 'react-icons/tb';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { addPlayHistory } from '@/actions/queue';
+import { Session } from 'next-auth';
 
 type SongPlayerProps = {
   songs: Song[];
+  session: Session | null;
 };
 
-export const SongPlayer = ({ songs }: SongPlayerProps) => {
+export const SongPlayer = ({ songs, session }: SongPlayerProps) => {
   const isMounted = useMounted();
   const [userSeeking, setUserSeeking] = useState(false);
   const [isUserDragging, setIsUserDragging] = useState(false);
@@ -252,7 +255,10 @@ export const SongPlayer = ({ songs }: SongPlayerProps) => {
           url={currentSong.url}
           playing={isPlaying}
           onEnded={() => {
-            if (repeatMode === 'ONE') setUserSeeking(true);
+            if (repeatMode === 'ONE') {
+              if (session) addPlayHistory({ session: session });
+              setUserSeeking(true);
+            }
             playNext();
           }}
           onProgress={e => {
