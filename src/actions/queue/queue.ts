@@ -32,7 +32,6 @@ export const getQueue = async (session: Session) => {
       id: session.user.id,
     },
     include: {
-      playlist: true,
       items: true,
     },
   });
@@ -68,13 +67,14 @@ export const playPlaylist = async ({
       items: {
         deleteMany: {},
         createMany: {
-          data: createQueueItems(songIds, session.user.id),
+          data: createQueueItems(songIds, session.user.id).map(item => ({
+            ...item,
+            playlistId,
+          })),
         },
       },
-      playlistId,
     },
     include: {
-      playlist: true,
       items: true,
     },
   });
@@ -106,10 +106,8 @@ export const playSong = async ({
           data: newItems,
         },
       },
-      playlistId: null,
     },
     include: {
-      playlist: true,
       items: true,
     },
   });
@@ -132,7 +130,6 @@ export const updateCurrentSongInQueue = async ({
       currentlyPlayingId: currentItem.id,
     },
     include: {
-      playlist: true,
       items: true,
     },
   });
@@ -157,14 +154,14 @@ export const insertSongsToQueue = async ({
   newItems[0].prevId = lastItem?.id;
   newItems[0].shuffledPrevId = shuffledLastItem?.id;
   await prisma.$transaction([
-    prisma.queueItem.update({
-      where: {
-        id: lastItem?.id,
-      },
-      data: {
-        nextId: newItems[0].id,
-      },
-    }),
+    ...(lastItem
+      ? [
+          prisma.queueItem.update({
+            where: { id: lastItem.id },
+            data: { nextId: newItems[0].id },
+          }),
+        ]
+      : []),
     ...(shuffle && shuffledLastItem
       ? [
           prisma.queueItem.update({
@@ -401,7 +398,6 @@ export const clearQueue = async ({
     },
     data: { items: { deleteMany: {} } },
     include: {
-      playlist: true,
       items: true,
     },
   });
@@ -489,7 +485,6 @@ export const updateQueueSettings = async ({
       repeatMode: repeatMode ?? repeat,
     },
     include: {
-      playlist: true,
       items: true,
     },
   });

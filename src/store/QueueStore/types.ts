@@ -3,7 +3,7 @@ import { Queue, QueueItemId } from '@/actions/queue';
 import { SongId } from '@/actions/songs';
 import { QueueItem, RepeatMode } from '@prisma/client';
 
-export type QueueState = Omit<Queue, 'id' | 'playlist'> & {
+export type QueueState = Omit<Queue, 'id'> & {
   queueId: string | null;
   isPlaying: boolean;
   volume: number;

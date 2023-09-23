@@ -28,7 +28,6 @@ export const initialState: QueueState = {
   repeatMode: 'NONE',
   shuffle: false,
   currentlyPlayingId: null,
-  playlistId: null,
 };
 
 export const useQueueStore = create<QueueState & QueueActions>()(

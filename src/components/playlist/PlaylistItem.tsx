@@ -29,8 +29,6 @@ export const PlaylistItem = ({
   isDragging,
   listOrder,
 }: PlaylistItemProps) => {
-  const playlistId = playlist.id as PlaylistId;
-  const currentlyPlayingPlaylist = useQueueStore(state => state.playlistId);
   const isPlaying = useQueueStore(state => state.isPlaying);
   const currentlyPlayingItem = useQueueStore(state =>
     state.items.find(item => item.id === state.currentlyPlayingId)
@@ -44,7 +42,6 @@ export const PlaylistItem = ({
   const shuffle = useQueueStore(state => state.shuffle);
   const setShuffle = useQueueStore(state => state.setShuffle);
   const isCurrentItem = currentlyPlayingItem?.id === queueItem?.id;
-  const isCurrentPlaylist = currentlyPlayingPlaylist === playlistId;
   const { contextMenuHandler } = useContextMenu();
   const createToast = useToastStore(state => state.createToast);
 
@@ -63,7 +60,7 @@ export const PlaylistItem = ({
 
   const playSong = () => {
     if (isDragging) return;
-    if (currentlyPlayingPlaylist === playlistId && isCurrentItem) {
+    if (isCurrentItem && playlist.id === currentlyPlayingItem?.playlistId) {
       return setIsPlaying(!isPlaying);
     }
     playPlaylist(playlist, song.id);
@@ -80,7 +77,7 @@ export const PlaylistItem = ({
           isCurrentItem,
           isPlaying,
           playSong,
-          playlistId,
+          playlistId: playlist.id,
           addSongToQueue,
           createToast,
         })
@@ -89,7 +86,7 @@ export const PlaylistItem = ({
     >
       <div className="flex items-center gap-6">
         <div className="w-8 flex justify-center items-center">
-          {isPlaying && isCurrentItem && isCurrentPlaylist ? (
+          {isPlaying && isCurrentItem && playlist.id === currentlyPlayingItem?.playlistId ? (
             <>
               <span className="text-lg font-bold text-blue-500 hidden group-hover:inline">
                 <HiPause />
@@ -104,7 +101,7 @@ export const PlaylistItem = ({
             <>
               <span
                 className={`text-lg font-bold group-hover:hidden ${
-                  isCurrentItem && isCurrentPlaylist
+                  isCurrentItem && playlist.id === currentlyPlayingItem?.playlistId
                     ? 'text-blue-500'
                     : 'text-slate-300/50'
                 }`}
@@ -113,7 +110,7 @@ export const PlaylistItem = ({
               </span>
               <span
                 className={`text-lg font-bold group-hover:inline hidden transition-all ${
-                  isCurrentItem && isCurrentPlaylist
+                  isCurrentItem && playlist.id === currentlyPlayingItem?.playlistId
                     ? 'text-blue-500'
                     : 'text-slate-300'
                 }`}
@@ -134,7 +131,7 @@ export const PlaylistItem = ({
           <div className="flex flex-col items-start">
             <span
               className={`text-md font-bold ${
-                isCurrentItem && isCurrentPlaylist
+                isCurrentItem && playlist.id === currentlyPlayingItem?.playlistId
                   ? 'text-blue-500'
                   : 'text-slate-300'
               }`}
