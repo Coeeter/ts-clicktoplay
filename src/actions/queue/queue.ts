@@ -1,3 +1,5 @@
+'use server';
+
 import { Session } from 'next-auth';
 import { prisma } from '../../lib/database';
 import {
@@ -37,11 +39,27 @@ export const getQueue = async (session: Session) => {
   });
 };
 
+export const addPlayHistory = async ({ session }: { session: Session }) => {
+  const { currentlyPlayingId, items } = await getQueue(session);
+  const currentlyPlayingItem = items.find(
+    item => item.id === currentlyPlayingId
+  );
+  if (!currentlyPlayingItem) return;
+  await prisma.playHistory.create({
+    data: {
+      userId: session.user.id,
+      songId: currentlyPlayingItem.songId,
+      playlistId: currentlyPlayingItem.playlistId,
+    },
+  });
+};
+
 export const playPlaylist = async ({
   session,
   playlistId,
   currentSongId,
 }: PlayPlaylistProps): Promise<Queue> => {
+  await addPlayHistory({ session });
   const playlist = await prisma.playlist.findUnique({
     where: {
       id: playlistId,
@@ -85,6 +103,7 @@ export const playSong = async ({
   songId,
   songIds,
 }: PlaySongProps): Promise<Queue> => {
+  await addPlayHistory({ session });
   const { items } = await getQueue(session);
   const newItems = createQueueItems(songIds, session.user.id);
   const newCurrentlyPlayingId = generateQueueItemId(session.user.id, songId, 1);
@@ -117,6 +136,7 @@ export const updateCurrentSongInQueue = async ({
   session,
   currentQueueItemId,
 }: UpdateCurrentSongInQueueProps): Promise<Queue> => {
+  await addPlayHistory({ session });
   const { items } = await getQueue(session);
   const currentItem = items.find(item => item.id === currentQueueItemId);
   if (!currentItem) {
@@ -392,6 +412,7 @@ export const moveSongsInQueue = async ({
 export const clearQueue = async ({
   session,
 }: ClearQueueProps): Promise<Queue> => {
+  await addPlayHistory({ session });
   return await prisma.queue.update({
     where: {
       id: session.user.id,
