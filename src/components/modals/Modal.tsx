@@ -24,7 +24,7 @@ export const Modal = ({ isOpen, close, children, title }: ModalProps) => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black/50 flex justify-center items-center"
+          className="fixed inset-0 bg-black/50 flex justify-center items-center backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -33,9 +33,9 @@ export const Modal = ({ isOpen, close, children, title }: ModalProps) => {
             key="edit-playlist-modal"
             ref={ref}
             className="bg-slate-800 p-6 rounded-md min-w-[450px] w-1/3 max-w-[550px]"
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
           >
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl text-white font-bold">{title}</h1>

@@ -20,24 +20,12 @@ export const SidebarPlaylistItem = ({
 }: SidebarPlaylistItemProps) => {
   const { contextMenuHandler } = useContextMenu();
   const playPlaylist = useQueueStore(state => state.playPlaylist);
-  const isPlaylistPlaying = useQueueStore(
-    state => state.playlistId === playlist.id
-  );
   const isPlaying = useQueueStore(state => state.isPlaying);
   const pathname = usePathname();
   const openPlaylistModal = usePlaylistModalStore(state => state.open);
-  const currentlyPlayingSong = useQueueStore(state => state.currentlyPlayingId);
-  const items = useQueueStore(state => state.items);
-  const songsNotInPlaylist = items.filter(item => {
-    const occurences = item.id.split('-')[1];
-    return (
-      occurences !== '1' ||
-      !playlist.items.find(playlistItem => playlistItem.songId === item.songId)
-    );
-  });
-  const isSongInPlaylist =
-    songsNotInPlaylist.find(song => song.id === currentlyPlayingSong) ===
-    undefined;
+  const currentlyPlayingSong = useQueueStore(state =>
+    state.items.find(item => item.id === state.currentlyPlayingId)
+  );
 
   return (
     <Link
@@ -73,7 +61,7 @@ export const SidebarPlaylistItem = ({
         <div className="flex flex-col justify-between whitespace-nowrap overflow-hidden">
           <div
             className={`text-md font-bold ${
-              isPlaylistPlaying && isSongInPlaylist
+              isPlaying && currentlyPlayingSong?.playlistId === playlist.id
                 ? 'text-blue-500'
                 : 'text-slate-300'
             }`}
@@ -85,7 +73,7 @@ export const SidebarPlaylistItem = ({
           </span>
         </div>
       </div>
-      {isPlaylistPlaying && isPlaying && isSongInPlaylist && (
+      {isPlaying && currentlyPlayingSong?.playlistId === playlist.id && (
         <MdVolumeUp className="text-blue-500 text-lg" />
       )}
     </Link>

@@ -100,9 +100,9 @@ const playPlaylist = (
       queueId: state.queueId!,
       shuffledNextId: null,
       shuffledPrevId: null,
+      playlistId: playlist.id,
     }));
     return {
-      playlistId: playlist.id,
       items: newItems,
       currentlyPlayingId: generateQueueItemId(
         state.queueId,
@@ -131,6 +131,7 @@ const playSong = (
       queueId: state.queueId!,
       shuffledNextId: null,
       shuffledPrevId: null,
+      playlistId: null,
     }));
     const newCurrentlyPlayingId = generateQueueItemId(state.queueId!, song, 1);
     if (state.items.length === newItems.length) {
@@ -255,6 +256,9 @@ const reorderItems = (
       queueId: state.queueId!,
       shuffledNextId: state.shuffle ? item.nextId! : null,
       shuffledPrevId: state.shuffle ? item.prevId! : null,
+      playlistId:
+        newOrder.find(orderItem => orderItem.id === item.id)?.playlistId ??
+        null,
     }));
     return {
       items: newItems,
@@ -296,6 +300,7 @@ const addSongToQueue = (
       queueId: state.queueId,
       shuffledNextId: null,
       shuffledPrevId: state.shuffle ? prevShuffledItem?.id ?? null : null,
+      playlistId: null,
     });
     return {
       items: sortedItems,

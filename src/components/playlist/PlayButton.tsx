@@ -12,33 +12,21 @@ export const PlaylistPlayButton = ({ playlist }: PlaylistPlayButtonProps) => {
   const playPlaylist = useQueueStore(state => state.playPlaylist);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const isPlaying = useQueueStore(state => state.isPlaying);
-  const currentlyPlayingPlaylist = useQueueStore(state => state.playlistId);
-  const currentlyPlayingSong = useQueueStore(state => state.currentlyPlayingId);
-  const items = useQueueStore(state => state.items);
-  const songsNotInPlaylist = items.filter(item => {
-    const occurences = item.id.split('-')[1];
-    return (
-      occurences !== '1' ||
-      !playlist.items.find(playlistItem => playlistItem.songId === item.songId)
-    );
-  });
-  const isSongInPlaylist =
-    songsNotInPlaylist.find(song => song.id === currentlyPlayingSong) ===
-    undefined;
+  const currentlyPlayingSong = useQueueStore(state =>
+    state.items.find(item => item.id === state.currentlyPlayingId)
+  );
 
   return (
     <button
       className="bg-blue-700 text-white p-3 rounded-full transition hover:scale-[1.1]"
       onClick={() => {
-        if (playlist.id === currentlyPlayingPlaylist && isSongInPlaylist) {
+        if (playlist.id === currentlyPlayingSong?.playlistId) {
           return setIsPlaying(!isPlaying);
         }
         playPlaylist(playlist, null);
       }}
     >
-      {isPlaying &&
-      playlist.id === currentlyPlayingPlaylist &&
-      isSongInPlaylist ? (
+      {isPlaying && currentlyPlayingSong?.playlistId === playlist.id ? (
         <MdPause className="w-8 h-8" />
       ) : (
         <MdPlayArrow className="w-8 h-8" />
