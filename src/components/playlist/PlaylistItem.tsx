@@ -1,6 +1,6 @@
 'use client';
 
-import { formatDistance, isToday, format } from 'date-fns';
+import { format, isThisWeek, formatDistanceToNow } from 'date-fns';
 import {
   Playlist,
   PlaylistId,
@@ -64,21 +64,6 @@ export const PlaylistItem = ({
 
   const pathname = usePathname();
 
-  const addedAt = playlist.items.find(item => item.songId === song.id)?.addedAt;
-  if (!addedAt) return null;
-  const sameDay =
-    isToday(new Date(addedAt)) &&
-    !(
-      new Date(addedAt).getHours() === 0 &&
-      new Date(addedAt).getMinutes() === 0 &&
-      new Date(addedAt).getSeconds() === 0
-    );
-  const timeAdded = isMounted
-    ? !sameDay
-      ? format(new Date(addedAt), 'MMM dd, yyyy')
-      : formatDistance(new Date(addedAt), new Date(), { addSuffix: true })
-    : '';
-
   const playSong = () => {
     if (isDragging) return;
     if (isCurrentItem && playlist.id === currentlyPlayingItem?.playlistId) {
@@ -104,6 +89,17 @@ export const PlaylistItem = ({
   useEffect(() => {
     if (!isMenuOpen) setIsContextMenuOpen(false);
   }, [isMenuOpen]);
+
+  const addedAt = playlist.items.find(item => item.songId === song.id)?.addedAt;
+  if (!addedAt) return null;
+  const isLongerThanAWeek = !isThisWeek(new Date(addedAt));
+  const timeAdded = isMounted
+    ? isLongerThanAWeek
+      ? format(new Date(addedAt), 'MMM dd, yyyy')
+      : formatDistanceToNow(new Date(addedAt), {
+          addSuffix: true,
+        })
+    : '';
 
   return (
     <div
@@ -174,7 +170,7 @@ export const PlaylistItem = ({
                   ? 'text-blue-500'
                   : 'text-slate-300'
               }`}
-              href={`/song/${song.id}`}
+              href={`/songs/${song.id}`}
             >
               {song.title}
             </Link>

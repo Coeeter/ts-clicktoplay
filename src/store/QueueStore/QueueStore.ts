@@ -32,14 +32,20 @@ export const initialState: QueueState = {
 
 export const useQueueStore = create<QueueState & QueueActions>()(
   persist(
-    set => ({
+    (set, get) => ({
       ...initialState,
       setQueue: queue => set(setQueue(queue)),
       setIsPlaying: isPlaying => set(setIsPlaying(isPlaying)),
       playNext: force => set(playNext(force)),
       playPrev: force => set(playPrev(force)),
-      playPlaylist: (playlist, songId) => set(playPlaylist(playlist, songId)),
-      playSong: (song, songs) => set(playSong(song, songs)),
+      playPlaylist: (playlist, songId) => {
+        set(playPlaylist(playlist, songId));
+        get().setShuffle(get().shuffle);
+      },
+      playSong: (song, songs) => {
+        set(playSong(song, songs));
+        get().setShuffle(get().shuffle);
+      },
       setCurrentlyPlayingId: id => set(setCurrentlyPlayingId(id)),
       setCurrentTime: time => set(setCurrentTime(time)),
       setVolume: volume => set(setVolume(volume)),

@@ -71,7 +71,7 @@ model Song {
   playlists   PlaylistItem[] @ignore
   queueItems  QueueItem[]    @ignore
   deletedAt   DateTime?
-  PlayHistory PlayHistory[]
+  playhistories PlayHistory[]
 }
 
 enum RepeatMode {

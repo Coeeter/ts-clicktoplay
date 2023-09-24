@@ -8,6 +8,7 @@ import {
   GetUpdateFileUploadUrlProps,
   UpdateSongProps,
 } from './types';
+import { PlayHistory, Song, User } from '@prisma/client';
 
 export const getSongFileUploadUrl = async ({
   fileType,
@@ -106,4 +107,79 @@ export const getSongs = async () => {
       uploader: true,
     },
   });
+};
+
+export const getSongById = async (
+  id: string
+): Promise<
+  [
+    error: string | null,
+    song:
+      | (Song & {
+          uploader: User;
+          playhistories: PlayHistory[];
+        })
+      | null
+  ]
+> => {
+  try {
+    return [
+      null,
+      await prisma.song.findUniqueOrThrow({
+        where: {
+          id: id,
+        },
+        include: {
+          uploader: true,
+          playhistories: true,
+        },
+      }),
+    ];
+  } catch (e) {
+    if (e instanceof Error) {
+      return [e.message, null];
+    }
+    if (typeof e === 'string') {
+      return [e, null];
+    }
+    return ['Something went wrong', null];
+  }
+};
+
+export const getCreatedSongs = async (
+  userId: string
+): Promise<
+  [
+    error: string | null,
+    song:
+      | (Song & {
+          uploader: User;
+        })[]
+      | null
+  ]
+> => {
+  try {
+    return [
+      null,
+      await prisma.song.findMany({
+        where: {
+          uploaderId: userId,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          uploader: true,
+        },
+      }),
+    ];
+  } catch (e) {
+    if (e instanceof Error) {
+      return [e.message, null];
+    }
+    if (typeof e === 'string') {
+      return [e, null];
+    }
+    return ['Something went wrong', null];
+  }
 };

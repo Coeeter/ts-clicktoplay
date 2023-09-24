@@ -1,23 +1,28 @@
 'use client';
-
-import { Song } from '@prisma/client';
-import Link from 'next/link';
-import { FaPlay } from 'react-icons/fa';
-import { useRef } from 'react';
-import { useQueueStore } from '@/store/QueueStore';
-import { useContextMenu } from '@/hooks/useContextMenu';
-import { useToastStore } from '@/store/ToastStore';
+import {
+  addFavoriteSongToLibrary,
+  removeFavoriteSongFromLibrary,
+} from '@/actions/library';
 import {
   Playlist,
   addSongsToPlaylist,
   createPlaylist,
 } from '@/actions/playlist';
-import {
-  addFavoriteSongToLibrary,
-  removeFavoriteSongFromLibrary,
-} from '@/actions/library';
+import { useContextMenu } from '@/hooks/useContextMenu';
+import { useMounted } from '@/hooks/useMounted';
+import { useQueueStore } from '@/store/QueueStore';
+import { useToastStore } from '@/store/ToastStore';
+import { Song } from '@prisma/client';
+import { format, formatDistanceToNow, isThisWeek } from 'date-fns';
 import { Session } from 'next-auth';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { FaPause, FaPlay } from 'react-icons/fa';
+import { HiPause, HiPlay } from 'react-icons/hi2';
+import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
+import { ContextMenuButton } from '../ContextMenu/ContextMenuButton';
+import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 
 type SongItemProps = {
   song: Song;
@@ -25,6 +30,7 @@ type SongItemProps = {
   playSong: () => void;
   session: Session | null;
   isFavorite: boolean;
+  type: 'list' | 'grid';
 };
 
 export const SongItem = ({
@@ -33,8 +39,14 @@ export const SongItem = ({
   playSong,
   session,
   isFavorite,
+  type = 'grid',
 }: SongItemProps) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const isPlaying = useQueueStore(state => state.isPlaying);
+  const setIsPlaying = useQueueStore(state => state.setIsPlaying);
+  const currentlyPlayingQueueItem = useQueueStore(state =>
+    state.items.find(item => item.id === state.currentlyPlayingId)
+  );
+  const isCurrentSong = song.id === currentlyPlayingQueueItem?.songId;
 
   const minutes = Math.floor(song.duration / 60);
   const seconds = Math.floor(song.duration % 60);
@@ -44,103 +56,339 @@ export const SongItem = ({
   const albumCover = song.albumCover ?? '/album-cover.png';
   const artist = song.artist?.length ? song.artist : 'Unknown';
 
-  const { contextMenuHandler } = useContextMenu();
+  const contextMenuItems = useContextMenuItems(
+    song,
+    isPlaying,
+    setIsPlaying,
+    isCurrentSong,
+    isFavorite,
+    session,
+    playlists,
+    playSong
+  );
+
+  if (type === 'list') {
+    return (
+      <SongListItem
+        song={song}
+        playSong={playSong}
+        isPlaying={isPlaying}
+        setIsPlaying={setIsPlaying}
+        isCurrentSong={isCurrentSong}
+        isFavorite={isFavorite}
+        contextMenuItems={contextMenuItems}
+      />
+    );
+  }
+
+  return (
+    <SongGridItem
+      song={song}
+      playSong={playSong}
+      isPlaying={isPlaying}
+      setIsPlaying={setIsPlaying}
+      isCurrentSong={isCurrentSong}
+      contextMenuItems={contextMenuItems}
+      albumCover={albumCover}
+      artist={artist}
+      duration={duration}
+    />
+  );
+};
+
+const useContextMenuItems = (
+  song: Song,
+  isPlaying: boolean,
+  setIsPlaying: (isPlaying: boolean) => void,
+  isCurrentSong: boolean,
+  isFavorite: boolean,
+  session: Session | null,
+  playlists: Playlist[],
+  playSong: () => void
+) => {
   const addToQueue = useQueueStore(state => state.addSongToQueue);
   const showToast = useToastStore(state => state.createToast);
   const pathname = usePathname();
 
+  return session
+    ? [
+        {
+          label: isCurrentSong ? (isPlaying ? 'Pause' : 'Play') : 'Play',
+          onClick: () => {
+            if (isCurrentSong) {
+              return setIsPlaying(!isPlaying);
+            }
+            playSong();
+          },
+        },
+        {
+          label: 'Add to Queue',
+          onClick: () => {
+            addToQueue(song.id);
+            showToast('Added to Queue', 'success');
+          },
+        },
+        {
+          label: 'Add to Playlist',
+          subMenu: [
+            {
+              label: 'New Playlist',
+              onClick: async () => {
+                const playlist = await createPlaylist({
+                  title: song.title,
+                  image: song.albumCover,
+                  path: pathname,
+                });
+                const [error] = await addSongsToPlaylist({
+                  playlistId: playlist.id,
+                  songIds: [song.id],
+                  path: pathname,
+                });
+                if (error) return showToast(error, 'error');
+                showToast(`Added to playlist '${playlist.title}'`, 'success');
+              },
+              divider: true,
+            },
+            ...playlists.map(playlist => ({
+              label: playlist.title,
+              onClick: async () => {
+                const [error] = await addSongsToPlaylist({
+                  playlistId: playlist.id,
+                  songIds: [song.id],
+                  path: pathname,
+                });
+                if (error) return showToast(error, 'error');
+                showToast(`Added to playlist '${playlist.title}'`, 'success');
+              },
+            })),
+            ...(!playlists.length
+              ? [{ label: 'No playlists found', selectable: false }]
+              : []),
+          ],
+        },
+        !isFavorite
+          ? {
+              label: 'Add to Favorites',
+              divider: session.user.id === song.uploaderId,
+              onClick: async () => {
+                const [error] = await addFavoriteSongToLibrary({
+                  songId: song.id,
+                  path: pathname,
+                });
+                if (error) return showToast(error, 'error');
+                showToast('Added song to Favorites', 'success');
+              },
+            }
+          : {
+              label: 'Remove from Favorites',
+              divider: session.user.id === song.uploaderId,
+              onClick: async () => {
+                const [error] = await removeFavoriteSongFromLibrary({
+                  songId: song.id,
+                  path: pathname,
+                });
+                if (error) return showToast(error, 'error');
+                showToast('Removed song from Favorites', 'success');
+              },
+            },
+        ...(session.user.id === song.uploaderId
+          ? [
+              {
+                label: 'Edit Song',
+                href: `/songs/update/${song.id}`,
+              },
+            ]
+          : []),
+      ]
+    : [
+        {
+          label: 'You must be logged in to perform this action.',
+          href: '/login',
+        },
+      ];
+};
+
+const SongListItem = ({
+  song,
+  playSong,
+  isPlaying,
+  setIsPlaying,
+  isCurrentSong,
+  isFavorite,
+  contextMenuItems,
+}: {
+  song: Song;
+  playSong: () => void;
+  isPlaying: boolean;
+  setIsPlaying: (isPlaying: boolean) => void;
+  isCurrentSong: boolean;
+  isFavorite: boolean;
+  contextMenuItems: ContextMenuItem[];
+}) => {
+  const [isContextMenuShowing, setIsContextMenuShowing] = useState(false);
+  const createToast = useToastStore(state => state.createToast);
+  const pathname = usePathname();
+  const isShowing = useContextMenuStore(state => state.isOpen);
+  const { contextMenuHandler } = useContextMenu();
+
+  const createdAt = new Date(song.createdAt);
+  const isMounted = useMounted();
+  const isLongerThanAWeek = !isThisWeek(createdAt);
+  const timeAdded = isMounted
+    ? isLongerThanAWeek
+      ? format(createdAt, 'MMM dd, yyyy')
+      : formatDistanceToNow(createdAt, {
+          addSuffix: true,
+        })
+    : '';
+
+  useEffect(() => {
+    if (!isShowing) setIsContextMenuShowing(false);
+  }, [isShowing]);
+
+  return (
+    <div
+      className={`w-full grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors group ${
+        isContextMenuShowing
+          ? 'bg-slate-700'
+          : 'bg-slate-900 hover:bg-slate-700'
+      }`}
+      onContextMenu={e => {
+        setIsContextMenuShowing(true);
+        contextMenuHandler(contextMenuItems)(e)
+      }}
+    >
+      <div className="flex items-center gap-6">
+        <div
+          className="w-8 flex justify-center items-center cursor-pointer"
+          onClick={() => {
+            if (isCurrentSong) {
+              return setIsPlaying(!isPlaying);
+            }
+            playSong();
+          }}
+        >
+          {isPlaying && isCurrentSong ? (
+            <>
+              <span className="text-lg font-bold text-blue-500 hidden group-hover:inline">
+                <HiPause />
+              </span>
+              <img
+                src="/playing.gif"
+                alt="playing"
+                className="w-full h-full rounded-md group-hover:hidden bg-blue-500 p-1"
+              />
+            </>
+          ) : (
+            <>
+              <span
+                className={`text-lg font-bold transition-all ${
+                  isCurrentSong
+                    ? 'text-blue-500'
+                    : 'text-slate-300/50 hover:text-slate-300'
+                }`}
+              >
+                <HiPlay />
+              </span>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-12 h-12 bg-slate-600 rounded-md">
+            <img
+              src={song.albumCover ?? '/album-cover.png'}
+              alt="album cover"
+              className="w-full h-full rounded-md object-cover"
+            />
+          </div>
+          <div className="flex flex-col items-start">
+            <Link
+              className={`text-md font-bold hover:underline ${
+                isCurrentSong ? 'text-blue-500' : 'text-slate-300'
+              }`}
+              href={`/songs/${song.id}`}
+            >
+              {song.title}
+            </Link>
+            <span className="text-sm text-slate-300/50">
+              {song.artist?.length ? song.artist : 'Unknown'}
+            </span>
+          </div>
+        </div>
+      </div>
+      <span className="text-slate-300/50">{timeAdded}</span>
+      <div className="text-slate-300/50 flex items-center justify-end">
+        <button
+          className="text-2xl cursor-pointer"
+          onClick={async () => {
+            if (isFavorite) {
+              const [error] = await removeFavoriteSongFromLibrary({
+                songId: song.id,
+                path: pathname,
+              });
+              if (error) return createToast(error, 'error');
+              createToast('Removed from Favorites', 'success');
+              return;
+            }
+            const [error] = await addFavoriteSongToLibrary({
+              songId: song.id,
+              path: pathname,
+            });
+            if (error) return createToast(error, 'error');
+            createToast('Added song to Favorites', 'success');
+          }}
+        >
+          {isFavorite ? (
+            <MdFavorite className="text-blue-700 hover:text-blue-600" />
+          ) : (
+            <MdFavoriteBorder className="opacity-0 group-hover:opacity-100 hover:text-slate-200" />
+          )}
+        </button>
+        <span className="ml-4 mr-2">
+          {new Date(song.duration * 1000).toISOString().substring(14, 19)}
+        </span>
+        <ContextMenuButton
+          className={`w-6 h-6 text-2xl text-slate-300/50 hover:text-slate-300 cursor-pointer ${
+            isContextMenuShowing ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          }`}
+          contextMenuItems={contextMenuItems}
+          onContextMenuOpen={() => setIsContextMenuShowing(true)}
+        >
+          <MdMoreHoriz />
+        </ContextMenuButton>
+      </div>
+    </div>
+  );
+};
+
+const SongGridItem = ({
+  song,
+  playSong,
+  isPlaying,
+  setIsPlaying,
+  isCurrentSong,
+  contextMenuItems,
+  albumCover,
+  artist,
+  duration,
+}: {
+  song: Song;
+  playSong: () => void;
+  isPlaying: boolean;
+  setIsPlaying: (isPlaying: boolean) => void;
+  isCurrentSong: boolean;
+  contextMenuItems: ContextMenuItem[];
+  albumCover: string;
+  artist: string;
+  duration: string;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const { contextMenuHandler } = useContextMenu();
+
   return (
     <Link
       href={`/songs/${song.id}`}
-      onContextMenu={contextMenuHandler(
-        session
-          ? [
-              {
-                label: 'Play',
-                onClick: playSong,
-              },
-              {
-                label: 'Add to Queue',
-                onClick: () => {
-                  addToQueue(song.id);
-                  showToast('Added to Queue', 'success');
-                },
-              },
-              {
-                label: 'Add to Playlist',
-                subMenu: [
-                  {
-                    label: 'New Playlist',
-                    onClick: async () => {
-                      const playlist = await createPlaylist({
-                        title: song.title,
-                        image: song.albumCover,
-                        path: pathname,
-                      });
-                      const [error] = await addSongsToPlaylist({
-                        playlistId: playlist.id,
-                        songIds: [song.id],
-                        path: pathname,
-                      });
-                      if (error) return showToast(error, 'error');
-                      showToast(
-                        `Added to playlist '${playlist.title}'`,
-                        'success'
-                      );
-                    },
-                    divider: true,
-                  },
-                  ...playlists.map(playlist => ({
-                    label: playlist.title,
-                    onClick: async () => {
-                      const [error] = await addSongsToPlaylist({
-                        playlistId: playlist.id,
-                        songIds: [song.id],
-                        path: pathname,
-                      });
-                      if (error) return showToast(error, 'error');
-                      showToast(
-                        `Added to playlist '${playlist.title}'`,
-                        'success'
-                      );
-                    },
-                  })),
-                  ...(!playlists.length
-                    ? [{ label: 'No playlists found', selectable: false }]
-                    : []),
-                ],
-              },
-              !isFavorite
-                ? {
-                    label: 'Add to Favorites',
-                    onClick: async () => {
-                      const [error] = await addFavoriteSongToLibrary({
-                        songId: song.id,
-                        path: pathname,
-                      });
-                      if (error) return showToast(error, 'error');
-                      showToast('Added song to Favorites', 'success');
-                    },
-                  }
-                : {
-                    label: 'Remove from Favorites',
-                    onClick: async () => {
-                      const [error] = await removeFavoriteSongFromLibrary({
-                        songId: song.id,
-                        path: pathname,
-                      });
-                      if (error) return showToast(error, 'error');
-                      showToast('Removed song from Favorites', 'success');
-                    },
-                  },
-            ]
-          : [
-              {
-                label: 'You must be logged in to perform this action.',
-                href: '/login',
-              },
-            ]
-      )}
+      onContextMenu={contextMenuHandler(contextMenuItems)}
       onClick={e => {
         e.preventDefault();
         if (
@@ -161,10 +409,23 @@ export const SongItem = ({
           />
           <div
             ref={ref}
-            className="absolute right-0 bottom-0 p-4 rounded-full bg-blue-700 m-3 opacity-0 translate-y-5 hover:scale-110 group-hover:translate-y-0 group-hover:opacity-100 duration-300 transition-all"
-            onClick={playSong}
+            className={`absolute right-0 bottom-0 p-4 rounded-full hover:scale-110 bg-blue-700 m-3 duration-300 transition-all ${
+              isPlaying && isCurrentSong
+                ? 'opacity-100'
+                : 'opacity-0 translate-y-5 group-hover:translate-y-0 group-hover:opacity-100'
+            }`}
+            onClick={() => {
+              if (isCurrentSong) {
+                return setIsPlaying(!isPlaying);
+              }
+              playSong();
+            }}
           >
-            <FaPlay className="text-white" size={16} />
+            {isPlaying && isCurrentSong ? (
+              <FaPause className="text-white" size={16} />
+            ) : (
+              <FaPlay className="text-white" size={16} />
+            )}
           </div>
         </div>
         <div className="flex flex-col gap-1">
