@@ -34,7 +34,7 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
 
   const [error, favoriteSongs] = await getFavoriteSongs();
 
-  if (error || !favoriteSongs) return redirect('/');
+  if (error || favoriteSongs === null) return redirect('/');
 
   const minutes = Math.floor(song.duration / 60);
   const seconds = Math.floor(song.duration % 60);
