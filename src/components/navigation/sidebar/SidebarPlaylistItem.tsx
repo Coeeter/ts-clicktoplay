@@ -61,7 +61,7 @@ export const SidebarPlaylistItem = ({
               : playlist.image ?? '/playlist-cover.png'
           }
           alt={playlist.title}
-          className={`w-12 aspect-square rounded-md bg-slate-100 object-cover ${
+          className={`w-12 aspect-square rounded-md object-cover ${
             !playlist.isFavoritePlaylist && !playlist.image
               ? 'bg-slate-100'
               : ''

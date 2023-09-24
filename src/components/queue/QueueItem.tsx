@@ -134,7 +134,7 @@ export const QueueItem = ({
           </div>
           <div className="flex flex-col items-start">
             <Link
-              href={`/song/${song.id}`}
+              href={`/songs/${song.id}`}
               className={`text-md font-bold hover:underline ${
                 isCurrentItem ? 'text-blue-500' : 'text-slate-300'
               }`}

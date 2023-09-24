@@ -7,6 +7,7 @@ import { PlaylistItemList } from '@/components/playlist/PlaylistItemList';
 import { getServerSession } from '@/lib/auth';
 import { NotFoundError, sortLinkedList } from '@/utils';
 import { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { MdFavorite } from 'react-icons/md';
 
@@ -29,7 +30,7 @@ export default async function PlaylistScreen({
 }) {
   const [error, playlist] = await getPlaylistById(id);
   if (error || !playlist) redirect('/');
-  let session = await getServerSession();
+  const session = await getServerSession();
   const playlists = session ? await getCreatedPlaylists(session) : [];
   const songs = await getSongs();
   const songsInPlaylist = sortLinkedList(playlist.items).map(playlistItem => {
@@ -80,7 +81,10 @@ export default async function PlaylistScreen({
           </OpenPlaylistModal>
           <span className="text-md truncate">
             <span className="text-slate-200 font-semibold">
-              {playlist.creator.name + ' • ' + playlist.items.length + ' songs'}
+              <Link href={`/profile/${playlist.creatorId}`} className='hover:underline'>
+                {playlist.creator.name}
+              </Link>
+              {' • ' + playlist.items.length + ' songs'}
             </span>
             {', around ' + totalDuration}
           </span>

@@ -12,6 +12,7 @@ type SongListProps = {
   playlists: Playlist[];
   session: Session | null;
   favoriteSongs: Song[];
+  type?: "list" | "grid";
 };
 
 export const SongList = ({
@@ -19,14 +20,13 @@ export const SongList = ({
   playlists,
   session,
   favoriteSongs,
+  type = "grid",
 }: SongListProps) => {
   const playSong = useQueueStore(state => state.playSong);
-  const shuffle = useQueueStore(state => state.shuffle);
-  const setShuffle = useQueueStore(state => state.setShuffle);
   const createToast = useToastStore(state => state.createToast);
 
   return (
-    <div className="flex flex-wrap gap-3 justify-center">
+    <div className={type === 'grid' ? `flex flex-wrap gap-3 justify-center` : "flex flex-col gap-3"}>
       {songs.map(song => (
         <SongItem
           key={song.id}
@@ -34,13 +34,13 @@ export const SongList = ({
           song={song}
           playlists={playlists}
           isFavorite={favoriteSongs.find(s => s.id === song.id) !== undefined}
+          type={type}
           playSong={() => {
             try {
               playSong(
                 song.id,
                 songs.map(s => s.id)
               );
-              if (shuffle) setShuffle(true);
             } catch (e) {
               createToast(
                 (e as any).message ?? 'Unknown error has occurred',

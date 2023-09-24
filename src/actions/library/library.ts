@@ -11,6 +11,8 @@ import {
 import { addSongsToPlaylist, removeSongFromPlaylist } from '../playlist';
 import { revalidatePath } from 'next/cache';
 import { getServerSession } from '@/lib/auth';
+import { Song, User } from '@prisma/client';
+import { getSongs } from '../songs';
 
 export const getLibrary = async (session: Session) => {
   return await prisma.library.upsert({
@@ -26,6 +28,45 @@ export const getLibrary = async (session: Session) => {
       user: true,
     },
   });
+};
+
+export const getFavoriteSongs = async (): Promise<
+  [
+    error: string | null,
+    songs:
+      | (Song & {
+          uploader: User;
+        })[]
+      | null
+  ]
+> => {
+  try {
+    const session = await getServerSession();
+    if (!session) return ['Session not found', null];
+    const favoritePlaylist = await prisma.playlist.findFirst({
+      where: {
+        isFavoritePlaylist: true,
+        creatorId: session.user.id,
+      },
+      include: {
+        items: true,
+      },
+    });
+    if (!favoritePlaylist) return ['Favorite playlist not found', null];
+    const songs = await getSongs();
+    const favoriteSongs = favoritePlaylist.items.map(item =>
+      songs.find(song => song.id === item.songId)!
+    );
+    return [null, favoriteSongs];
+  } catch (e) {
+    if (e instanceof Error) {
+      return [e.message, null];
+    }
+    if (typeof e === 'string') {
+      return [e, null];
+    }
+    return ['Something went wrong', null];
+  }
 };
 
 export const addFavoriteSongToLibrary = async ({
