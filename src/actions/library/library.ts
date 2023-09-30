@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/database';
-import { BadRequestError, NotFoundError } from '@/utils';
+import { BadRequestError, NotFoundError, sortLinkedList } from '@/utils';
 import { Session } from 'next-auth';
 import {
   Library,
@@ -15,19 +15,75 @@ import { Song, User } from '@prisma/client';
 import { getSongs } from '../songs';
 
 export const getLibrary = async (session: Session) => {
-  return await prisma.library.upsert({
+  const playlists = await prisma.playlist.findMany({
+    where: {
+      creatorId: session.user.id,
+      isFavoritePlaylist: false,
+    },
+    include: {
+      items: true,
+      creator: true,
+    },
+  });
+  const favoritePlaylist = await prisma.playlist.findFirst({
+    where: {
+      creatorId: session.user.id,
+      isFavoritePlaylist: true,
+    },
+    include: {
+      items: true,
+      creator: true,
+    },
+  });
+  const createdPlaylists = [
+    ...(favoritePlaylist ? [favoritePlaylist] : []),
+    ...playlists.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
+  ];
+  const library = await prisma.libraryItem.findMany({
     where: {
       userId: session.user.id,
     },
-    create: {
-      userId: session.user.id,
-    },
-    update: {},
     include: {
-      items: true,
       user: true,
     },
   });
+  await prisma.$transaction(
+    createdPlaylists
+      .filter(
+        playlist => !library.find(item => item.playlistId === playlist.id)
+      )
+      .map((playlist, index) =>
+        prisma.libraryItem.create({
+          data: {
+            id: `${session.user.id}-${playlist.id}`,
+            playlistId: playlist.id,
+            userId: session.user.id,
+            prevId:
+              index === 0
+                ? null
+                : `${session.user.id}-${createdPlaylists[index - 1]?.id}`,
+            nextId:
+              index === createdPlaylists.length - 1
+                ? null
+                : `${session.user.id}-${createdPlaylists[index + 1]?.id}`,
+          },
+        })
+      )
+  );
+  const libraryItems = (
+    await prisma.libraryItem.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      include: {
+        user: true,
+      },
+    })
+  ).map(item => ({
+    ...item,
+    playlist: createdPlaylists.find(playlist => playlist.id === item.playlistId)!,
+  }));
+  return sortLinkedList(libraryItems);
 };
 
 export const getFavoriteSongs = async (): Promise<
@@ -54,8 +110,8 @@ export const getFavoriteSongs = async (): Promise<
     });
     if (!favoritePlaylist) return ['Favorite playlist not found', null];
     const songs = await getSongs();
-    const favoriteSongs = favoritePlaylist.items.map(item =>
-      songs.find(song => song.id === item.songId)!
+    const favoriteSongs = favoritePlaylist.items.map(
+      item => songs.find(song => song.id === item.songId)!
     );
     return [null, favoriteSongs];
   } catch (e) {
@@ -98,15 +154,9 @@ export const addFavoriteSongToLibrary = async ({
   });
   if (err || !updatedPlaylist) return [err, null];
   const library = await getLibrary(session);
-  if (library.items.find(item => item.playlistId === favoritePlaylist.id)) {
+  if (library.find(item => item.playlistId === favoritePlaylist.id)) {
     return [null, library];
   }
-  await prisma.libraryItem.create({
-    data: {
-      playlistId: favoritePlaylist.id,
-      libraryId: library.id,
-    },
-  });
   revalidatePath(path);
   return [null, await getLibrary(session)];
 };
@@ -145,7 +195,7 @@ export const removePlaylistFromLibrary = async ({
   session,
   playlistId,
 }: RemovePlaylistFromLibraryProps): Promise<Library> => {
-  const { items } = await getLibrary(session);
+  const items = await getLibrary(session);
   const item = items.find(item => item.playlistId === playlistId);
   if (!item) {
     throw new NotFoundError('Playlist not in library');
@@ -188,7 +238,7 @@ export const movePlaylistInLibrary = async ({
   newNextId,
   newPrevId,
 }: MovePlaylistInLibraryProps): Promise<Library> => {
-  const { items } = await getLibrary(session);
+  const items = await getLibrary(session);
   const itemToMove = items.find(item => item.id === itemId);
   if (!itemToMove) {
     throw new NotFoundError('Item not in library');

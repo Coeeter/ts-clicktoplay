@@ -1,14 +1,15 @@
+import { getFavoriteSongs } from '@/actions/library';
+import { getCreatedPlaylists } from '@/actions/playlist';
 import { getCreatedSongs, getSongById } from '@/actions/songs';
+import { SongList } from '@/components/songs/SongList';
+import { getServerSession } from '@/lib/auth';
+import { extractMainColor } from '@/utils/extractMainColor';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { PlayButton } from './_components/PlayButton';
-import { MoreOptionsButton } from './_components/MoreOptionsButton';
-import { getServerSession } from '@/lib/auth';
-import { SongList } from '@/components/songs/SongList';
-import { getFavoriteSongs } from '@/actions/library';
-import { getCreatedPlaylists } from '@/actions/playlist';
 import { FavoriteButton } from './_components/FavoriteButton';
+import { MoreOptionsButton } from './_components/MoreOptionsButton';
+import { PlayButton } from './_components/PlayButton';
 
 type SongPageProps = {
   params: { songId: string };
@@ -42,8 +43,15 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
     seconds < 10 ? '0' : ''
   }${seconds}`;
 
+  const primaryColor = await extractMainColor(song.albumCover, '#64748b');
+
   return (
-    <div className="flex flex-col gap-4">
+    <div
+      className="flex flex-col gap-4 p-6 rounded-t-lg"
+      style={{
+        backgroundImage: `linear-gradient(${primaryColor}, #0f172a 275px)`,
+      }}
+    >
       <header className="flex gap-4">
         <img
           src={song?.albumCover ?? '/album-cover.png'}
@@ -51,12 +59,14 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
           className={`w-48 shadow-2xl h-48 rounded-xl object-cover bg-slate-100`}
         />
         <div className="flex flex-col justify-end">
-          <span className="text-lg">Song</span>
+          <span className="text-lg text-slate-200">Song</span>
           <div className="text-6xl text-slate-200 font-bold mb-6">
             {song.title}
           </div>
           <span className="text-md truncate mb-3">
-            <span className="text-slate-200 font-semibold">{song.artist}</span>
+            <span className="text-slate-200 font-semibold">
+              {song.artist?.length ? song.artist : 'Unknown artist'}
+            </span>
             {' • ' +
               duration +
               ' • ' +
@@ -93,11 +103,11 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
         />
       </section>
       <section className="flex flex-col gap-2">
-        <header className="flex flex-col mt-4 items-start">
-          <span className="text-sm">Other songs uploaded by </span>
+        <header>
+          Other songs by{' '}
           <Link
             href={`/profile/${song.uploaderId}`}
-            className="text-slate-200 text-3xl font-bold hover:underline inline"
+            className="text-slate-200 font-semibold hover:underline"
           >
             {song.uploader.name}
           </Link>

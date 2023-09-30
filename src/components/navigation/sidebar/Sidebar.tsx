@@ -1,9 +1,11 @@
 import { MdHome, MdSearch } from 'react-icons/md';
 
 import { getServerSession } from '@/lib/auth';
-import { SidebarItem, SidebarItemProps } from './SidebarItem';
+import { SidebarLink, SidebarItemProps } from './SidebarLink';
 import { getCreatedPlaylists } from '@/actions/playlist/playlist';
-import { SidebarPlaylistItem } from './SidebarPlaylistItem';
+import { SidebarItem } from './SidebarItem';
+import { getLibrary } from '@/actions/library';
+import { SidebarItemList } from './SidebarItemList';
 
 const sidebarItems: SidebarItemProps[] = [
   {
@@ -20,41 +22,29 @@ const sidebarItems: SidebarItemProps[] = [
 
 export const Sidebar = async () => {
   const session = await getServerSession();
-  const playlists = session
-    ? (await getCreatedPlaylists(session))
-        .filter(
-          playlist => !playlist.isFavoritePlaylist || playlist.items.length
-        )
-        .sort(
-          (a, b) => Number(b.isFavoritePlaylist) - Number(a.isFavoritePlaylist)
-        )
+  const library = session
+    ? (await getLibrary(session)).filter(
+        item => !item.playlist.isFavoritePlaylist || item.playlist.items.length
+      )
     : [];
 
   return (
     <aside className="w-1/4 gap-3 flex flex-col sticky top-3 bottom-3 max-h-[calc(100vh-7rem)]">
       <div className="flex flex-col bg-slate-800 rounded-md px-4 py-3 gap-3">
         {sidebarItems.map(sidebarItem => (
-          <SidebarItem key={sidebarItem.name} {...sidebarItem} />
+          <SidebarLink key={sidebarItem.name} {...sidebarItem} />
         ))}
       </div>
       <div className="flex-grow bg-slate-800 rounded-md">
         <div className="px-4 py-3 gap-3 flex flex-col">
           <h2 className="text-lg text-slate-300 font-semibold">Your Library</h2>
           {session?.user ? (
-            playlists.length === 0 ? (
+            library.length === 0 ? (
               <p className="text-md text-slate-300/50 font-semibold">
                 No playlists found
               </p>
             ) : (
-              <div className="flex flex-col gap-1">
-                {playlists.map(playlist => (
-                  <SidebarPlaylistItem
-                    key={playlist.id}
-                    playlist={playlist}
-                    session={session}
-                  />
-                ))}
-              </div>
+              <SidebarItemList items={library} session={session} />
             )
           ) : (
             <div className="text-md text-slate-300/50 font-semibold">

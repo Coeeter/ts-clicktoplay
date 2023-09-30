@@ -6,6 +6,7 @@ import { PlaylistPlayButton } from '@/components/playlist/PlayButton';
 import { PlaylistItemList } from '@/components/playlist/PlaylistItemList';
 import { getServerSession } from '@/lib/auth';
 import { NotFoundError, sortLinkedList } from '@/utils';
+import { extractMainColor } from '@/utils/extractMainColor';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -49,8 +50,15 @@ export default async function PlaylistScreen({
     ? `${totalDurationInMinutes} min`
     : `${hours} hr ${minutes > 0 ? `${minutes} min` : ''}`;
 
+  const primaryColor = await extractMainColor(playlist.image, '#64748b');
+
   return (
-    <div className="flex flex-col gap-4">
+    <div
+      className="flex flex-col gap-4 p-6 rounded-t-lg"
+      style={{
+        background: `linear-gradient(${primaryColor}, #0f172a 275px)`,
+      }}
+    >
       <header className="flex gap-4">
         <OpenPlaylistModal session={session} playlist={playlist} type="edit">
           <img
@@ -68,7 +76,7 @@ export default async function PlaylistScreen({
           />
         </OpenPlaylistModal>
         <div className="flex flex-col justify-end">
-          <span className="text-lg">Playlist</span>
+          <span className="text-lg text-slate-200">Playlist</span>
           <OpenPlaylistModal session={session} playlist={playlist} type="edit">
             <div className="text-6xl text-slate-200 font-bold mb-6">
               {playlist.title}
@@ -81,7 +89,10 @@ export default async function PlaylistScreen({
           </OpenPlaylistModal>
           <span className="text-md truncate">
             <span className="text-slate-200 font-semibold">
-              <Link href={`/profile/${playlist.creatorId}`} className='hover:underline'>
+              <Link
+                href={`/profile/${playlist.creatorId}`}
+                className="hover:underline"
+              >
                 {playlist.creator.name}
               </Link>
               {' • ' + playlist.items.length + ' songs'}

@@ -20,11 +20,13 @@ export default async function QueuePage() {
 
   return (
     <WithAuth>
-      <QueueList
-        songs={songs}
-        favoriteSongs={favoriteSongs}
-        playlists={playlists.filter(p => !p.isFavoritePlaylist)}
-      />
+      <div className="p-6">
+        <QueueList
+          songs={songs}
+          favoriteSongs={favoriteSongs}
+          playlists={playlists.filter(p => !p.isFavoritePlaylist)}
+        />
+      </div>
     </WithAuth>
   );
 }
