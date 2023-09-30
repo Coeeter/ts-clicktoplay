@@ -40,7 +40,7 @@ export default async function RootLayout({
               <Sidebar />
               <div className="flex flex-col w-full gap-3">
                 <Navbar />
-                <main className="p-6">{children}</main>
+                <main>{children}</main>
               </div>
             </div>
             <ContextMenu />

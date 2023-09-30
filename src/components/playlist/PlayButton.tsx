@@ -12,6 +12,7 @@ export const PlaylistPlayButton = ({ playlist }: PlaylistPlayButtonProps) => {
   const playPlaylist = useQueueStore(state => state.playPlaylist);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const isPlaying = useQueueStore(state => state.isPlaying);
+  const shuffled = useQueueStore(state => state.shuffle);
   const currentlyPlayingSong = useQueueStore(state =>
     state.items.find(item => item.id === state.currentlyPlayingId)
   );
@@ -23,7 +24,14 @@ export const PlaylistPlayButton = ({ playlist }: PlaylistPlayButtonProps) => {
         if (playlist.id === currentlyPlayingSong?.playlistId) {
           return setIsPlaying(!isPlaying);
         }
-        playPlaylist(playlist, null);
+        playPlaylist(
+          playlist,
+          (shuffled
+            ? playlist.items.at(
+                Math.floor(Math.random() * playlist.items.length)
+              )?.songId
+            : playlist.items.at(0)?.songId) ?? null
+        );
       }}
     >
       {isPlaying && currentlyPlayingSong?.playlistId === playlist.id ? (
