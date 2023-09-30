@@ -4,9 +4,7 @@ import { PlaylistId } from '../playlist';
 
 export type Library = Awaited<ReturnType<typeof getLibrary>>;
 
-export type LibraryItem = Library['items'][0];
-
-export type LibraryItemId = LibraryItem['id'];
+export type LibraryItemId = string;
 
 export type AddPlaylistToLibraryProps = {
   session: Session;
