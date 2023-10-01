@@ -95,10 +95,25 @@ export const createPlaylist = async ({
       },
     },
   });
-  const number = playlistWithCommonTitle.length + 1;
+  const maxNumber =
+    playlistWithCommonTitle
+      .map(playlist => {
+        if (!playlist.title.includes('#')) return null;
+        const number = parseInt(playlist.title.split('#')[1]);
+        if (number) return number;
+      })
+      .filter((number): number is number => number !== null)
+      .sort((a, b) => b - a)
+      .at(0) ?? -1;
   const result = await prisma.playlist.create({
     data: {
-      title: title + (number > 1 ? ` #${number}` : ''),
+      title: `${title}${
+        maxNumber !== -1
+          ? ` #${maxNumber + 1}`
+          : playlistWithCommonTitle.length
+          ? ' #1'
+          : ''
+      }`,
       image,
       creatorId: session.user.id,
     },

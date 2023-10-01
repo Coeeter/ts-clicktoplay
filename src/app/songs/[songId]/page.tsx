@@ -10,11 +10,24 @@ import { redirect } from 'next/navigation';
 import { FavoriteButton } from './_components/FavoriteButton';
 import { MoreOptionsButton } from './_components/MoreOptionsButton';
 import { PlayButton } from './_components/PlayButton';
+import { Metadata } from 'next';
 
 type SongPageProps = {
   params: { songId: string };
   searchParams: { page: string };
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { songId: string };
+}): Promise<Metadata> {
+  const [error, song] = await getSongById(params.songId);
+  if (error || !song) return { title: 'ClickToPlay' };
+  return {
+    title: `${song.title} - song by ${song.artist} | ClickToPlay`,
+  };
+}
 
 const SongPage = async ({ params: { songId } }: SongPageProps) => {
   const session = await getServerSession();

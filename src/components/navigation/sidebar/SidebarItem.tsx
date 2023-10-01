@@ -29,7 +29,7 @@ export const SidebarItem = ({
 
   return (
     <Link
-      className={`p-2 rounded-md hover:bg-slate-700 w-full flex justify-between items-center ${
+      className={`p-2 rounded-md bg-slate-800 hover:bg-slate-700 w-full flex justify-between items-center ${
         pathname.startsWith(`/playlist/${playlist.id}`) ? 'bg-slate-700' : ''
       }`}
       onContextMenu={contextMenuHandler([
