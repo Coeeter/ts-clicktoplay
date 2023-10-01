@@ -140,7 +140,13 @@ export const EditPlaylistModal = () => {
             <TextField
               label="Title"
               error={errors.title?.message}
-              {...register('title', { required: 'Title is required!' })}
+              {...register('title', {
+                required: 'Title is required!',
+                pattern: {
+                  value: /^[a-zA-Z0-9 ]*$/,
+                  message: 'Title should only contain alphanumeric characters!',
+                },
+              })}
             />
             <TextField
               label="Description"

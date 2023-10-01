@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -25,7 +22,6 @@ model User {
   verificationTokens VerificationToken[]
   emailVerified      DateTime?
   PlayHistory        PlayHistory[]
-  LibraryItem        LibraryItem[]
 }
 
 model Playlist {
@@ -39,7 +35,6 @@ model Playlist {
   isPublic           Boolean        @default(true)
   isFavoritePlaylist Boolean        @default(false)
   items              PlaylistItem[]
-  libraries          LibraryItem[]  @ignore
   queueItems         QueueItem[]    @ignore
   PlayHistory        PlayHistory[]
 
@@ -100,17 +95,6 @@ model QueueItem {
   queueId        String
   playlistId     String?
   playlist       Playlist? @relation(fields: [playlistId], references: [id], onDelete: Cascade)
-}
-
-model LibraryItem {
-  id         String   @id @default(cuid()) @map("_id")
-  createdAt  DateTime @default(now())
-  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
-  playlistId String
-  nextId     String?
-  prevId     String?
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
 }
 
 model SearchHistory {

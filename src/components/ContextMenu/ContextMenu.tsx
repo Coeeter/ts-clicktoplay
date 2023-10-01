@@ -31,12 +31,14 @@ const Menu = ({
   menuItems,
   closeMenu,
   transformOrigin,
+  isSubMenu = false,
 }: {
   isOpen: boolean;
   position: { x: number; y: number };
   menuItems: ContextMenuItem[];
   closeMenu: () => void;
   transformOrigin: { vertical: 'top' | 'bottom'; horizontal: 'left' | 'right' };
+  isSubMenu?: boolean;
 }) => {
   const transformOriginAsString = `${transformOrigin.vertical} ${transformOrigin.horizontal}`;
   const [hoveredItem, setHoveredItem] = useState('');
@@ -85,7 +87,7 @@ const Menu = ({
       {isOpen && (
         <motion.div
           ref={ref}
-          className={`w-52 bg-slate-600 rounded-md shadow-2xl absolute z-50 p-1`}
+          className={`w-52 bg-slate-600 rounded-md shadow-2xl absolute z-50 p-1 max-h-72 ${isSubMenu ? 'overflow-y-auto' : ''}`}
           style={{
             translateX: transformOrigin.horizontal === 'right' ? '-100%' : 0,
             translateY: transformOrigin.vertical === 'bottom' ? '-100%' : 0,
@@ -209,6 +211,7 @@ const MenuItem = ({
           menuItems={item.subMenu}
           closeMenu={close}
           transformOrigin={subMenuTransformOrigin}
+          isSubMenu={true}
         />
       )}
     </>

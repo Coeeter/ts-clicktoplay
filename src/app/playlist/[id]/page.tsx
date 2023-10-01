@@ -50,7 +50,10 @@ export default async function PlaylistScreen({
     ? `${totalDurationInMinutes} min`
     : `${hours} hr ${minutes > 0 ? `${minutes} min` : ''}`;
 
-  const primaryColor = await extractMainColor(playlist.image, '#64748b');
+  const primaryColor = await extractMainColor(
+    playlist.image,
+    playlist.isFavoritePlaylist ? '#35547f' : '#64748b'
+  );
 
   return (
     <div

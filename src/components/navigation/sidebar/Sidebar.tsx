@@ -1,11 +1,10 @@
-import { MdHome, MdSearch } from 'react-icons/md';
+import { MdAdd, MdHome, MdSearch } from 'react-icons/md';
 
 import { getServerSession } from '@/lib/auth';
 import { SidebarLink, SidebarItemProps } from './SidebarLink';
-import { getCreatedPlaylists } from '@/actions/playlist/playlist';
-import { SidebarItem } from './SidebarItem';
-import { getLibrary } from '@/actions/library';
+import { createPlaylist, getCreatedPlaylists } from '@/actions/playlist/playlist';
 import { SidebarItemList } from './SidebarItemList';
+import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
 
 const sidebarItems: SidebarItemProps[] = [
   {
@@ -22,10 +21,12 @@ const sidebarItems: SidebarItemProps[] = [
 
 export const Sidebar = async () => {
   const session = await getServerSession();
-  const library = session
-    ? (await getLibrary(session)).filter(
-        item => !item.playlist.isFavoritePlaylist || item.playlist.items.length
-      )
+  const playlists = session
+    ? (await getCreatedPlaylists(session))
+        .filter(item => !item.isFavoritePlaylist || item.items.length)
+        .sort(
+          (a, b) => Number(b.isFavoritePlaylist) - Number(a.isFavoritePlaylist)
+        )
     : [];
 
   return (
@@ -35,16 +36,23 @@ export const Sidebar = async () => {
           <SidebarLink key={sidebarItem.name} {...sidebarItem} />
         ))}
       </div>
-      <div className="flex-grow bg-slate-800 rounded-md">
-        <div className="px-4 py-3 gap-3 flex flex-col">
-          <h2 className="text-lg text-slate-300 font-semibold">Your Library</h2>
+      <div className="flex-grow bg-slate-800 rounded-md max-h-[calc(100vh-7rem-112px)]">
+        <div className="px-4 py-3 gap-3 flex flex-col max-h-full">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg text-slate-300 font-semibold">
+              Your Library
+            </h2>
+            <SidebarNewPlaylistButton />
+          </div>
           {session?.user ? (
-            library.length === 0 ? (
+            playlists.length === 0 ? (
               <p className="text-md text-slate-300/50 font-semibold">
                 No playlists found
               </p>
             ) : (
-              <SidebarItemList items={library} session={session} />
+              <div className="overflow-y-auto max-h-full no-scrollbar">
+                <SidebarItemList playlists={playlists} session={session} />
+              </div>
             )
           ) : (
             <div className="text-md text-slate-300/50 font-semibold">
