@@ -77,6 +77,7 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
       }
       createToast('Song updated successfully', 'success');
       router.push('/');
+      router.refresh();
     } catch (e) {
       console.error(e);
       createToast('Error updating song', 'error');

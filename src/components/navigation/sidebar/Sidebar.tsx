@@ -2,9 +2,13 @@ import { MdAdd, MdHome, MdSearch } from 'react-icons/md';
 
 import { getServerSession } from '@/lib/auth';
 import { SidebarLink, SidebarItemProps } from './SidebarLink';
-import { createPlaylist, getCreatedPlaylists } from '@/actions/playlist/playlist';
+import {
+  createPlaylist,
+  getCreatedPlaylists,
+} from '@/actions/playlist/playlist';
 import { SidebarItemList } from './SidebarItemList';
 import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
+import { prisma } from '@/lib/database';
 
 const sidebarItems: SidebarItemProps[] = [
   {
@@ -29,6 +33,24 @@ export const Sidebar = async () => {
         )
     : [];
 
+  const playHistory = await Promise.all(
+    playlists.map(async playlist => {
+      const history = await prisma.playHistory.aggregate({
+        where: {
+          userId: session?.user?.id,
+          playlistId: playlist.id,
+        },
+        _max: {
+          createdAt: true,
+        },
+      });
+      return {
+        id: playlist.id,
+        lastPlayedAt: history._max?.createdAt,
+      };
+    })
+  );
+
   return (
     <aside className="w-1/4 gap-3 flex flex-col sticky top-3 bottom-3 max-h-[calc(100vh-7rem)]">
       <div className="flex flex-col bg-slate-800 rounded-md px-4 py-3 gap-3">
@@ -51,7 +73,7 @@ export const Sidebar = async () => {
               </p>
             ) : (
               <div className="overflow-y-auto max-h-full no-scrollbar">
-                <SidebarItemList playlists={playlists} session={session} />
+                <SidebarItemList playlists={playlists} session={session} history={playHistory} />
               </div>
             )
           ) : (

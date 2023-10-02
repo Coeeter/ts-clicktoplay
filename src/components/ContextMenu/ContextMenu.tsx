@@ -143,18 +143,18 @@ const MenuItem = ({
     justify-between
     w-full
     text-start
-    text-sm
     text-slate-200
     p-3
     rounded-md
     group
-    ${item.selectable != false ? 'hover:bg-slate-700' : ''}
+    ${item.selectable != false && !item.title ? 'hover:bg-slate-700' : ''}
     ${
-      item.subMenu || item.selectable == false
+      item.subMenu || item.selectable == false || item.title
         ? 'cursor-default'
         : 'cursor-pointer'
     }
     ${showDropdown && item.subMenu ? 'bg-slate-700' : ''}
+    ${item.title ? 'text-slate-300/75 font-bold text-xs' : 'text-sm'}
   `
     .split(/\s+/)
     .join(' ')
