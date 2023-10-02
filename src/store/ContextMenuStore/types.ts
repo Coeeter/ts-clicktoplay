@@ -5,6 +5,7 @@ export type ContextMenuItem = {
   divider?: boolean;
   selectable?: boolean;
   subMenu?: ContextMenuItem[];
+  title?: boolean;
 };
 
 export type ContextMenuState = {

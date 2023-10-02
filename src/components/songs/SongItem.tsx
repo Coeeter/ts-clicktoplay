@@ -255,7 +255,7 @@ const SongListItem = ({
       }`}
       onContextMenu={e => {
         setIsContextMenuShowing(true);
-        contextMenuHandler(contextMenuItems)(e)
+        contextMenuHandler(contextMenuItems)(e);
       }}
     >
       <div className="flex items-center gap-6">
@@ -349,7 +349,9 @@ const SongListItem = ({
         </span>
         <ContextMenuButton
           className={`w-6 h-6 text-2xl text-slate-300/50 hover:text-slate-300 cursor-pointer ${
-            isContextMenuShowing ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            isContextMenuShowing
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100'
           }`}
           contextMenuItems={contextMenuItems}
           onContextMenuOpen={() => setIsContextMenuShowing(true)}
@@ -382,7 +384,7 @@ const SongGridItem = ({
   artist: string;
   duration: string;
 }) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLButtonElement>(null);
   const { contextMenuHandler } = useContextMenu();
 
   return (
@@ -407,7 +409,7 @@ const SongGridItem = ({
             alt="Album Cover"
             className="w-full aspect-square rounded-md box-border object-cover group-hover:shadow-xl transition-shadow duration-300 group-hover:shadow-slate-800"
           />
-          <div
+          <button
             ref={ref}
             className={`absolute right-0 bottom-0 p-4 rounded-full hover:scale-110 bg-blue-700 m-3 duration-300 transition-all ${
               isPlaying && isCurrentSong
@@ -426,10 +428,10 @@ const SongGridItem = ({
             ) : (
               <FaPlay className="text-white" size={16} />
             )}
-          </div>
+          </button>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-white font-bold">{song.title}</span>
+          <span className="text-white font-bold truncate">{song.title}</span>
           <div className="flex justify-between gap-2 w-full max-w-full">
             <span className="text-gray-400 truncate">{artist}</span>
             <span className="text-gray-400">{duration}</span>
