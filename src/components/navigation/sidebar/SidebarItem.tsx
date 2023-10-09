@@ -1,8 +1,7 @@
 'use client';
 
 import { Playlist } from '@/actions/playlist';
-import { useContextMenu } from '@/hooks/useContextMenu';
-import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
+import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { useQueueStore } from '@/store/QueueStore';
 import { Session } from 'next-auth';
 import Link from 'next/link';
@@ -18,39 +17,26 @@ export const SidebarItem = ({
   playlist,
   session,
 }: SidebarPlaylistItemProps) => {
-  const { contextMenuHandler } = useContextMenu();
-  const playPlaylist = useQueueStore(state => state.playPlaylist);
   const isPlaying = useQueueStore(state => state.isPlaying);
   const pathname = usePathname();
-  const openPlaylistModal = usePlaylistModalStore(state => state.open);
   const currentlyPlayingSong = useQueueStore(state =>
     state.items.find(item => item.id === state.currentlyPlayingId)
   );
+  const contextMenuItems = useContextMenuItems({
+    type: 'playlist',
+    playlist,
+    session,
+  });
+  const { contextMenuHandler } = useContextMenu(contextMenuItems);
 
   return (
     <Link
       className={`p-2 rounded-md hover:bg-slate-700 w-full flex justify-between items-center ${
-        pathname.startsWith(`/playlist/${playlist.id}`) ? 'bg-slate-700' : 'bg-slate-800'
+        pathname.startsWith(`/playlist/${playlist.id}`)
+          ? 'bg-slate-700'
+          : 'bg-slate-800'
       }`}
-      onContextMenu={contextMenuHandler([
-        {
-          label: 'Play',
-          onClick: () => playPlaylist(playlist, null),
-        },
-        ...(playlist.creatorId === session?.user?.id &&
-        !playlist.isFavoritePlaylist
-          ? [
-              {
-                label: 'Edit Playlist',
-                onClick: () => openPlaylistModal(playlist, 'edit'),
-              },
-              {
-                label: 'Delete',
-                onClick: async () => openPlaylistModal(playlist, 'delete'),
-              },
-            ]
-          : []),
-      ])}
+      onContextMenu={contextMenuHandler}
       href={`/playlist/${playlist.id}`}
     >
       <div className="flex gap-2 items-center">

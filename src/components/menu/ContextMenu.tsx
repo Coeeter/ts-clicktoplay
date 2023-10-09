@@ -4,7 +4,7 @@ import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MdNavigateNext } from 'react-icons/md';
 
 export const ContextMenu = () => {
@@ -87,7 +87,9 @@ const Menu = ({
       {isOpen && (
         <motion.div
           ref={ref}
-          className={`w-52 bg-slate-600 rounded-md shadow-2xl absolute z-50 p-1 max-h-72 ${isSubMenu ? 'overflow-y-auto' : ''}`}
+          className={`w-52 bg-slate-600 rounded-md shadow-2xl absolute z-50 p-1 ${
+            isSubMenu ? 'overflow-y-auto max-h-72' : ''
+          }`}
           style={{
             translateX: transformOrigin.horizontal === 'right' ? '-100%' : 0,
             translateY: transformOrigin.vertical === 'bottom' ? '-100%' : 0,

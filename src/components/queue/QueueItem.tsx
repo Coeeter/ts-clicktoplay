@@ -7,7 +7,7 @@ import {
   addSongsToPlaylist,
   createPlaylist,
 } from '@/actions/playlist';
-import { useContextMenu } from '@/hooks/useContextMenu';
+import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { useQueueStore } from '@/store/QueueStore';
 import { ToastActions, useToastStore } from '@/store/ToastStore';
 import { QueueItem as QueueItemType, Song } from '@prisma/client';
@@ -18,6 +18,7 @@ import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
 import { useEffect, useState } from 'react';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
+import { Session } from 'next-auth';
 
 type QueuItemProps = {
   queueItem: QueueItemType;
@@ -27,6 +28,7 @@ type QueuItemProps = {
   isDragging: boolean;
   isFavorite: boolean;
   playlists: Playlist[];
+  session: Session | null;
 };
 
 export const QueueItem = ({
@@ -37,6 +39,7 @@ export const QueueItem = ({
   isDragging,
   isFavorite,
   playlists,
+  session,
 }: QueuItemProps) => {
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -49,7 +52,15 @@ export const QueueItem = ({
   const createToast = useToastStore(state => state.createToast);
   const isContextMenuShowing = useContextMenuStore(state => state.isOpen);
 
-  const { contextMenuHandler } = useContextMenu();
+  const contextMenuItems = useContextMenuItems({
+    type: 'queue',
+    isFavorite,
+    playlists,
+    queueItemId: queueItem.id,
+    session,
+    song,
+  });
+  const { contextMenuHandler } = useContextMenu(contextMenuItems);
 
   useEffect(() => {
     if (!isContextMenuShowing) setIsContextMenuOpen(false);
@@ -62,20 +73,6 @@ export const QueueItem = ({
     setIsPlaying(true);
   };
 
-  const contextMenuItems = getContextMenuItems(
-    isCurrentItem,
-    isPlaying,
-    setIsPlaying,
-    setCurrentlyPlayingId,
-    queueItem,
-    removeFromQueue,
-    song,
-    pathname,
-    createToast,
-    playlists,
-    isFavorite
-  );
-
   return (
     <div
       key={queueItem.id}
@@ -84,7 +81,7 @@ export const QueueItem = ({
       }`}
       onContextMenu={e => {
         setIsContextMenuOpen(true);
-        contextMenuHandler(contextMenuItems)(e);
+        contextMenuHandler(e);
       }}
     >
       <div className="flex items-center gap-6">

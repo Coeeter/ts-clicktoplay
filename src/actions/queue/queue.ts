@@ -1,5 +1,4 @@
 'use server';
-
 import { Session } from 'next-auth';
 import { prisma } from '../../lib/database';
 import {
@@ -23,6 +22,8 @@ import {
   UpdateQueueSettingsProps,
 } from './types';
 import { createQueueItems, generateQueueItemId } from './helper';
+import { getServerSession } from '@/lib/auth';
+import { revalidatePath } from 'next/cache';
 
 export const getQueue = async (session: Session) => {
   return await prisma.queue.upsert({
@@ -206,6 +207,85 @@ export const insertSongsToQueue = async ({
     }),
   ]);
   return await getQueue(session);
+};
+
+export const addNextSongToQueue = async ({ songId }: { songId: string }) => {
+  const session = await getServerSession();
+  if (!session) return;
+  const queue = await getQueue(session);
+  const { items, currentlyPlayingId } = queue;
+  const currentItem =
+    items.find(item => item.id === currentlyPlayingId) ??
+    items.find(item => !item.prevId) ??
+    null;
+  const nextKey = queue.shuffle ? 'shuffledNextId' : 'nextId';
+  const prevKey = queue.shuffle ? 'shuffledPrevId' : 'prevId';
+  const otherNextKey = queue.shuffle ? 'nextId' : 'shuffledNextId';
+  const otherPrevKey = queue.shuffle ? 'prevId' : 'shuffledPrevId';
+  const nextItem = items.find(item => item.id === currentItem?.[nextKey]);
+  const otherNextItem = items.find(
+    item => item.id === currentItem?.[otherNextKey]
+  );
+  const counts = new Map<string, number>();
+  items.forEach(item => {
+    const count = counts.get(item.songId) ?? 0;
+    counts.set(item.songId, count + 1);
+  });
+  const newItem = createQueueItems([songId], session.user.id, counts)[0];
+  newItem.prevId = currentItem?.id ?? null;
+  newItem.nextId = nextItem?.id ?? null;
+  newItem.shuffledPrevId = currentItem?.id ?? null;
+  newItem.shuffledNextId = otherNextItem?.id ?? null;
+  await prisma.$transaction([
+    ...(currentItem
+      ? [
+          prisma.queueItem.update({
+            where: {
+              id: currentItem?.id,
+            },
+            data: {
+              [nextKey]: newItem.id,
+              [otherNextKey]: newItem.id,
+            },
+          }),
+        ]
+      : []),
+    ...(nextItem
+      ? [
+          prisma.queueItem.update({
+            where: {
+              id: nextItem?.id,
+            },
+            data: {
+              [prevKey]: newItem.id,
+            },
+          }),
+        ]
+      : []),
+    ...(otherNextItem
+      ? [
+          prisma.queueItem.update({
+            where: {
+              id: otherNextItem?.id,
+            },
+            data: {
+              [otherPrevKey]: newItem.id,
+            },
+          }),
+        ]
+      : []),
+    prisma.queue.update({
+      where: {
+        id: session.user.id,
+      },
+      data: {
+        items: {
+          create: newItem,
+        },
+      },
+    }),
+  ]);
+  revalidatePath('/');
 };
 
 export const removeSongsFromQueue = async ({

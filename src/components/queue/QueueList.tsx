@@ -9,17 +9,20 @@ import { useEffect, useState } from 'react';
 import { sortLinkedList } from '@/utils/linkedList';
 import { QueueItemId } from '@/actions/queue';
 import { Playlist } from '@/actions/playlist';
+import { Session } from 'next-auth';
 
 type QueueListProps = {
   songs: Song[];
   favoriteSongs: (Song | undefined)[];
   playlists: Playlist[];
+  session: Session | null;
 };
 
 export const QueueList = ({
   songs,
   favoriteSongs,
   playlists,
+  session,
 }: QueueListProps) => {
   const [currentlyDragging, setCurrentlyDragging] = useState<null | string>(
     null
@@ -105,6 +108,7 @@ export const QueueList = ({
               listOrder={1}
               isDragging={false}
               playlists={playlists}
+              session={session}
               isFavorite={favoriteSongs.some(
                 favSong => favSong?.id === currentlyPlayingSong.id
               )}
@@ -140,6 +144,7 @@ export const QueueList = ({
                     song={song}
                     listOrder={index + 2}
                     isDragging={isDragging}
+                    session={session}
                     isFavorite={favoriteSongs.some(
                       favSong => favSong?.id === song.id
                     )}

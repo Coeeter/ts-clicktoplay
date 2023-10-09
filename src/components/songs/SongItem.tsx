@@ -3,12 +3,8 @@ import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
 } from '@/actions/library';
-import {
-  Playlist,
-  addSongsToPlaylist,
-  createPlaylist,
-} from '@/actions/playlist';
-import { useContextMenu } from '@/hooks/useContextMenu';
+import { Playlist } from '@/actions/playlist';
+import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
@@ -56,16 +52,14 @@ export const SongItem = ({
   const albumCover = song.albumCover ?? '/album-cover.png';
   const artist = song.artist?.length ? song.artist : 'Unknown';
 
-  const contextMenuItems = useContextMenuItems(
-    song,
-    isPlaying,
-    setIsPlaying,
-    isCurrentSong,
-    isFavorite,
+  const contextMenuItems = useContextMenuItems({
+    type: 'song',
     session,
+    song,
+    isFavorite,
     playlists,
-    playSong
-  );
+    playSong,
+  });
 
   if (type === 'list') {
     return (
@@ -97,118 +91,6 @@ export const SongItem = ({
   );
 };
 
-const useContextMenuItems = (
-  song: Song,
-  isPlaying: boolean,
-  setIsPlaying: (isPlaying: boolean) => void,
-  isCurrentSong: boolean,
-  isFavorite: boolean,
-  session: Session | null,
-  playlists: Playlist[],
-  playSong: () => void
-) => {
-  const addToQueue = useQueueStore(state => state.addSongToQueue);
-  const showToast = useToastStore(state => state.createToast);
-  const pathname = usePathname();
-
-  return session
-    ? [
-        {
-          label: isCurrentSong ? (isPlaying ? 'Pause' : 'Play') : 'Play',
-          onClick: () => {
-            if (isCurrentSong) {
-              return setIsPlaying(!isPlaying);
-            }
-            playSong();
-          },
-        },
-        {
-          label: 'Add to Queue',
-          onClick: () => {
-            addToQueue(song.id);
-            showToast('Added to Queue', 'success');
-          },
-        },
-        {
-          label: 'Add to Playlist',
-          subMenu: [
-            {
-              label: 'New Playlist',
-              onClick: async () => {
-                const playlist = await createPlaylist({
-                  title: song.title,
-                  image: song.albumCover,
-                  path: pathname,
-                });
-                const [error] = await addSongsToPlaylist({
-                  playlistId: playlist.id,
-                  songIds: [song.id],
-                  path: pathname,
-                });
-                if (error) return showToast(error, 'error');
-                showToast(`Added to playlist '${playlist.title}'`, 'success');
-              },
-              divider: true,
-            },
-            ...playlists.map(playlist => ({
-              label: playlist.title,
-              onClick: async () => {
-                const [error] = await addSongsToPlaylist({
-                  playlistId: playlist.id,
-                  songIds: [song.id],
-                  path: pathname,
-                });
-                if (error) return showToast(error, 'error');
-                showToast(`Added to playlist '${playlist.title}'`, 'success');
-              },
-            })),
-            ...(!playlists.length
-              ? [{ label: 'No playlists found', selectable: false }]
-              : []),
-          ],
-        },
-        !isFavorite
-          ? {
-              label: 'Add to Favorites',
-              divider: session.user.id === song.uploaderId,
-              onClick: async () => {
-                const [error] = await addFavoriteSongToLibrary({
-                  songId: song.id,
-                  path: pathname,
-                });
-                if (error) return showToast(error, 'error');
-                showToast('Added song to Favorites', 'success');
-              },
-            }
-          : {
-              label: 'Remove from Favorites',
-              divider: session.user.id === song.uploaderId,
-              onClick: async () => {
-                const [error] = await removeFavoriteSongFromLibrary({
-                  songId: song.id,
-                  path: pathname,
-                });
-                if (error) return showToast(error, 'error');
-                showToast('Removed song from Favorites', 'success');
-              },
-            },
-        ...(session.user.id === song.uploaderId
-          ? [
-              {
-                label: 'Edit Song',
-                href: `/songs/update/${song.id}`,
-              },
-            ]
-          : []),
-      ]
-    : [
-        {
-          label: 'You must be logged in to perform this action.',
-          href: '/login',
-        },
-      ];
-};
-
 const SongListItem = ({
   song,
   playSong,
@@ -232,7 +114,7 @@ const SongListItem = ({
   const createToast = useToastStore(state => state.createToast);
   const pathname = usePathname();
   const isShowing = useContextMenuStore(state => state.isOpen);
-  const { contextMenuHandler } = useContextMenu();
+  const { contextMenuHandler } = useContextMenu(contextMenuItems);
 
   const createdAt = new Date(song.createdAt);
   const isMounted = useMounted();
@@ -258,7 +140,7 @@ const SongListItem = ({
       }`}
       onContextMenu={e => {
         setIsContextMenuShowing(true);
-        contextMenuHandler(contextMenuItems)(e);
+        contextMenuHandler(e);
       }}
     >
       <div className="flex items-center gap-6">
@@ -322,7 +204,10 @@ const SongListItem = ({
       <span className="text-slate-300/50">{timeAdded}</span>
       <div className="text-slate-300/50 flex items-center justify-end">
         <button
-          className={"text-2xl cursor-pointer" + (session ? '' : ' !opacity-0 pointer-events-none')}
+          className={
+            'text-2xl cursor-pointer' +
+            (session ? '' : ' !opacity-0 pointer-events-none')
+          }
           onClick={async () => {
             if (!session) return createToast('You must be logged in', 'normal');
             if (isFavorite) {
@@ -389,12 +274,12 @@ const SongGridItem = ({
   duration: string;
 }) => {
   const ref = useRef<HTMLButtonElement>(null);
-  const { contextMenuHandler } = useContextMenu();
+  const { contextMenuHandler } = useContextMenu(contextMenuItems);
 
   return (
     <Link
       href={`/songs/${song.id}`}
-      onContextMenu={contextMenuHandler(contextMenuItems)}
+      onContextMenu={contextMenuHandler}
       onClick={e => {
         e.preventDefault();
         if (

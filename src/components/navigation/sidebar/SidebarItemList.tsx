@@ -1,13 +1,12 @@
 'use client';
-import { Session } from 'next-auth';
-import { SidebarItem } from './SidebarItem';
 import { Playlist } from '@/actions/playlist';
-import { AnimatePresence, motion } from 'framer-motion';
-import { AiOutlineSearch } from 'react-icons/ai';
-import { useEffect, useMemo, useState } from 'react';
-import { MdArrowDropDown } from 'react-icons/md';
-import { useContextMenu } from '@/hooks/useContextMenu';
 import { useContextMenuStore } from '@/store/ContextMenuStore';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Session } from 'next-auth';
+import { useEffect, useMemo, useState } from 'react';
+import { AiOutlineSearch } from 'react-icons/ai';
+import { MdArrowDropDown } from 'react-icons/md';
+import { SidebarItem } from './SidebarItem';
 
 type SidebarItemListProps = {
   playlists: Playlist[];
@@ -37,7 +36,7 @@ export const SidebarItemList = ({
   const [query, setQuery] = useState('');
   const [isContextMenuShowing, setIsContextMenuShowing] = useState(false);
 
-  const { showContextMenu } = useContextMenu();
+  const showContextMenu = useContextMenuStore(state => state.openContextMenu);
   const isContextMenuOpen = useContextMenuStore(state => state.isOpen);
 
   useEffect(() => {
@@ -89,7 +88,7 @@ export const SidebarItemList = ({
         />
       </div>
       <div className="flex items-center ml-2">
-        <span className='text-slate-300/50'>Sorted by</span>
+        <span className="text-slate-300/50">Sorted by</span>
         <button
           className={`transition hover:text-slate-200 rounded-md p-2 pl-1 outline-none flex items-center ${
             isContextMenuShowing ? 'text-slate-200' : ''

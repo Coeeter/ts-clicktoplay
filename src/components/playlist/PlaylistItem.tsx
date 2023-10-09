@@ -1,6 +1,9 @@
 'use client';
 
-import { format, isThisWeek, formatDistanceToNow } from 'date-fns';
+import {
+  addFavoriteSongToLibrary,
+  removeFavoriteSongFromLibrary,
+} from '@/actions/library';
 import {
   Playlist,
   PlaylistId,
@@ -8,23 +11,20 @@ import {
   createPlaylist,
   removeSongFromPlaylist,
 } from '@/actions/playlist';
-import { useQueueStore } from '@/store/QueueStore';
-import { Song } from '@prisma/client';
-import { HiPause, HiPlay } from 'react-icons/hi2';
-import { useContextMenu } from '@/hooks/useContextMenu';
-import { useToastStore } from '@/store/ToastStore';
-import {
-  addFavoriteSongToLibrary,
-  removeFavoriteSongFromLibrary,
-} from '@/actions/library';
-import { usePathname } from 'next/navigation';
-import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
-import { useMounted } from '@/hooks/useMounted';
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { useContextMenuStore } from '@/store/ContextMenuStore';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
+import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
+import { useMounted } from '@/hooks/useMounted';
+import { useContextMenuStore } from '@/store/ContextMenuStore';
+import { useQueueStore } from '@/store/QueueStore';
+import { useToastStore } from '@/store/ToastStore';
+import { Song } from '@prisma/client';
+import { format, formatDistanceToNow, isThisWeek } from 'date-fns';
 import { Session } from 'next-auth';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { HiPause, HiPlay } from 'react-icons/hi2';
+import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
 
 type PlaylistItemProps = {
   song: Song;
@@ -51,7 +51,6 @@ export const PlaylistItem = ({
     state.items.find(item => item.id === state.currentlyPlayingId)
   );
   const playPlaylist = useQueueStore(state => state.playPlaylist);
-  const addSongToQueue = useQueueStore(state => state.addSongToQueue);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const queueItem = useQueueStore(state =>
     state.items.find(item => item.songId === song.id)
@@ -59,7 +58,6 @@ export const PlaylistItem = ({
   const shuffle = useQueueStore(state => state.shuffle);
   const setShuffle = useQueueStore(state => state.setShuffle);
   const isCurrentItem = currentlyPlayingItem?.id === queueItem?.id;
-  const { contextMenuHandler } = useContextMenu();
   const isMenuOpen = useContextMenuStore(state => state.isOpen);
   const createToast = useToastStore(state => state.createToast);
 
@@ -77,18 +75,17 @@ export const PlaylistItem = ({
     if (shuffle) setShuffle(true);
   };
 
-  const contextMenuItems = getPlaylistContextMenuItems({
-    song,
-    playlists,
-    isCurrentItem,
-    isPlaying,
-    playSong,
-    playlist,
-    addSongToQueue,
-    createToast,
-    pathname,
+  const contextMenuItems = useContextMenuItems({
+    type: 'playlistsongitem',
     isFavorite,
+    playlists,
+    song,
+    playSong,
+    session,
+    playlist,
   });
+  
+  const { contextMenuHandler } = useContextMenu(contextMenuItems);
 
   useEffect(() => {
     if (!isMenuOpen) setIsContextMenuOpen(false);
@@ -109,7 +106,7 @@ export const PlaylistItem = ({
     <div
       onContextMenu={e => {
         setIsContextMenuOpen(true);
-        contextMenuHandler(contextMenuItems)(e);
+        contextMenuHandler(e);
       }}
       className={`w-full grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors group ${
         isContextMenuOpen ? 'bg-slate-700' : 'bg-slate-900 hover:bg-slate-700'
