@@ -34,7 +34,6 @@ export const SidebarItemList = ({
   history,
 }: SidebarItemListProps) => {
   const [sortType, setSortType] = useState<PlaylistSortType>('Creator');
-  const [isSearching, setIsSearching] = useState(false);
   const [query, setQuery] = useState('');
   const [isContextMenuShowing, setIsContextMenuShowing] = useState(false);
 
@@ -78,34 +77,22 @@ export const SidebarItemList = ({
   return (
     <>
       <div className="h-[40px] relative mb-2">
-        <AnimatePresence>
-          <button
-            disabled={isSearching}
-            className="hover:bg-slate-300/20 focus:bg-slate-300/20 p-[6px] transition ml-2 mb-2 rounded-full absolute top-1/2 -translate-y-1/2 disabled:hover:bg-transparent disabled:cursor-default"
-            onClick={() => setIsSearching(true)}
-          >
-            <AiOutlineSearch size={22} />
-          </button>
-          {isSearching && (
-            <motion.input
-              key="input"
-              className="bg-slate-700 rounded-full p-2 outline-none"
-              placeholder="Search playlists"
-              type="text"
-              autoFocus
-              layout={true}
-              style={{ transformOrigin: 'left', paddingLeft: '45px' }}
-              initial={{ width: 0 }}
-              animate={{ width: '50%' }}
-              exit={{ width: 0 }}
-              onBlur={() => setIsSearching(query.length > 0)}
-              onChange={e => setQuery(e.target.value)}
-            />
-          )}
-        </AnimatePresence>
+        <div className=" p-[6px] transition ml-2 mb-2 absolute top-1/2 -translate-y-1/2">
+          <AiOutlineSearch size={22} />
+        </div>
+        <input
+          key="input"
+          className="bg-slate-700 rounded-full p-2 outline-none pl-[45px] w-full"
+          placeholder="Search playlists"
+          type="text"
+          onChange={e => setQuery(e.target.value)}
+        />
+      </div>
+      <div className="flex items-center ml-2">
+        <span className='text-slate-300/50'>Sorted by</span>
         <button
-          className={`absolute right-0 top-1/2 -translate-y-1/2 transition hover:bg-slate-700 rounded-md p-2 outline-none flex items-center gap-2 ${
-            isContextMenuShowing ? 'bg-slate-700' : ''
+          className={`transition hover:text-slate-200 rounded-md p-2 pl-1 outline-none flex items-center ${
+            isContextMenuShowing ? 'text-slate-200' : ''
           }`}
           onClick={e => {
             setIsContextMenuShowing(true);
