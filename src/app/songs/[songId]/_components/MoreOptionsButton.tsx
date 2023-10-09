@@ -9,7 +9,7 @@ import {
   addSongsToPlaylist,
   createPlaylist,
 } from '@/actions/playlist';
-import { ContextMenuButton } from '@/components/ContextMenu/ContextMenuButton';
+import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Song, User } from '@prisma/client';

@@ -46,7 +46,9 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
 
   const allSongs = songs.filter(s => s.id !== song.id);
 
-  const [error, favoriteSongs] = await getFavoriteSongs();
+  const [error, favoriteSongs] = session
+    ? await getFavoriteSongs()
+    : [null, []];
 
   if (error || favoriteSongs === null) return redirect('/');
 
@@ -102,18 +104,21 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
         </div>
       </header>
       <section className="flex gap-6 mt-3">
-        <PlayButton song={song} songs={[song, ...allSongs]} />
+        <PlayButton song={song} songs={[song, ...allSongs]} session={session} />
         <FavoriteButton
           song={song}
-          isFavorite={favoriteSongs.find(s => s.id === song.id) !== undefined}
-        />
-        <MoreOptionsButton
-          song={song}
           session={session}
-          songs={[song, ...allSongs]}
           isFavorite={favoriteSongs.find(s => s.id === song.id) !== undefined}
-          playlists={createdPlaylists}
         />
+        {session && (
+          <MoreOptionsButton
+            song={song}
+            session={session}
+            songs={[song, ...allSongs]}
+            isFavorite={favoriteSongs.find(s => s.id === song.id) !== undefined}
+            playlists={createdPlaylists}
+          />
+        )}
       </section>
       <section className="flex flex-col gap-2">
         <header>

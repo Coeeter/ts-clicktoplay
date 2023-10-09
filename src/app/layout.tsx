@@ -8,7 +8,7 @@ import { getQueue } from '@/actions/queue';
 import { Toast } from '@/components/Toast';
 import { MainProvider } from '@/components/providers/MainProvider';
 import { SongControlPanel } from '@/components/songs/controlPanel/SongControlPanel';
-import { ContextMenu } from '@/components/ContextMenu/ContextMenu';
+import { ContextMenu } from '@/components/menu/ContextMenu';
 import { EditPlaylistModal } from '@/components/modals/PlaylistModal/EditPlaylistModal';
 import { DeletePlaylistModal } from '@/components/modals/PlaylistModal/DeletePlaylistModal';
 

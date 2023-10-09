@@ -64,7 +64,7 @@ export const Sidebar = async () => {
             <h2 className="text-lg text-slate-300 font-semibold">
               Your Library
             </h2>
-            <SidebarNewPlaylistButton />
+            {session && <SidebarNewPlaylistButton />}
           </div>
           {session?.user ? (
             playlists.length === 0 ? (
@@ -73,7 +73,11 @@ export const Sidebar = async () => {
               </p>
             ) : (
               <div className="overflow-y-auto max-h-full no-scrollbar">
-                <SidebarItemList playlists={playlists} session={session} history={playHistory} />
+                <SidebarItemList
+                  playlists={playlists}
+                  session={session}
+                  history={playHistory}
+                />
               </div>
             )
           ) : (

@@ -4,7 +4,7 @@ import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 import { useQueueStore } from '@/store/QueueStore';
 import { Session } from 'next-auth';
 import { MdMoreHoriz } from 'react-icons/md';
-import { ContextMenuButton } from '../ContextMenu/ContextMenuButton';
+import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 
 type MoreOptionsButtonProps = {
   session: Session | null;
@@ -21,26 +21,36 @@ export const MoreOptionsButton = ({
   return (
     <ContextMenuButton
       className="text-slate-300/50 hover:text-slate-300/75 mx-3 py-3 rounded-full transition"
-      baseHorizontal='left'
-      contextMenuItems={[
-        {
-          label: 'Play',
-          onClick: () => playPlaylist(playlist, null),
-        },
-        ...(playlist.creatorId === session?.user?.id &&
-        !playlist.isFavoritePlaylist
+      baseHorizontal="left"
+      contextMenuItems={
+        session
           ? [
               {
-                label: 'Edit Playlist',
-                onClick: () => openPlaylistModal(playlist, 'edit'),
+                label: 'Play',
+                onClick: () => playPlaylist(playlist, null),
               },
+              ...(playlist.creatorId === session?.user?.id &&
+              !playlist.isFavoritePlaylist
+                ? [
+                    {
+                      label: 'Edit Playlist',
+                      onClick: () => openPlaylistModal(playlist, 'edit'),
+                    },
+                    {
+                      label: 'Delete',
+                      onClick: async () =>
+                        openPlaylistModal(playlist, 'delete'),
+                    },
+                  ]
+                : []),
+            ]
+          : [
               {
-                label: 'Delete',
-                onClick: async () => openPlaylistModal(playlist, 'delete'),
+                label: 'You must be logged in to play playlists',
+                href: '/login',
               },
             ]
-          : []),
-      ]}
+      }
     >
       <MdMoreHoriz className="w-8 h-8" />
     </ContextMenuButton>

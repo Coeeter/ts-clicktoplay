@@ -17,7 +17,7 @@ import { HiPause, HiPlay } from 'react-icons/hi2';
 import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
 import { useEffect, useState } from 'react';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
-import { ContextMenuButton } from '../ContextMenu/ContextMenuButton';
+import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 
 type QueuItemProps = {
   queueItem: QueueItemType;

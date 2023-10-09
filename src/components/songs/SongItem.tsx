@@ -21,7 +21,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FaPause, FaPlay } from 'react-icons/fa';
 import { HiPause, HiPlay } from 'react-icons/hi2';
 import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
-import { ContextMenuButton } from '../ContextMenu/ContextMenuButton';
+import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 
 type SongItemProps = {
@@ -77,6 +77,7 @@ export const SongItem = ({
         isCurrentSong={isCurrentSong}
         isFavorite={isFavorite}
         contextMenuItems={contextMenuItems}
+        session={session}
       />
     );
   }
@@ -216,6 +217,7 @@ const SongListItem = ({
   isCurrentSong,
   isFavorite,
   contextMenuItems,
+  session,
 }: {
   song: Song;
   playSong: () => void;
@@ -224,6 +226,7 @@ const SongListItem = ({
   isCurrentSong: boolean;
   isFavorite: boolean;
   contextMenuItems: ContextMenuItem[];
+  session: Session | null;
 }) => {
   const [isContextMenuShowing, setIsContextMenuShowing] = useState(false);
   const createToast = useToastStore(state => state.createToast);
@@ -319,8 +322,9 @@ const SongListItem = ({
       <span className="text-slate-300/50">{timeAdded}</span>
       <div className="text-slate-300/50 flex items-center justify-end">
         <button
-          className="text-2xl cursor-pointer"
+          className={"text-2xl cursor-pointer" + (session ? '' : ' !opacity-0 pointer-events-none')}
           onClick={async () => {
+            if (!session) return createToast('You must be logged in', 'normal');
             if (isFavorite) {
               const [error] = await removeFavoriteSongFromLibrary({
                 songId: song.id,
@@ -352,7 +356,7 @@ const SongListItem = ({
             isContextMenuShowing
               ? 'opacity-100'
               : 'opacity-0 group-hover:opacity-100'
-          }`}
+          } ${session ? '' : '!opacity-0 pointer-events-none'}`}
           contextMenuItems={contextMenuItems}
           onContextMenuOpen={() => setIsContextMenuShowing(true)}
         >

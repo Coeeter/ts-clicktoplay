@@ -105,13 +105,13 @@ export default async function PlaylistScreen({
         </div>
       </header>
       <section className="flex gap-4 mt-3">
-        <PlaylistPlayButton playlist={playlist} />
+        <PlaylistPlayButton playlist={playlist} session={session} />
         {playlist.creatorId !== session?.user.id && (
           <button className="text-blue-500 p-3 rounded-full transition hover:scale-[1.1]">
             <MdFavorite className="w-8 h-8" />
           </button>
         )}
-        <MoreOptionsButton playlist={playlist} session={session} />
+        {session && <MoreOptionsButton playlist={playlist} session={session} />}
       </section>
       <header className="grid grid-cols-3 px-6 py-3 bg-slate-900 text-slate-300/50 font-semibold border-b-2 border-slate-300/20 sticky top-0">
         <div className="flex gap-6">
@@ -124,6 +124,7 @@ export default async function PlaylistScreen({
       <PlaylistItemList
         songs={songsInPlaylist}
         playlist={playlist}
+        session={session}
         createdPlaylists={playlists.filter(p => !p.isFavoritePlaylist)}
         favoriteSongs={
           playlists
