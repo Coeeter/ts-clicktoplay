@@ -30,7 +30,6 @@ type PlaylistItemProps = {
   song: Song;
   playlist: Playlist;
   playlists: Playlist[];
-  isDragging: boolean;
   listOrder: number;
   isFavorite: boolean;
   session: Session | null;
@@ -40,7 +39,6 @@ export const PlaylistItem = ({
   song,
   playlist,
   playlists,
-  isDragging,
   listOrder,
   isFavorite,
   session,
@@ -67,7 +65,6 @@ export const PlaylistItem = ({
 
   const playSong = () => {
     if (!session) return createToast('You must be logged in', 'normal');
-    if (isDragging) return;
     if (isCurrentItem && playlist.id === currentlyPlayingItem?.playlistId) {
       return setIsPlaying(!isPlaying);
     }

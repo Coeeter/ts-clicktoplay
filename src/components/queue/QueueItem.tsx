@@ -25,7 +25,6 @@ type QueuItemProps = {
   song: Song;
   isCurrentItem: boolean;
   listOrder: number;
-  isDragging: boolean;
   isFavorite: boolean;
   playlists: Playlist[];
   session: Session | null;
@@ -36,7 +35,6 @@ export const QueueItem = ({
   isCurrentItem,
   song,
   listOrder,
-  isDragging,
   isFavorite,
   playlists,
   session,
@@ -66,7 +64,6 @@ export const QueueItem = ({
   }, [isContextMenuShowing]);
 
   const onClick = () => {
-    if (isDragging) return;
     if (isCurrentItem) return setIsPlaying(!isPlaying);
     setCurrentlyPlayingId(queueItem.id);
     setIsPlaying(true);
