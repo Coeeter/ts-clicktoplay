@@ -9,14 +9,11 @@ import {
   createPlaylist,
   removeSongFromPlaylist,
 } from '@/actions/playlist';
-import { addNextSongToQueue } from '@/actions/queue';
-import { createQueueItems, generateQueueItemId } from '@/actions/queue/helper';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
-import { sortLinkedList } from '@/utils/linkedList';
-import { QueueItem, Song } from '@prisma/client';
+import { Song } from '@prisma/client';
 import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { MouseEventHandler } from 'react';
@@ -94,13 +91,13 @@ const getSongMenuItems = ({
 }): ContextMenuItem[] => {
   const isPlaying = useQueueStore(state => state.isPlaying);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
-  const queueItems = useQueueStore(state => state.items);
   const currentlyPlayingQueueItem = useQueueStore(state =>
     state.items.find(item => item.id === state.currentlyPlayingId)
   );
   const isCurrentSong = song.id === currentlyPlayingQueueItem?.songId;
   const addToQueue = useQueueStore(state => state.addSongToQueue);
   const showToast = useToastStore(state => state.createToast);
+  const setNextSong = useQueueStore(state => state.setNextSong);
   const pathname = usePathname();
 
   if (!session) return [];
@@ -119,79 +116,7 @@ const getSongMenuItems = ({
     {
       label: 'Play Next',
       onClick: () => {
-        addNextSongToQueue({
-          songId: song.id,
-        });
-        const copy = sortLinkedList(
-          queueItems,
-          null,
-          useQueueStore.getState().shuffle
-        );
-        const currentlyPlayingIndex = copy.findIndex(
-          item => item.id === currentlyPlayingQueueItem?.id
-        );
-        const counts = new Map<string, number>();
-        copy.forEach(item => {
-          const count = counts.get(item.songId) ?? 0;
-          counts.set(item.songId, count + 1);
-        });
-        const nextKey = useQueueStore.getState().shuffle
-          ? 'shuffledNextId'
-          : 'nextId';
-        const othernextKey = useQueueStore.getState().shuffle
-          ? 'nextId'
-          : 'shuffledNextId';
-        const prevKey = useQueueStore.getState().shuffle
-          ? 'shuffledPrevId'
-          : 'prevId';
-        const otherPrevKey = useQueueStore.getState().shuffle
-          ? 'prevId'
-          : 'shuffledPrevId';
-        const queueId = useQueueStore.getState().queueId!;
-        const newItems: QueueItem[] = [
-          ...copy
-            .filter((_, index) => index <= currentlyPlayingIndex)
-            .map((item, index) => {
-              if (index != currentlyPlayingIndex) return item;
-              return {
-                ...item,
-                [nextKey]: generateQueueItemId(
-                  queueId,
-                  song.id,
-                  (counts.get(song.id) ?? 0) + 1
-                ),
-              };
-            }),
-          ...createQueueItems([song.id], queueId, counts).map(item => {
-            const newItem: QueueItem = {
-              id: item.id!,
-              [prevKey]: copy[currentlyPlayingIndex].id,
-              [nextKey]: copy[currentlyPlayingIndex + 1]?.id ?? null,
-              playlistId: null,
-              queueId,
-              [othernextKey]: null,
-              [otherPrevKey]: null,
-              songId: item.songId,
-            } as QueueItem;
-            return newItem;
-          }),
-          ...copy
-            .filter((_, index) => index > currentlyPlayingIndex)
-            .map((item, index) => {
-              if (index != 0) return item;
-              return {
-                ...item,
-                [prevKey]: generateQueueItemId(
-                  queueId,
-                  song.id,
-                  (counts.get(song.id) ?? 0) + 1
-                ),
-              };
-            }),
-        ];
-        useQueueStore.setState({
-          items: newItems,
-        });
+        setNextSong(song.id, pathname);
         showToast('Playing next', 'success');
       },
     },

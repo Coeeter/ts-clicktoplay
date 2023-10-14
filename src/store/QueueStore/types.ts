@@ -32,4 +32,5 @@ export type QueueActions = {
   ) => void;
   addSongToQueue: (songId: SongId) => void;
   removeSongFromQueue: (queueItemId: QueueItemId) => void;
+  setNextSong: (songId: SongId, path: string) => void;
 };

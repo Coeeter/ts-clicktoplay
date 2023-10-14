@@ -1,11 +1,11 @@
-import { Queue, QueueItemId } from '@/actions/queue';
-import { QueueState } from './types';
 import { Playlist } from '@/actions/playlist';
+import { Queue, QueueItemId, addNextSongToQueue } from '@/actions/queue';
+import { createQueueItems, generateQueueItemId } from '@/actions/queue/helper';
 import { SongId } from '@/actions/songs';
 import { sortLinkedList } from '@/utils/linkedList';
-import { createQueueItems, generateQueueItemId } from '@/actions/queue/helper';
 import { QueueItem, RepeatMode } from '@prisma/client';
 import { initialState } from './QueueStore';
+import { QueueState } from './types';
 
 const setQueue = (queue: Queue): Partial<QueueState> => {
   return {
@@ -286,12 +286,10 @@ const addSongToQueue = (
       songId,
       count + 1
     );
-    const prevItem = sortedItems.find(item => !item.nextId);
-    if (prevItem) prevItem.nextId = newQueueItemId;
+    const prevItem = sortedItems.find(item => item.songId === songId);
     const prevShuffledItem = state.shuffle
       ? sortedItems.find(item => !item.shuffledNextId)
       : null;
-    if (prevShuffledItem) prevShuffledItem.shuffledNextId = newQueueItemId;
     sortedItems.push({
       id: newQueueItemId,
       prevId: prevItem?.id ?? null,
@@ -303,7 +301,96 @@ const addSongToQueue = (
       playlistId: null,
     });
     return {
-      items: sortedItems,
+      items: sortLinkedList(
+        sortedItems.map(item => {
+          if (item.id === prevItem?.id) {
+            return {
+              ...item,
+              nextId: newQueueItemId,
+            };
+          }
+          if (item.id === prevShuffledItem?.id) {
+            return {
+              ...item,
+              shuffledNextId: newQueueItemId,
+            };
+          }
+          if (item.id === prevItem?.nextId) {
+            return {
+              ...item,
+              prevId: newQueueItemId,
+            };
+          }
+          if (item.id === prevItem?.shuffledNextId) {
+            return {
+              ...item,
+              shuffledPrevId: newQueueItemId,
+            };
+          }
+          return item;
+        })
+      ),
+    };
+  };
+};
+
+const setNextSong = (
+  songId: SongId,
+  path: string,
+): ((state: QueueState) => Partial<QueueState>) => {
+  return state => {
+    if (!state.queueId) {
+      throw new Error('Must be logged in to add songs to queue');
+    }
+    addNextSongToQueue({
+      songId,
+      path,
+    });
+    const sortedItems = sortLinkedList(state.items, null, state.shuffle);
+    const count = sortedItems.filter(item => item.songId === songId).length;
+    const newQueueItemId = generateQueueItemId(
+      state.queueId,
+      songId,
+      count + 1
+    );
+    const prevItem = sortedItems.find(
+      item => item.id === state.currentlyPlayingId
+    );
+    sortedItems.push({
+      id: newQueueItemId,
+      prevId: prevItem?.id ?? null,
+      nextId: prevItem?.nextId ?? null,
+      songId,
+      queueId: state.queueId,
+      shuffledNextId: state.shuffle ? prevItem?.shuffledNextId ?? null : null,
+      shuffledPrevId: state.shuffle ? prevItem?.id ?? null : null,
+      playlistId: null,
+    });
+    return {
+      items: sortLinkedList(
+        sortedItems.map(item => {
+          if (item.id === prevItem?.id) {
+            return {
+              ...item,
+              nextId: newQueueItemId,
+              shuffledNextId: state.shuffle ? newQueueItemId : null,
+            };
+          }
+          if (item.id === prevItem?.nextId) {
+            return {
+              ...item,
+              prevId: newQueueItemId,
+            };
+          }
+          if (item.id === prevItem?.shuffledNextId) {
+            return {
+              ...item,
+              shuffledPrevId: newQueueItemId,
+            };
+          }
+          return item;
+        })
+      ),
     };
   };
 };
@@ -323,8 +410,16 @@ const removeSongFromQueue = (
     });
     const nextIdKey = state.shuffle ? 'shuffledNextId' : 'nextId';
     const prevIdKey = state.shuffle ? 'shuffledPrevId' : 'prevId';
+    const otherNextIdKey = state.shuffle ? 'nextId' : 'shuffledNextId';
+    const otherPrevIdKey = state.shuffle ? 'prevId' : 'shuffledPrevId';
     const prevItem = state.items.find(item => item[nextIdKey] === queueItemId);
     const nextItem = state.items.find(item => item[prevIdKey] === queueItemId);
+    const otherPrevItem = state.items.find(
+      item => item[otherNextIdKey] === queueItemId
+    );
+    const otherNextItem = state.items.find(
+      item => item[otherPrevIdKey] === queueItemId
+    );
     const newItems = state.items
       .filter(item => item.id !== queueItemId)
       .map(item => {
@@ -340,6 +435,18 @@ const removeSongFromQueue = (
             [prevIdKey]: prevItem?.id ?? null,
           };
         }
+        if (item.id === otherPrevItem?.id) {
+          return {
+            ...item,
+            [otherNextIdKey]: otherNextItem?.id ?? null,
+          };
+        }
+        if (item.id === otherNextItem?.id) {
+          return {
+            ...item,
+            [otherPrevIdKey]: otherPrevItem?.id ?? null,
+          };
+        }
         return item;
       });
     return {
@@ -349,19 +456,20 @@ const removeSongFromQueue = (
 };
 
 export {
-  setQueue,
-  setIsPlaying,
-  playNext,
-  playPrev,
-  playPlaylist,
-  playSong,
-  setCurrentlyPlayingId,
-  setCurrentTime,
-  setVolume,
-  setShuffle,
-  setRepeat,
-  clearQueue,
-  reorderItems,
   addSongToQueue,
+  clearQueue,
+  playNext,
+  playPlaylist,
+  playPrev,
+  playSong,
   removeSongFromQueue,
+  reorderItems,
+  setCurrentTime,
+  setCurrentlyPlayingId,
+  setIsPlaying,
+  setNextSong,
+  setQueue,
+  setRepeat,
+  setShuffle,
+  setVolume,
 };

@@ -45,7 +45,6 @@ export const QueueItem = ({
   const pathname = usePathname();
   const isPlaying = useQueueStore(state => state.isPlaying && isCurrentItem);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
-  const removeFromQueue = useQueueStore(state => state.removeSongFromQueue);
   const setCurrentlyPlayingId = useQueueStore(
     state => state.setCurrentlyPlayingId
   );
