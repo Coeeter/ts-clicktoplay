@@ -6,7 +6,7 @@ export const extractMainColor = async (
 ): Promise<string | undefined> => {
   try {
     if (!image) return fallBackColor;
-    const colors = (await Vibrant.from(image).getPalette()).DarkVibrant?.hex;
+    const colors = (await Vibrant.from(image).getPalette()).Vibrant?.hex;
     return colors || fallBackColor;
   } catch (e) {
     console.log(e);

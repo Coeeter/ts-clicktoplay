@@ -2,13 +2,16 @@
 
 import { Playlist } from '@/actions/playlist';
 import { useQueueStore } from '@/store/QueueStore';
+import { useToastStore } from '@/store/ToastStore';
+import { Session } from 'next-auth';
 import { MdPause, MdPlayArrow } from 'react-icons/md';
 
 type PlaylistPlayButtonProps = {
   playlist: Playlist;
+  session: Session | null;
 };
 
-export const PlaylistPlayButton = ({ playlist }: PlaylistPlayButtonProps) => {
+export const PlaylistPlayButton = ({ playlist, session }: PlaylistPlayButtonProps) => {
   const playPlaylist = useQueueStore(state => state.playPlaylist);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const isPlaying = useQueueStore(state => state.isPlaying);
@@ -16,11 +19,13 @@ export const PlaylistPlayButton = ({ playlist }: PlaylistPlayButtonProps) => {
   const currentlyPlayingSong = useQueueStore(state =>
     state.items.find(item => item.id === state.currentlyPlayingId)
   );
+  const createToast = useToastStore(state => state.createToast);
 
   return (
     <button
       className="bg-blue-700 text-white p-3 rounded-full transition hover:scale-[1.1]"
       onClick={() => {
+        if (!session) return createToast('You must be logged in', 'normal')
         if (playlist.id === currentlyPlayingSong?.playlistId) {
           return setIsPlaying(!isPlaying);
         }

@@ -1,33 +1,168 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState, useRef } from 'react';
-import { FaFileUpload } from 'react-icons/fa';
-import { useDropzone } from 'react-dropzone';
-import { parseBlob } from 'music-metadata-browser';
 import { Button } from '@/components/forms/Button';
+import { TextField } from '@/components/forms/TextField';
 import { useToastStore } from '@/store/ToastStore';
+import { parseBlob } from 'music-metadata-browser';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { BiSolidCloudUpload } from 'react-icons/bi';
+
+type Metadata = Awaited<ReturnType<typeof getMetadata>>;
+
+const getMetadata = async (file: File) => {
+  const metadata = await parseBlob(file);
+
+  const extractNameFromFile = (file: File) => {
+    return file.name.lastIndexOf('.') > 0
+      ? file.name.substring(0, file.name.lastIndexOf('.'))
+      : file.name;
+  };
+
+  const extractImageFromMetadata = (data: typeof metadata) => {
+    const image = data.common.picture?.[0];
+    if (!image) return null;
+    const extension = image?.format.split('/').pop();
+    const imageData = new Uint8Array(image.data);
+    const imageFile = new File([imageData], 'image', {
+      type: image.format,
+    });
+    return {
+      url: URL.createObjectURL(imageFile),
+      file: imageFile,
+      extension: extension,
+      format: image.format,
+    };
+  };
+
+  const title = metadata.common.title ?? extractNameFromFile(file);
+  const artist = metadata.common.artist ?? '';
+  const duration = metadata.format.duration ?? 0.0;
+  const image = extractImageFromMetadata(metadata);
+
+  return {
+    title,
+    artist,
+    duration,
+    image,
+  };
+};
 
 const SongUploader = () => {
-  const boxRef = useRef<HTMLDivElement>(null);
+  const [metadata, setMetadata] = useState<Metadata | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const router = useRouter();
-  const createToast = useToastStore(state => state.createToast);
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
       'audio/*': ['.mp3', '.wav', '.flac', '.m4a'],
     },
+    multiple: false,
     onDrop: acceptedFiles => {
       setSelectedFile(acceptedFiles[0]);
+      getMetadata(acceptedFiles[0]).then(setMetadata);
     },
   });
 
-  const handleFileUpload = async () => {
-    if (!selectedFile) return;
-    setUploading(true);
+  const duration = useMemo(() => {
+    if (!metadata) return '00:00';
+    const minutes = Math.floor(metadata.duration / 60);
+    const seconds = Math.floor(metadata.duration % 60);
+    return `${minutes < 10 ? '0' : ''}${minutes}:${
+      seconds < 10 ? '0' : ''
+    }${seconds}`;
+  }, [metadata]);
 
+  return (
+    <div
+      className={`flex flex-col gap-6 bg-slate-800 text-white rounded-md p-6 max-w-md mx-auto mt-6`}
+    >
+      <h3 className="text-2xl font-semibold">Upload Your Music</h3>
+      <label
+        htmlFor="file-input"
+        {...getRootProps()}
+        className={`flex flex-col items-center outline-2 outline-dashed rounded-md cursor-pointer transition-colors duration-200 ease-in-out ${
+          isDragActive
+            ? 'outline-blue-600 bg-slate-700'
+            : 'outline-slate-300/50 hover:outline-slate-300/60 bg-slate-300/10 hover:bg-slate-300/20'
+        }`}
+        onClick={e => e.stopPropagation()}
+      >
+        <BiSolidCloudUpload
+          className={`pointer-events-none ${
+            isDragActive ? 'text-blue-600' : 'text-gray-400'
+          }`}
+          size={128}
+        />
+        <p
+          className={`pointer-events-none mb-6 ${
+            isDragActive ? 'text-blue-600' : 'text-gray-400'
+          }`}
+        >
+          Drag and drop your music file here
+        </p>
+      </label>
+      <input
+        id="file-input"
+        type="file"
+        className="hidden"
+        {...getInputProps()}
+      />
+      {metadata && selectedFile && duration && (
+        <div className="text-slate-200 -mb-4">
+          <span className="font-semibold">{metadata.title}</span> around{' '}
+          <span className="font-semibold">{duration}</span> long
+        </div>
+      )}
+      {metadata && selectedFile && (
+        <SongForm metadata={metadata} file={selectedFile} />
+      )}
+    </div>
+  );
+};
+
+type FormValues = {
+  title: string;
+  artist: string;
+  albumCover: FileList | null;
+};
+
+const SongForm = ({ metadata, file }: { metadata: Metadata; file: File }) => {
+  const router = useRouter();
+  const [preview, setPreview] = useState<string | null>(null);
+  const createToast = useToastStore(state => state.createToast);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setValue,
+  } = useForm<FormValues>({
+    defaultValues: {
+      title: metadata.title,
+      artist: metadata.artist,
+      albumCover: null,
+    },
+  });
+
+  useEffect(() => {
+    const listener = (e: ClipboardEvent) => {
+      const files = e.clipboardData?.files ?? null;
+      setValue('albumCover', files);
+      if (!files?.[0]) return;
+      setPreview(URL.createObjectURL(files[0]));
+    };
+    window.addEventListener('paste', listener);
+    return () => window.removeEventListener('paste', listener);
+  }, [metadata]);
+
+  useEffect(() => {
+    setValue('title', metadata.title);
+    setValue('artist', metadata.artist);
+    setValue('albumCover', null);
+    setPreview(metadata.image?.url ?? null);
+  }, [metadata]);
+
+  const onSubmit: SubmitHandler<FormValues> = async data => {
     const getUploadUrl = async (
       fileType: string,
       extension: string | undefined,
@@ -39,7 +174,7 @@ const SongUploader = () => {
       return url;
     };
 
-    const uploadToS3 = async (url: string, data: any, contentType: string) => {
+    const uploadToS3 = async (url: string, data: File, contentType: string) => {
       const response = await fetch(url, {
         method: 'PUT',
         body: data,
@@ -53,51 +188,50 @@ const SongUploader = () => {
       }
     };
 
-    const getMetadata = async (file: File) => {
-      const metadata = await parseBlob(file);
-      return {
-        title:
-          metadata.common.title ?? file.name.lastIndexOf('.') > 0
-            ? file.name.substring(0, file.name.lastIndexOf('.'))
-            : file.name,
-        artist: metadata.common.artist ?? '',
-        duration: metadata.format.duration ?? 0.0,
-        image: metadata.common.picture?.[0],
-      };
+    const uploadImage = async (
+      image: Metadata['image']
+    ): Promise<string | null> => {
+      if (data.albumCover) {
+        const uploadImageUrl = await getUploadUrl(
+          data.albumCover[0].type,
+          data.albumCover[0].name.split('.').pop(),
+          'image'
+        );
+        await uploadToS3(
+          uploadImageUrl,
+          data.albumCover[0],
+          data.albumCover[0].type
+        );
+        return uploadImageUrl.split('?')[0];
+      }
+      if (!data.albumCover && image) {
+        const uploadImageUrl = await getUploadUrl(
+          image.format,
+          image.extension,
+          'image'
+        );
+        await uploadToS3(uploadImageUrl, image.file, image.format);
+        return uploadImageUrl.split('?')[0];
+      }
+      return null;
     };
 
     try {
-      const extension = selectedFile.name.split('.').pop();
-      const fileType = selectedFile.type;
+      const extension = file.name.split('.').pop();
+      const fileType = file.type;
       const songUploadUrl = await getUploadUrl(fileType, extension, 'audio');
-      await uploadToS3(songUploadUrl, selectedFile, fileType);
-      const { title, artist, duration, image } = await getMetadata(
-        selectedFile
-      );
-      let imageUrl: string | null = null;
-      if (image) {
-        const extension = image.format.split('/').pop();
-        const uploadImageUrl = await getUploadUrl(
-          image.format,
-          extension,
-          'image'
-        );
-        const imageData = new Uint8Array(image.data);
-        const imageFile = new File([imageData], 'image', {
-          type: image.format,
-        });
-        await uploadToS3(uploadImageUrl, imageFile, image.format);
-        imageUrl = uploadImageUrl.split('?')[0];
-      }
+      await uploadToS3(songUploadUrl, file, fileType);
+      const { image } = await getMetadata(file);
+      const imageUrl = await uploadImage(image);
       const songUrl = songUploadUrl.split('?')[0];
       const response = await fetch('/api/songs/upload', {
         method: 'POST',
         body: JSON.stringify({
           url: songUrl,
-          title: title,
-          duration: duration,
-          artist: artist,
           albumCover: imageUrl,
+          title: data.title,
+          artist: data.artist,
+          duration: metadata.duration,
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -108,75 +242,56 @@ const SongUploader = () => {
         console.log(json);
         return createToast('Error uploading file', 'error');
       }
-      router.push(`/songs/update/${json.id}`);
+      createToast('Song uploaded successfully', 'success');
+      router.push('/');
+      router.refresh();
     } catch (error) {
       console.log('Error uploading file:', error);
       createToast('Error uploading file', 'error');
-    } finally {
-      setUploading(false);
     }
   };
 
   return (
-    <div
-      ref={boxRef}
-      {...getRootProps()}
-      className={`bg-slate-800 text-white rounded-md p-8 max-w-md mx-auto mt-6 ${
-        isDragActive ? 'border-2 border-dashed border-blue-600' : ''
-      }`}
-      onClick={e => e.stopPropagation()}
-    >
-      <div className="text-center">
-        <h3 className="text-3xl font-semibold mb-4">Upload Your Music</h3>
-        <div className="w-20 h-20 mx-auto mb-4">
-          <FaFileUpload className="h-full w-full text-gray-300" />
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <div className="flex gap-4">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="albumCover">
+            <img
+              src={preview ?? '/album-cover.png'}
+              alt="Album Cover"
+              className="w-full aspect-square rounded-md box-border object-cover cursor-pointer"
+            />
+          </label>
+          {errors.albumCover && (
+            <div className="text-red-500 text-sm">
+              {errors.albumCover.message}
+            </div>
+          )}
+          <input
+            id="albumCover"
+            type="file"
+            className="hidden"
+            accept="image/*"
+            {...register('albumCover')}
+          />
         </div>
-        <p className="text-gray-400 mb-6">
-          {isDragActive
-            ? 'Drop the file here'
-            : 'Drag and drop your music files anywhere on the screen or click to browse'}
-        </p>
-      </div>
-      <div className="mb-6">
-        <label
-          htmlFor="file-input"
-          className="inline-block w-full py-3 text-center bg-blue-600 hover:bg-blue-700 rounded-md font-semibold cursor-pointer transition duration-300"
-        >
-          Choose File
-        </label>
-        <input
-          id="file-input"
-          type="file"
-          className="hidden"
-          accept="audio/*"
-          onChange={e => {
-            if (!e.target.files) return;
-            setSelectedFile(e.target.files[0]);
-          }}
-        />
-        <input
-          type="file"
-          accept="audio/*"
-          className="hidden"
-          {...getInputProps()}
-        />
-      </div>
-      {selectedFile && (
-        <div className="mb-6">
-          <h4 className="text-lg font-semibold mb-2">Selected File:</h4>
-          <p className="text-gray-400 overflow-ellipsis">{selectedFile.name}</p>
+        <div className="flex flex-col gap-4">
+          <TextField
+            label="Title"
+            id="title"
+            {...register('title', { required: true })}
+            error={errors.title?.message}
+          />
+          <TextField
+            label="Artist"
+            id="artist"
+            {...register('artist')}
+            error={errors.artist?.message}
+          />
         </div>
-      )}
-      <div className="flex justify-center">
-        <Button
-          onClick={handleFileUpload}
-          isLoading={uploading}
-          disabled={!selectedFile || uploading}
-        >
-          Upload File
-        </Button>
       </div>
-    </div>
+      <Button isLoading={isSubmitting}>Upload File</Button>
+    </form>
   );
 };
 

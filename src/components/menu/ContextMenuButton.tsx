@@ -1,4 +1,3 @@
-import { useContextMenu } from '@/hooks/useContextMenu';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import React from 'react';
 
@@ -19,7 +18,7 @@ export const ContextMenuButton = ({
   baseHorizontal = 'right',
   baseVertical = 'bottom',
 }: ContextMenuButtonProps) => {
-  const { showContextMenu } = useContextMenu();
+  const showContextMenu = useContextMenuStore(state => state.openContextMenu);
 
   return (
     <button

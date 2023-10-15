@@ -7,7 +7,7 @@ import {
   addSongsToPlaylist,
   createPlaylist,
 } from '@/actions/playlist';
-import { useContextMenu } from '@/hooks/useContextMenu';
+import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { useQueueStore } from '@/store/QueueStore';
 import { ToastActions, useToastStore } from '@/store/ToastStore';
 import { QueueItem as QueueItemType, Song } from '@prisma/client';
@@ -17,16 +17,18 @@ import { HiPause, HiPlay } from 'react-icons/hi2';
 import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
 import { useEffect, useState } from 'react';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
-import { ContextMenuButton } from '../ContextMenu/ContextMenuButton';
+import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
+import { Session } from 'next-auth';
 
 type QueuItemProps = {
   queueItem: QueueItemType;
   song: Song;
   isCurrentItem: boolean;
   listOrder: number;
-  isDragging: boolean;
   isFavorite: boolean;
   playlists: Playlist[];
+  isDragging: boolean;
+  session: Session | null;
 };
 
 export const QueueItem = ({
@@ -34,57 +36,52 @@ export const QueueItem = ({
   isCurrentItem,
   song,
   listOrder,
-  isDragging,
   isFavorite,
   playlists,
+  isDragging,
+  session,
 }: QueuItemProps) => {
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const pathname = usePathname();
   const isPlaying = useQueueStore(state => state.isPlaying && isCurrentItem);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
-  const removeFromQueue = useQueueStore(state => state.removeSongFromQueue);
   const setCurrentlyPlayingId = useQueueStore(
     state => state.setCurrentlyPlayingId
   );
   const createToast = useToastStore(state => state.createToast);
   const isContextMenuShowing = useContextMenuStore(state => state.isOpen);
 
-  const { contextMenuHandler } = useContextMenu();
+  const contextMenuItems = useContextMenuItems({
+    type: 'queue',
+    isFavorite,
+    playlists,
+    queueItemId: queueItem.id,
+    session,
+    song,
+  });
+  const { contextMenuHandler } = useContextMenu(contextMenuItems);
 
   useEffect(() => {
     if (!isContextMenuShowing) setIsContextMenuOpen(false);
   }, [isContextMenuShowing]);
 
   const onClick = () => {
-    if (isDragging) return;
     if (isCurrentItem) return setIsPlaying(!isPlaying);
     setCurrentlyPlayingId(queueItem.id);
     setIsPlaying(true);
   };
 
-  const contextMenuItems = getContextMenuItems(
-    isCurrentItem,
-    isPlaying,
-    setIsPlaying,
-    setCurrentlyPlayingId,
-    queueItem,
-    removeFromQueue,
-    song,
-    pathname,
-    createToast,
-    playlists,
-    isFavorite
-  );
-
   return (
     <div
       key={queueItem.id}
-      className={`w-full flex items-center justify-between py-2 px-6 rounded-md transition-colors group ${
-        isContextMenuOpen ? 'bg-slate-700' : 'bg-slate-900 hover:bg-slate-700 '
+      className={`w-full flex items-center justify-between py-2 px-6 mb-2 rounded-md transition-colors group ${
+        isContextMenuOpen || isDragging
+          ? 'bg-slate-700'
+          : 'bg-slate-900 hover:bg-slate-700 '
       }`}
       onContextMenu={e => {
         setIsContextMenuOpen(true);
-        contextMenuHandler(contextMenuItems)(e);
+        contextMenuHandler(e);
       }}
     >
       <div className="flex items-center gap-6">

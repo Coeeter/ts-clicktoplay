@@ -1,10 +1,10 @@
 'use client';
+
 import { Playlist } from '@/actions/playlist';
-import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
-import { useQueueStore } from '@/store/QueueStore';
+import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
+import { useContextMenuItems } from '@/hooks/useContextMenu';
 import { Session } from 'next-auth';
 import { MdMoreHoriz } from 'react-icons/md';
-import { ContextMenuButton } from '../ContextMenu/ContextMenuButton';
 
 type MoreOptionsButtonProps = {
   session: Session | null;
@@ -15,32 +15,17 @@ export const MoreOptionsButton = ({
   session,
   playlist,
 }: MoreOptionsButtonProps) => {
-  const playPlaylist = useQueueStore(state => state.playPlaylist);
-  const openPlaylistModal = usePlaylistModalStore(state => state.open);
+  const contextMenuItems = useContextMenuItems({
+    type: 'playlist',
+    playlist,
+    session,
+  });
 
   return (
     <ContextMenuButton
       className="text-slate-300/50 hover:text-slate-300/75 mx-3 py-3 rounded-full transition"
-      baseHorizontal='left'
-      contextMenuItems={[
-        {
-          label: 'Play',
-          onClick: () => playPlaylist(playlist, null),
-        },
-        ...(playlist.creatorId === session?.user?.id &&
-        !playlist.isFavoritePlaylist
-          ? [
-              {
-                label: 'Edit Playlist',
-                onClick: () => openPlaylistModal(playlist, 'edit'),
-              },
-              {
-                label: 'Delete',
-                onClick: async () => openPlaylistModal(playlist, 'delete'),
-              },
-            ]
-          : []),
-      ]}
+      baseHorizontal="left"
+      contextMenuItems={contextMenuItems}
     >
       <MdMoreHoriz className="w-8 h-8" />
     </ContextMenuButton>

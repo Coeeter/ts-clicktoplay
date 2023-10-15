@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { QueueActions, QueueState } from './types';
 import {
   addSongToQueue,
   clearQueue,
@@ -13,11 +12,13 @@ import {
   setCurrentTime,
   setCurrentlyPlayingId,
   setIsPlaying,
+  setNextSong,
   setQueue,
   setRepeat,
   setShuffle,
   setVolume,
 } from './actions';
+import { QueueActions, QueueState } from './types';
 
 export const initialState: QueueState = {
   queueId: null,
@@ -56,6 +57,7 @@ export const useQueueStore = create<QueueState & QueueActions>()(
       reorderItems: (...args) => set(reorderItems(...args)),
       addSongToQueue: songId => set(addSongToQueue(songId)),
       removeSongFromQueue: queueItemId => set(removeSongFromQueue(queueItemId)),
+      setNextSong: (songId, path) => set(setNextSong(songId, path)),
     }),
     {
       name: 'queue-store',

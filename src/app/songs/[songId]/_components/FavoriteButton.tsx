@@ -6,15 +6,17 @@ import {
 } from '@/actions/library';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
+import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { MdFavorite, MdFavoriteBorder } from 'react-icons/md';
 
 type FavoriteButtonProps = {
   isFavorite: boolean;
   song: Song;
+  session: Session | null;
 };
 
-export const FavoriteButton = ({ isFavorite, song }: FavoriteButtonProps) => {
+export const FavoriteButton = ({ isFavorite, song, session }: FavoriteButtonProps) => {
   const pathname = usePathname();
   const createToast = useToastStore(state => state.createToast);
 
@@ -22,6 +24,7 @@ export const FavoriteButton = ({ isFavorite, song }: FavoriteButtonProps) => {
     <button
       className="text-4xl cursor-pointer"
       onClick={async () => {
+        if (!session) return createToast('You must be logged in', 'normal');
         if (isFavorite) {
           const [error] = await removeFavoriteSongFromLibrary({
             songId: song.id,

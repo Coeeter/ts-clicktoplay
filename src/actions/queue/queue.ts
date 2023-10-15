@@ -1,5 +1,4 @@
 'use server';
-
 import { Session } from 'next-auth';
 import { prisma } from '../../lib/database';
 import {
@@ -23,6 +22,8 @@ import {
   UpdateQueueSettingsProps,
 } from './types';
 import { createQueueItems, generateQueueItemId } from './helper';
+import { getServerSession } from '@/lib/auth';
+import { revalidatePath } from 'next/cache';
 
 export const getQueue = async (session: Session) => {
   return await prisma.queue.upsert({
@@ -206,6 +207,34 @@ export const insertSongsToQueue = async ({
     }),
   ]);
   return await getQueue(session);
+};
+
+export const addNextSongToQueue = async ({
+  songId,
+  path,
+}: {
+  songId: string;
+  path: string;
+}) => {
+  const session = await getServerSession();
+  if (!session) return;
+  const queue = await insertSongsToQueue({
+    session,
+    songs: [songId],
+  });
+  const insertedSong = queue.items.find(item => !item.nextId)?.id;
+  if (!insertedSong) return;
+  const currentlyPlayingItem = queue.items.find(
+    item => item.id === queue.currentlyPlayingId
+  );
+  if (!currentlyPlayingItem) return;
+  await moveSongsInQueue({
+    session,
+    queueItemIds: [insertedSong],
+    nextId: currentlyPlayingItem.nextId,
+    prevId: currentlyPlayingItem.id,
+  });
+  revalidatePath(path);
 };
 
 export const removeSongsFromQueue = async ({
