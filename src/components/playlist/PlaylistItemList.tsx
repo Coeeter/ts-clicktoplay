@@ -5,7 +5,7 @@ import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DraggableList } from '../draggable/DraggableList';
 import { PlaylistItem } from './PlaylistItem';
 
@@ -27,6 +27,10 @@ export const PlaylistItemList = ({
   const pathname = usePathname();
   const [playlistItems, setPlaylistItems] = useState(songs);
   const showToast = useToastStore(state => state.createToast);
+
+  useEffect(() => {
+    setPlaylistItems(songs);
+  }, [songs])
 
   const onDragEnd = async (currentlyDragging: string) => {
     if (!currentlyDragging) return;
@@ -69,6 +73,7 @@ export const PlaylistItemList = ({
       onDragEnd={result => {
         if (!result.destination) return;
         const { source, destination } = result;
+        if (source.index === destination.index) return;
         const [removed] = playlistItems.splice(source.index, 1);
         playlistItems.splice(destination.index, 0, removed);
         setPlaylistItems([...playlistItems]);

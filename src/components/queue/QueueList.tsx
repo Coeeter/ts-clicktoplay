@@ -4,39 +4,16 @@ import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
 import { sortLinkedList } from '@/utils/linkedList';
 import { Song } from '@prisma/client';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Session } from 'next-auth';
 import { useEffect, useState } from 'react';
-import {
-  DragDropContext,
-  Draggable,
-  Droppable,
-  DroppableProps,
-} from 'react-beautiful-dnd';
-import { QueueItem } from './QueueItem';
 import { DraggableList } from '../draggable/DraggableList';
+import { QueueItem } from './QueueItem';
 
 type QueueListProps = {
   songs: Song[];
   favoriteSongs: (Song | undefined)[];
   playlists: Playlist[];
   session: Session | null;
-};
-
-const StrictModeDroppable = ({ children, ...props }: DroppableProps) => {
-  const [enabled, setEnabled] = useState(false);
-
-  useEffect(() => {
-    const animation = requestAnimationFrame(() => setEnabled(true));
-    return () => {
-      cancelAnimationFrame(animation);
-      setEnabled(false);
-    };
-  }, []);
-
-  if (!enabled) return null;
-
-  return <Droppable {...props}>{children}</Droppable>;
 };
 
 export const QueueList = ({
@@ -150,6 +127,7 @@ export const QueueList = ({
             onDragEnd={result => {
               if (!result.destination) return;
               const { source, destination } = result;
+              if (source.index === destination.index) return;
               const [removed] = nextPlayingItems.splice(source.index, 1);
               nextPlayingItems.splice(destination.index, 0, removed);
               setNextPlayingItems([...nextPlayingItems]);
