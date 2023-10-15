@@ -87,6 +87,7 @@ export const QueueList = ({
               isCurrentItem={true}
               song={currentlyPlayingSong}
               listOrder={1}
+              isDragging={false}
               playlists={playlists}
               session={session}
               isFavorite={favoriteSongs.some(
@@ -102,11 +103,10 @@ export const QueueList = ({
             Playing Next:
           </h2>
           <DraggableList
-            className="flex flex-col gap-2"
             droppableId="queueList"
             getId={index => nextPlayingItems[index].id}
             size={nextPlayingItems.length}
-            itemBuilder={index => {
+            itemBuilder={(index, isDragging) => {
               const queueItem = nextPlayingItems[index];
               const song = songs.find(song => song.id === queueItem.songId);
               if (!song) return <></>;
@@ -115,6 +115,7 @@ export const QueueList = ({
                   queueItem={queueItem}
                   isCurrentItem={false}
                   song={song}
+                  isDragging={isDragging}
                   listOrder={index + 2}
                   session={session}
                   isFavorite={favoriteSongs.some(

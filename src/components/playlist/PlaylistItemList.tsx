@@ -55,13 +55,14 @@ export const PlaylistItemList = ({
       enabled={session !== null}
       size={playlistItems.length}
       getId={index => playlistItems[index].id}
-      itemBuilder={index => (
+      itemBuilder={(index, isDragging) => (
         <PlaylistItem
           song={playlistItems[index]}
           session={session}
           key={playlistItems[index].id}
           playlist={playlist}
           playlists={createdPlaylists}
+          isDragging={isDragging}
           listOrder={index + 1}
           isFavorite={favoriteSongs.some(
             favSong => favSong?.id === playlistItems[index].id
@@ -69,7 +70,6 @@ export const PlaylistItemList = ({
         />
       )}
       droppableId="playlist"
-      className="flex flex-col gap-2"
       onDragEnd={result => {
         if (!result.destination) return;
         const { source, destination } = result;

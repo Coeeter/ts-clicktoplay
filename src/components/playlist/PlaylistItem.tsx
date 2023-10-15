@@ -32,6 +32,7 @@ type PlaylistItemProps = {
   playlists: Playlist[];
   listOrder: number;
   isFavorite: boolean;
+  isDragging: boolean;
   session: Session | null;
 };
 
@@ -41,6 +42,7 @@ export const PlaylistItem = ({
   playlists,
   listOrder,
   isFavorite,
+  isDragging,
   session,
 }: PlaylistItemProps) => {
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
@@ -105,8 +107,8 @@ export const PlaylistItem = ({
         setIsContextMenuOpen(true);
         contextMenuHandler(e);
       }}
-      className={`w-full grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors group ${
-        isContextMenuOpen ? 'bg-slate-700' : 'bg-slate-900 hover:bg-slate-700'
+      className={`w-full grid grid-cols-3 items-center py-2 px-6 mb-2 rounded-md transition-colors group ${
+        isContextMenuOpen || isDragging ? 'bg-slate-700' : 'bg-slate-900 hover:bg-slate-700'
       }`}
     >
       <div className="flex items-center gap-6">

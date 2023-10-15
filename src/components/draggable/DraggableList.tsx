@@ -13,34 +13,22 @@ export const DraggableList = (
   props: Omit<DragDropContextProps, 'children'> & {
     size: number;
     getId: (index: number) => string;
-    itemBuilder: (index: number) => JSX.Element;
+    itemBuilder: (index: number, isDragging: boolean) => JSX.Element;
     droppableId: string;
-    className: string;
+    className?: string;
     emptyBuilder?: () => JSX.Element;
     enabled?: boolean;
   }
 ) => {
-  const [isDragging, setIsDragging] = useState(false);
-
   return (
-    <DragDropContext
-      {...props}
-      onDragStart={(...args) => {
-        props.onDragStart?.(...args);
-        setIsDragging(true);
-      }}
-      onDragEnd={(...args) => {
-        props.onDragEnd?.(...args);
-        setIsDragging(false);
-      }}
-    >
+    <DragDropContext {...props}>
       <StrictModeDroppable droppableId={props.droppableId}>
         {provided => {
           return (
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              className={props.className}
+              className={props.className ?? 'flex flex-col'}
             >
               <AnimatePresence>
                 {Array.from({ length: props.size }).map((_, index) => {
@@ -55,7 +43,7 @@ export const DraggableList = (
                         props.enabled === false || props.size === 0
                       }
                     >
-                      {provided => (
+                      {(provided, snapshot) => (
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
@@ -65,10 +53,10 @@ export const DraggableList = (
                             key={id + '-motion'}
                             layout={true}
                             transition={{
-                              duration: isDragging ? 0 : undefined,
+                              duration: snapshot.isDragging ? 0 : undefined,
                             }}
                           >
-                            {props.itemBuilder(index)}
+                            {props.itemBuilder(index, snapshot.isDragging)}
                           </motion.div>
                         </div>
                       )}

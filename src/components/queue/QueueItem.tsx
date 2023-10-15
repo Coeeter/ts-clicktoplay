@@ -27,6 +27,7 @@ type QueuItemProps = {
   listOrder: number;
   isFavorite: boolean;
   playlists: Playlist[];
+  isDragging: boolean;
   session: Session | null;
 };
 
@@ -37,6 +38,7 @@ export const QueueItem = ({
   listOrder,
   isFavorite,
   playlists,
+  isDragging,
   session,
 }: QueuItemProps) => {
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
@@ -72,8 +74,10 @@ export const QueueItem = ({
   return (
     <div
       key={queueItem.id}
-      className={`w-full flex items-center justify-between py-2 px-6 rounded-md transition-colors group ${
-        isContextMenuOpen ? 'bg-slate-700' : 'bg-slate-900 hover:bg-slate-700 '
+      className={`w-full flex items-center justify-between py-2 px-6 mb-2 rounded-md transition-colors group ${
+        isContextMenuOpen || isDragging
+          ? 'bg-slate-700'
+          : 'bg-slate-900 hover:bg-slate-700 '
       }`}
       onContextMenu={e => {
         setIsContextMenuOpen(true);
