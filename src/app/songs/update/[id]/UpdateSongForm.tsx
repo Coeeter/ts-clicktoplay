@@ -4,7 +4,7 @@ import { TextField } from '@/components/forms/TextField';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 type UpdateSongProps = {
@@ -34,6 +34,14 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
       albumCover: null,
     },
   });
+
+  const duration = useMemo(() => {
+    const minutes = Math.floor(song.duration / 60);
+    const seconds = Math.floor(song.duration % 60);
+    return `${minutes < 10 ? '0' : ''}${minutes}:${
+      seconds < 10 ? '0' : ''
+    }${seconds}`;
+  }, [song]);
 
   const onSubmit = async ({
     title,
@@ -102,36 +110,29 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
       className="flex flex-col gap-5 bg-slate-800 p-6 rounded-md max-w-md w-full mx-auto mt-6"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="flex flex-col gap-5">
-        <TextField
-          label="Title"
-          id="title"
-          defaultValue={song.title ?? ''}
-          {...register('title', { required: true })}
-          error={errors.title?.message}
-        />
+      <div className="text-slate-200 text-2xl">
+        <span className="font-bold">{song.title}</span> around{' '}
+        <span className="font-bold">{duration}</span> long
       </div>
-      <div className="flex flex-col gap-5">
-        <TextField
-          label="Artist"
-          id="artist"
-          defaultValue={song.artist ?? ''}
-          {...register('artist')}
-          error={errors.artist?.message}
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <label htmlFor="albumCover">Album Cover</label>
-        <img
-          src={preview}
-          alt="Album Cover"
-          className="w-24 h-24 rounded-md box-border object-cover"
-        />
+      <div className="flex gap-4">
         <div className="flex flex-col gap-1">
+          <label htmlFor="albumCover">
+            <img
+              src={preview}
+              alt="Album Cover"
+              className="w-full aspect-square rounded-md box-border object-cover"
+            />
+          </label>
+          {errors.albumCover && (
+            <div className="text-red-500 text-sm">
+              {errors.albumCover.message}
+            </div>
+          )}
           <input
             id="albumCover"
             type="file"
-            className="bg-slate-700 p-3 rounded-md outline-none text-slate-300 focus:outline-blue-600"
+            accept="image/*"
+            className="hidden"
             {...register('albumCover', {
               onChange: e => {
                 const file = e.target.files?.[0];
@@ -140,11 +141,22 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
               },
             })}
           />
-          {errors.albumCover && (
-            <div className="text-red-500 text-sm">
-              {errors.albumCover.message}
-            </div>
-          )}
+        </div>
+        <div className="flex flex-col gap-4">
+          <TextField
+            label="Title"
+            id="title"
+            defaultValue={song.title ?? ''}
+            {...register('title', { required: true })}
+            error={errors.title?.message}
+          />
+          <TextField
+            label="Artist"
+            id="artist"
+            defaultValue={song.artist ?? ''}
+            {...register('artist')}
+            error={errors.artist?.message}
+          />
         </div>
       </div>
       <Button type="submit" isLoading={isUploading}>
