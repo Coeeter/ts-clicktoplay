@@ -76,7 +76,8 @@ const playPrev = (
 
 const playPlaylist = (
   playlist: Playlist,
-  songId: SongId | null
+  songId: SongId | null,
+  callback: () => void
 ): ((state: QueueState) => Partial<QueueState>) => {
   return (state: QueueState) => {
     const items = sortLinkedList(playlist.items);
@@ -88,6 +89,10 @@ const playPlaylist = (
       body: JSON.stringify({
         songId: songId ?? items[0].songId,
       }),
+    }).then((res) => {
+      if (res.status === 200) {
+        callback();
+      }
     });
     const newItems = createQueueItems(
       items.map(item => item.songId),
@@ -117,7 +122,8 @@ const playPlaylist = (
 
 const playSong = (
   song: SongId,
-  songs: SongId[]
+  songs: SongId[],
+  callback: () => void,
 ): ((state: QueueState) => Partial<QueueState>) => {
   return (state: QueueState) => {
     if (!state.queueId) {
@@ -148,6 +154,10 @@ const playSong = (
         songId: song,
         songs: sortLinkedList(newItems).map(item => item.songId),
       }),
+    }).then((res) => {
+      if (res.status === 200) {
+        callback();
+      }
     });
     return {
       playlistId: null,

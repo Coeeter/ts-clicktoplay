@@ -55,8 +55,6 @@ export const PlaylistItem = ({
   const queueItem = useQueueStore(state =>
     state.items.find(item => item.songId === song.id)
   );
-  const shuffle = useQueueStore(state => state.shuffle);
-  const setShuffle = useQueueStore(state => state.setShuffle);
   const isCurrentItem = currentlyPlayingItem?.id === queueItem?.id;
   const isMenuOpen = useContextMenuStore(state => state.isOpen);
   const createToast = useToastStore(state => state.createToast);
@@ -71,7 +69,6 @@ export const PlaylistItem = ({
       return setIsPlaying(!isPlaying);
     }
     playPlaylist(playlist, song.id);
-    if (shuffle) setShuffle(true);
   };
 
   const contextMenuItems = useContextMenuItems({
