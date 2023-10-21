@@ -1,14 +1,11 @@
-import { MdAdd, MdHome, MdSearch } from 'react-icons/md';
+import { MdHome, MdSearch } from 'react-icons/md';
 
+import { getCreatedPlaylists } from '@/actions/playlist/playlist';
 import { getServerSession } from '@/lib/auth';
-import { SidebarLink, SidebarItemProps } from './SidebarLink';
-import {
-  createPlaylist,
-  getCreatedPlaylists,
-} from '@/actions/playlist/playlist';
-import { SidebarItemList } from './SidebarItemList';
-import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
 import { prisma } from '@/lib/database';
+import { SidebarItemList } from './SidebarItemList';
+import { SidebarItemProps, SidebarLink } from './SidebarLink';
+import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
 
 const sidebarItems: SidebarItemProps[] = [
   {

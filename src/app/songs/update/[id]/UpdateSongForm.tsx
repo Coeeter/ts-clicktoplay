@@ -1,10 +1,11 @@
 'use client';
 import { Button } from '@/components/forms/Button';
+import { ImageInput } from '@/components/forms/ImageInput';
 import { TextField } from '@/components/forms/TextField';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 type UpdateSongProps = {
@@ -19,7 +20,6 @@ type UpdateSongFormValues = {
 
 export const UpdateSongForm = ({ song }: UpdateSongProps) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [preview, setPreview] = useState(song.albumCover ?? '/album-cover.png');
   const createToast = useToastStore(state => state.createToast);
   const router = useRouter();
   const {
@@ -27,6 +27,7 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
     handleSubmit,
     setValue,
     formState: { errors },
+    watch,
   } = useForm<UpdateSongFormValues>({
     defaultValues: {
       title: song.title,
@@ -34,6 +35,8 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
       albumCover: null,
     },
   });
+
+  const albumCover = watch('albumCover');
 
   const duration = useMemo(() => {
     const minutes = Math.floor(song.duration / 60);
@@ -94,17 +97,6 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
     }
   };
 
-  useEffect(() => {
-    const listener = (e: ClipboardEvent) => {
-      const files = e.clipboardData?.files ?? null;
-      setValue('albumCover', files);
-      if (!files?.[0]) return;
-      setPreview(URL.createObjectURL(files[0]));
-    };
-    window.addEventListener('paste', listener);
-    return () => window.removeEventListener('paste', listener);
-  }, []);
-
   return (
     <form
       className="flex flex-col gap-5 bg-slate-800 p-6 rounded-md max-w-md w-full mx-auto mt-6"
@@ -116,31 +108,17 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
       </div>
       <div className="flex gap-4">
         <div className="flex flex-col gap-1">
-          <label htmlFor="albumCover">
-            <img
-              src={preview}
-              alt="Album Cover"
-              className="w-full aspect-square rounded-md box-border object-cover"
-            />
-          </label>
+          <ImageInput
+            defaultPreview={song.albumCover ?? undefined}
+            registerValues={register('albumCover')}
+            setValue={value => setValue('albumCover', value)}
+            value={albumCover}
+          />
           {errors.albumCover && (
             <div className="text-red-500 text-sm">
               {errors.albumCover.message}
             </div>
           )}
-          <input
-            id="albumCover"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            {...register('albumCover', {
-              onChange: e => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                setPreview(URL.createObjectURL(file));
-              },
-            })}
-          />
         </div>
         <div className="flex flex-col gap-4">
           <TextField

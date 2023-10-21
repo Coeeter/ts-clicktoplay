@@ -1,20 +1,20 @@
 'use client';
 
-import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
-import { useEffect, useState } from 'react';
-import { MdEdit } from 'react-icons/md';
-import { TextField } from '../../forms/TextField';
-import { Button } from '../../forms/Button';
-import { SubmitHandler, useForm } from 'react-hook-form';
 import { getPlaylistUpdateImageUrl, updatePlaylist } from '@/actions/playlist';
+import { ImageInput } from '@/components/forms/ImageInput';
+import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 import { useToastStore } from '@/store/ToastStore';
-import { Modal } from '../Modal';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { Button } from '../../forms/Button';
+import { TextField } from '../../forms/TextField';
+import { Modal } from '../Modal';
 
 type FormValues = {
   title: string;
   description: string;
-  image: FileList;
+  image: FileList | null;
 };
 
 export const EditPlaylistModal = () => {
@@ -23,7 +23,6 @@ export const EditPlaylistModal = () => {
   const playlist = usePlaylistModalStore(state => state.playlist);
   const close = usePlaylistModalStore(state => state.close);
   const type = usePlaylistModalStore(state => state.type);
-  const [preview, setPreview] = useState<string | null>(null);
   const createToast = useToastStore(state => state.createToast);
 
   const {
@@ -38,6 +37,7 @@ export const EditPlaylistModal = () => {
     defaultValues: {
       title: playlist?.title,
       description: playlist?.description ?? '',
+      image: null,
     },
   });
 
@@ -81,32 +81,12 @@ export const EditPlaylistModal = () => {
   };
 
   useEffect(() => {
-    if (!playlist) return;
     reset();
+    setValue('image', null);
+    if (!playlist) return;
     setValue('title', playlist.title);
     setValue('description', playlist.description ?? '');
-    setPreview(playlist.image ?? null);
   }, [isOpen]);
-
-  useEffect(() => {
-    if (!image) return;
-    if (image.length === 0) return;
-    const file = image[0];
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-  }, [image]);
-
-  useEffect(() => {
-    const onPaste = (e: ClipboardEvent) => {
-      const items = e.clipboardData?.files;
-      if (!items?.length) return;
-      setValue('image', items);
-    };
-    window.addEventListener('paste', onPaste);
-    return () => {
-      window.removeEventListener('paste', onPaste);
-    };
-  }, []);
 
   return (
     <Modal
@@ -117,24 +97,13 @@ export const EditPlaylistModal = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="w-full flex gap-3">
           <div className="w-56 shadow-2xl h-56 rounded-md group relative">
-            <img
-              src={preview ?? '/playlist-cover.png'}
-              alt={playlist?.title ?? ''}
-              className="w-56 shadow-2xl h-56 rounded-xl bg-slate-100 object-cover cursor-pointer"
+            <ImageInput
+              defaultPreview={playlist?.image}
+              registerValues={register('image')}
+              setValue={value => value && setValue('image', value)}
+              value={image}
+              inModal={true}
             />
-            <label
-              htmlFor="file"
-              className="cursor-pointer absolute inset-0 gap-2 bg-slate-900/50 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <MdEdit className="text-white text-6xl" />
-              <input
-                id="file"
-                type="file"
-                className="hidden"
-                accept="image/*"
-                {...register('image')}
-              />
-            </label>
           </div>
           <div className="flex flex-col flex-1 gap-2">
             <TextField
