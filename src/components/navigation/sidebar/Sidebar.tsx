@@ -1,24 +1,7 @@
-import { MdHome, MdSearch } from 'react-icons/md';
-
 import { getCreatedPlaylists } from '@/actions/playlist/playlist';
 import { getServerSession } from '@/lib/auth';
 import { prisma } from '@/lib/database';
-import { SidebarItemList } from './SidebarItemList';
-import { SidebarItemProps, SidebarLink } from './SidebarLink';
-import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
-
-const sidebarItems: SidebarItemProps[] = [
-  {
-    name: 'Home',
-    href: '/',
-    icon: <MdHome size={32} />,
-  },
-  {
-    name: 'Search',
-    href: '/search',
-    icon: <MdSearch size={32} />,
-  },
-];
+import { SidebarContent } from './SidebarContent';
 
 export const Sidebar = async () => {
   const session = await getServerSession();
@@ -49,41 +32,10 @@ export const Sidebar = async () => {
   );
 
   return (
-    <aside className="w-1/4 gap-3 flex flex-col sticky top-3 bottom-3 max-h-[calc(100vh-7rem)]">
-      <div className="flex flex-col bg-slate-800 rounded-md px-4 py-3 gap-3">
-        {sidebarItems.map(sidebarItem => (
-          <SidebarLink key={sidebarItem.name} {...sidebarItem} />
-        ))}
-      </div>
-      <div className="flex-grow bg-slate-800 rounded-md max-h-[calc(100vh-7rem-112px)]">
-        <div className="px-4 py-3 gap-3 flex flex-col max-h-full">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg text-slate-300 font-semibold">
-              Your Library
-            </h2>
-            {session && <SidebarNewPlaylistButton />}
-          </div>
-          {session?.user ? (
-            playlists.length === 0 ? (
-              <p className="text-md text-slate-300/50 font-semibold">
-                No playlists found
-              </p>
-            ) : (
-              <div className="overflow-y-auto max-h-full no-scrollbar">
-                <SidebarItemList
-                  playlists={playlists}
-                  session={session}
-                  history={playHistory}
-                />
-              </div>
-            )
-          ) : (
-            <div className="text-md text-slate-300/50 font-semibold">
-              Please login to view your playlists
-            </div>
-          )}
-        </div>
-      </div>
-    </aside>
+    <SidebarContent
+      session={session}
+      playlists={playlists}
+      playHistory={playHistory}
+    />
   );
 };

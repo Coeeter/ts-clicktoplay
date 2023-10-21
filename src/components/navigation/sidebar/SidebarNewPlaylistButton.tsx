@@ -13,7 +13,7 @@ export const SidebarNewPlaylistButton = () => {
   return (
     <button
       type="submit"
-      className="text-sm flex items-center gap-2 hover:text-slate-200 transition rounded-md"
+      className="text-sm flex items-center text-slate-300/50 gap-2 hover:text-slate-200 transition rounded-md"
       onClick={async () => {
         await createPlaylist({
           title: 'New Playlist',

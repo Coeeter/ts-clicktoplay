@@ -12,6 +12,7 @@ type SidebarItemListProps = {
   playlists: Playlist[];
   session: Session;
   history: { id: string; lastPlayedAt: Date | null }[];
+  expanded: boolean;
 };
 
 type PlaylistSortType =
@@ -31,6 +32,7 @@ export const SidebarItemList = ({
   playlists,
   session,
   history,
+  expanded,
 }: SidebarItemListProps) => {
   const [sortType, setSortType] = useState<PlaylistSortType>('Creator');
   const [query, setQuery] = useState('');
@@ -72,6 +74,27 @@ export const SidebarItemList = ({
         );
       });
   }, [playlists, query, sortType]);
+
+  if (!expanded)
+    return (
+      <div
+        className={`flex flex-col overflow-x-auto ${
+          expanded ? 'gap-1' : 'gap-3'
+        }`}
+      >
+        <AnimatePresence>
+          {searchedPlaylists.map(playlist => (
+            <motion.div key={playlist.id} layout={true}>
+              <SidebarItem
+                playlist={playlist}
+                session={session}
+                expanded={expanded}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    );
 
   return (
     <>
@@ -117,11 +140,15 @@ export const SidebarItemList = ({
           </motion.span>
         </button>
       </div>
-      <div className="flex flex-col gap-1 ">
+      <div className="flex flex-col gap-1">
         <AnimatePresence>
           {searchedPlaylists.map(playlist => (
             <motion.div key={playlist.id} layout={true}>
-              <SidebarItem playlist={playlist} session={session} />
+              <SidebarItem
+                playlist={playlist}
+                session={session}
+                expanded={expanded}
+              />
             </motion.div>
           ))}
           {searchedPlaylists.length === 0 && (
