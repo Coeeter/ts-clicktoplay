@@ -31,11 +31,21 @@ export const Sidebar = async () => {
     })
   );
 
+  const sideBarOpen = await prisma.user.findUnique({
+    where: {
+      id: session?.user.id,
+    },
+    select: {
+      sideBarOpen: true,
+    },
+  })
+
   return (
     <SidebarContent
       session={session}
       playlists={playlists}
       playHistory={playHistory}
+      sideBarOpen={sideBarOpen?.sideBarOpen ?? true}
     />
   );
 };

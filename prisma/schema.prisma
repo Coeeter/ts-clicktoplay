@@ -22,6 +22,8 @@ model User {
   verificationTokens VerificationToken[]
   emailVerified      DateTime?
   PlayHistory        PlayHistory[]
+  sideBarOpen        Boolean             @default(false)
+  sideBarWidth       Int                 @default(300)
 }
 
 model Playlist {

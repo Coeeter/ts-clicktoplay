@@ -9,6 +9,8 @@ import { FaFolder, FaFolderOpen } from 'react-icons/fa';
 import { MdHome, MdSearch } from 'react-icons/md';
 import { SidebarItemList } from './SidebarItemList';
 import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
+import { useDebounce } from '@/hooks/useDebounce';
+import { setSideBarOpen } from '@/actions/settings/settings';
 
 const sidebarItems = [
   {
@@ -27,15 +29,21 @@ type SidebarContentProps = {
   session: Session | null;
   playlists: Playlist[];
   playHistory: { id: string; lastPlayedAt: Date | null }[];
+  sideBarOpen: boolean;
 };
 
 export const SidebarContent = ({
   session,
   playlists,
   playHistory,
+  sideBarOpen,
 }: SidebarContentProps) => {
   const pathname = usePathname();
-  const [expanded, setExpanded] = useState<boolean>(true);
+  const [expanded, setExpanded] = useState<boolean>(sideBarOpen);
+
+  useDebounce(expanded, 2000, async value => {
+    await setSideBarOpen(value);
+  });
 
   const { register: registerLibraryButton } = useToolTip({
     content: expanded ? 'Collapse Your Library' : 'Expand Your Library',
