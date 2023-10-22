@@ -20,6 +20,23 @@ export const setSideBarOpen = async (isOpen: boolean) => {
   });
 };
 
+export const setSideBarMoreDetails = async (moreDetails: boolean) => {
+  const session = await getServerSession();
+
+  if (!session) {
+    return;
+  }
+
+  await prisma.user.update({
+    where: {
+      id: session.user.id,
+    },
+    data: {
+      sideBarMoreDetailsShown: moreDetails,
+    },
+  });
+};
+
 export const setSidebarWidthOpen = async (width: number) => {
   const session = await getServerSession();
 

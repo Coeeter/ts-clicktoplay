@@ -1,16 +1,19 @@
 'use client';
 import { Playlist } from '@/actions/playlist';
+import {
+  setSideBarMoreDetails,
+  setSideBarOpen,
+} from '@/actions/settings/settings';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useToolTip } from '@/hooks/useToolTip';
 import { Session } from 'next-auth';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { FaFolder, FaFolderOpen } from 'react-icons/fa';
-import { MdHome, MdSearch } from 'react-icons/md';
+import { MdArrowBack, MdArrowForward, MdHome, MdSearch } from 'react-icons/md';
 import { SidebarItemList } from './SidebarItemList';
 import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
-import { useDebounce } from '@/hooks/useDebounce';
-import { setSideBarOpen } from '@/actions/settings/settings';
 
 const sidebarItems = [
   {
@@ -30,6 +33,7 @@ type SidebarContentProps = {
   playlists: Playlist[];
   playHistory: { id: string; lastPlayedAt: Date | null }[];
   sideBarOpen: boolean;
+  sideBarMoreDetails: boolean;
 };
 
 export const SidebarContent = ({
@@ -37,12 +41,21 @@ export const SidebarContent = ({
   playlists,
   playHistory,
   sideBarOpen,
+  sideBarMoreDetails,
 }: SidebarContentProps) => {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState<boolean>(sideBarOpen);
+  const [showMoreDetails, setshowMoreDetails] =
+    useState<boolean>(sideBarMoreDetails);
 
   useDebounce(expanded, 2000, async value => {
+    if (!session) return;
     await setSideBarOpen(value);
+  });
+
+  useDebounce(showMoreDetails, 2000, async value => {
+    if (!session) return;
+    await setSideBarMoreDetails(value);
   });
 
   const { register: registerLibraryButton } = useToolTip({
@@ -57,15 +70,20 @@ export const SidebarContent = ({
     content: 'Home',
   });
 
+  const { register, removeTooltip } = useToolTip({
+    content: showMoreDetails ? 'Show less' : 'Show more',
+  });
+
   return (
     <aside
       className={`gap-3 flex flex-col sticky top-3 bottom-3 max-h-[calc(100vh-7rem)] transition ${
-        expanded ? 'w-1/4' : ''
+        expanded ? (showMoreDetails ? 'w-3/4' : 'w-1/4') : ''
       }`}
     >
       <div className="flex flex-col bg-slate-800 rounded-md px-4 py-3 gap-3">
         {sidebarItems.map(({ href, icon, name }, index) => (
           <Link
+            key={index}
             href={href}
             className={`text-md hover:text-slate-200 duration-150 font-semibold ${
               pathname === href ? 'text-slate-200' : 'text-slate-300/50'
@@ -116,7 +134,25 @@ export const SidebarContent = ({
               </span>
               {expanded && 'Your Library'}
             </button>
-            {session && expanded && <SidebarNewPlaylistButton />}
+            {session && expanded && (
+              <div className="flex gap-2">
+                <SidebarNewPlaylistButton />
+                <button
+                  className="text-slate-300/50 hover:text-slate-200 transition"
+                  onClick={() => {
+                    removeTooltip();
+                    setshowMoreDetails(exp => !exp);
+                  }}
+                  {...register({ place: 'top-center' })}
+                >
+                  {showMoreDetails ? (
+                    <MdArrowBack size={24} />
+                  ) : (
+                    <MdArrowForward size={24} />
+                  )}
+                </button>
+              </div>
+            )}
           </div>
           {session?.user ? (
             playlists.length === 0 ? (
@@ -130,6 +166,7 @@ export const SidebarContent = ({
                   session={session}
                   history={playHistory}
                   expanded={expanded!}
+                  showMoreDetails={showMoreDetails}
                 />
               </div>
             )

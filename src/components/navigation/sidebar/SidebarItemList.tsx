@@ -14,6 +14,7 @@ type SidebarItemListProps = {
   session: Session;
   history: { id: string; lastPlayedAt: Date | null }[];
   expanded: boolean;
+  showMoreDetails: boolean;
 };
 
 type PlaylistSortType =
@@ -34,6 +35,7 @@ export const SidebarItemList = ({
   session,
   history,
   expanded,
+  showMoreDetails,
 }: SidebarItemListProps) => {
   const [sortType, setSortType] = useState<PlaylistSortType>('Creator');
   const [query, setQuery] = useState('');
@@ -85,11 +87,12 @@ export const SidebarItemList = ({
       >
         <AnimatePresence>
           {searchedPlaylists.map(playlist => (
-            <motion.div key={playlist.id} layout={true}>
+            <motion.div key={playlist.id} layout={'position'}>
               <SidebarItem
                 playlist={playlist}
                 session={session}
                 expanded={expanded}
+                showMoreDetails={false}
               />
             </motion.div>
           ))}
@@ -143,13 +146,22 @@ export const SidebarItemList = ({
         </button>
       </div>
       <div className="flex flex-col gap-1">
+        {showMoreDetails && (
+          <div className="px-2 grid grid-cols-4 text-slate-300/50 border-b pb-2 border-slate-300/30 text-sm">
+            <span className="col-span-2">Title</span>
+            <span>Date Added</span>
+            <span className="text-end">Last Played</span>
+          </div>
+        )}
         <AnimatePresence>
           {searchedPlaylists.map(playlist => (
-            <motion.div key={playlist.id} layout={true}>
+            <motion.div key={playlist.id} layout={'position'}>
               <SidebarItem
                 playlist={playlist}
                 session={session}
                 expanded={expanded}
+                showMoreDetails={showMoreDetails}
+                lastPlayed={history.find(item => item.id == playlist.id)?.lastPlayedAt}
               />
             </motion.div>
           ))}

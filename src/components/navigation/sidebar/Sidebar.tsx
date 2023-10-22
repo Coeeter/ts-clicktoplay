@@ -31,21 +31,34 @@ export const Sidebar = async () => {
     })
   );
 
-  const sideBarOpen = await prisma.user.findUnique({
-    where: {
-      id: session?.user.id,
-    },
-    select: {
-      sideBarOpen: true,
-    },
-  })
+  const settings = session
+    ? (await prisma.user.findUnique({
+        where: {
+          id: session?.user.id,
+        },
+        select: {
+          sideBarOpen: true,
+          sideBarMoreDetailsShown: true,
+          sideBarWidth: true,
+        },
+      })) ?? {
+        sideBarOpen: true,
+        sideBarMoreDetailsShown: false,
+        sideBarWidth: undefined,
+      }
+    : {
+        sideBarOpen: true,
+        sideBarMoreDetailsShown: false,
+        sideBarWidth: undefined,
+      };
 
   return (
     <SidebarContent
       session={session}
       playlists={playlists}
       playHistory={playHistory}
-      sideBarOpen={sideBarOpen?.sideBarOpen ?? true}
+      sideBarMoreDetails={settings.sideBarMoreDetailsShown}
+      sideBarOpen={settings.sideBarOpen}
     />
   );
 };

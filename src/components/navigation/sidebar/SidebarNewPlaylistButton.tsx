@@ -52,9 +52,11 @@ export const SidebarNewPlaylistButton = ({
         });
         createToast('Playlist created', 'success');
       }}
+      {...register({
+        place: 'top-center',
+      })}
     >
-      <MdAdd size={20} />
-      <span>New Playlist</span>
+      <MdAdd size={24} />
     </button>
   );
 };

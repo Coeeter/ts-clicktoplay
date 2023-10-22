@@ -8,22 +8,23 @@ datasource db {
 }
 
 model User {
-  id                 String              @id @default(cuid()) @map("_id")
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  email              String              @unique
-  name               String?
-  image              String?
-  uploadedSongs      Song[]              @relation("uploadedSongs")
-  playlists          Playlist[]
-  searchHistory      SearchHistory[]
-  accounts           Account[]
-  sessions           Session[]
-  verificationTokens VerificationToken[]
-  emailVerified      DateTime?
-  PlayHistory        PlayHistory[]
-  sideBarOpen        Boolean             @default(false)
-  sideBarWidth       Int                 @default(300)
+  id                      String              @id @default(cuid()) @map("_id")
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  email                   String              @unique
+  name                    String?
+  image                   String?
+  uploadedSongs           Song[]              @relation("uploadedSongs")
+  playlists               Playlist[]
+  searchHistory           SearchHistory[]
+  accounts                Account[]
+  sessions                Session[]
+  verificationTokens      VerificationToken[]
+  emailVerified           DateTime?
+  PlayHistory             PlayHistory[]
+  sideBarOpen             Boolean             @default(true)
+  sideBarMoreDetailsShown Boolean             @default(false)
+  sideBarWidth            Float?
 }
 
 model Playlist {
