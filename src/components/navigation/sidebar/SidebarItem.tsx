@@ -55,7 +55,10 @@ export const SidebarItem = ({
 
   if (!expanded) {
     return (
-      <Link href={`/playlist/${playlist.id}`}>
+      <Link
+        href={`/playlist/${playlist.id}`}
+        onContextMenu={contextMenuHandler}
+      >
         <img
           src={
             playlist.isFavoritePlaylist
@@ -63,7 +66,11 @@ export const SidebarItem = ({
               : playlist.image ?? '/playlist-cover.png'
           }
           alt={playlist.title}
-          className={`w-14 aspect-square rounded-md object-cover`}
+          className={`w-14 aspect-square rounded-md object-cover ${
+            !playlist.isFavoritePlaylist && !playlist.image
+              ? 'bg-slate-100'
+              : ''
+          }`}
           {...register({
             place: 'right',
           })}

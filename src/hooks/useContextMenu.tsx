@@ -9,6 +9,10 @@ import {
   createPlaylist,
   removeSongFromPlaylist,
 } from '@/actions/playlist';
+import {
+  addNextPlaylistToQueue,
+  insertPlaylistToBackOfQueue,
+} from '@/actions/queue';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 import { useQueueStore } from '@/store/QueueStore';
@@ -271,6 +275,8 @@ const getPlaylistMenuItems = ({
   const isCurrentPlaylist = playlist.id === currentlyPlayingSong?.playlistId;
   const openPlaylistModal = usePlaylistModalStore(state => state.open);
   const playPlaylist = useQueueStore(state => state.playPlaylist);
+  const pathname = usePathname();
+  const createToast = useToastStore(state => state.createToast);
 
   if (!session) return [];
 
@@ -282,6 +288,33 @@ const getPlaylistMenuItems = ({
           return setIsPlaying(!isPlaying);
         }
         playPlaylist(playlist, null);
+      },
+      divider: true,
+    },
+    {
+      label: 'Play Next',
+      onClick: async () => {
+        const result = await addNextPlaylistToQueue(playlist.id, pathname);
+        if (!result) {
+          return createToast(
+            'Something went wrong please try again later',
+            'error'
+          );
+        }
+        createToast('Playing next', 'success');
+      },
+    },
+    {
+      label: 'Play Last',
+      onClick: async () => {
+        const result = await insertPlaylistToBackOfQueue(playlist.id, pathname);
+        if (!result) {
+          return createToast(
+            'Something went wrong please try again later',
+            'error'
+          );
+        }
+        createToast('Playing last', 'success');
       },
       divider:
         playlist.creatorId === session?.user?.id &&

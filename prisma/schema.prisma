@@ -96,7 +96,7 @@ model QueueItem {
   queue          Queue     @relation(fields: [queueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   queueId        String
   playlistId     String?
-  playlist       Playlist? @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  playlist       Playlist? @relation(fields: [playlistId], references: [id], onDelete: SetNull)
 }
 
 model SearchHistory {

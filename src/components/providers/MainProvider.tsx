@@ -18,7 +18,7 @@ export const MainProvider = ({ children, session, queue }: Props) => {
   useEffect(() => {
     if (!queue) return;
     setQueue(queue);
-  }, []);
+  }, [queue]);
 
   return <SessionProvider session={session}>{children}</SessionProvider>;
 };

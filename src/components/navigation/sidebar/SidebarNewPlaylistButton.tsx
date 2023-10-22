@@ -1,14 +1,44 @@
 'use client';
-
 import { createPlaylist } from '@/actions/playlist';
+import { useToolTip } from '@/hooks/useToolTip';
 import { useToastStore } from '@/store/ToastStore';
 import { usePathname } from 'next/navigation';
-import React from 'react';
 import { MdAdd } from 'react-icons/md';
 
-export const SidebarNewPlaylistButton = () => {
-  const pathname = usePathname()
-  const createToast = useToastStore(state => state.createToast)
+type SidebarNewPlaylistButtonProps = {
+  expanded?: boolean;
+};
+
+export const SidebarNewPlaylistButton = ({
+  expanded = true,
+}: SidebarNewPlaylistButtonProps) => {
+  const pathname = usePathname();
+  const createToast = useToastStore(state => state.createToast);
+  const { register } = useToolTip({
+    content: 'Create a new playlist',
+  });
+
+  if (!expanded) {
+    return (
+      <button
+        type="submit"
+        className="w-full flex justify-center items-center aspect-square rounded-md bg-slate-700 hover:bg-slate-600 transition text-slate-300"
+        onClick={async () => {
+          await createPlaylist({
+            title: 'New Playlist',
+            image: null,
+            path: pathname,
+          });
+          createToast('Playlist created', 'success');
+        }}
+        {...register({
+          place: 'right',
+        })}
+      >
+        <MdAdd size={24} />
+      </button>
+    );
+  }
 
   return (
     <button

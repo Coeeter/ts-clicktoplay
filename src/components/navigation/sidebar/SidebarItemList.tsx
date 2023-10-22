@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AiOutlineSearch } from 'react-icons/ai';
 import { MdArrowDropDown } from 'react-icons/md';
 import { SidebarItem } from './SidebarItem';
+import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
 
 type SidebarItemListProps = {
   playlists: Playlist[];
@@ -92,6 +93,7 @@ export const SidebarItemList = ({
               />
             </motion.div>
           ))}
+          <SidebarNewPlaylistButton expanded={false} />
         </AnimatePresence>
       </div>
     );

@@ -159,7 +159,10 @@ export const updateCurrentSongInQueue = async ({
 export const insertSongsToQueue = async ({
   session,
   songs,
-}: InsertSongsToQueueProps): Promise<Queue> => {
+  playlistId,
+}: InsertSongsToQueueProps & {
+  playlistId?: string;
+}): Promise<Queue> => {
   const queue = await getQueue(session);
   const { id, items, shuffle } = queue;
   const lastItem = items.find(item => !item.nextId);
@@ -200,7 +203,10 @@ export const insertSongsToQueue = async ({
       data: {
         items: {
           createMany: {
-            data: newItems,
+            data: newItems.map(item => ({
+              ...item,
+              playlistId: playlistId ?? undefined,
+            })),
           },
         },
       },
@@ -235,6 +241,72 @@ export const addNextSongToQueue = async ({
     prevId: currentlyPlayingItem.id,
   });
   revalidatePath(path);
+};
+
+export const addNextPlaylistToQueue = async (
+  playlistId: string,
+  path: string
+) => {
+  const session = await getServerSession();
+  if (!session) return;
+  const playlist = await prisma.playlist.findUnique({
+    where: {
+      id: playlistId,
+    },
+    include: {
+      items: true,
+    },
+  });
+  if (!playlist) return;
+  const queue = await insertSongsToQueue({
+    session,
+    songs: playlist.items.map(item => item.songId),
+    playlistId: playlist.id,
+  });
+  const lastInsertedSongIndex = queue.items.findIndex(item => !item.nextId);
+  if (lastInsertedSongIndex === -1) return;
+  const insertedSongs = queue.items
+    .slice(
+      queue.items.length - playlist?.items.length,
+      lastInsertedSongIndex + 1
+    )
+    .map(item => item.id);
+  const currentlyPlayingItem = queue.items.find(
+    item => item.id === queue.currentlyPlayingId
+  );
+  if (!currentlyPlayingItem) return;
+  const result = await moveSongsInQueue({
+    session,
+    queueItemIds: insertedSongs,
+    nextId: currentlyPlayingItem.nextId,
+    prevId: currentlyPlayingItem.id,
+  });
+  revalidatePath(path);
+  return result;
+};
+
+export const insertPlaylistToBackOfQueue = async (
+  playlistId: string,
+  path: string
+) => {
+  const session = await getServerSession();
+  if (!session) return;
+  const playlist = await prisma.playlist.findUnique({
+    where: {
+      id: playlistId,
+    },
+    include: {
+      items: true,
+    },
+  });
+  if (!playlist) return;
+  const result = await insertSongsToQueue({
+    session,
+    songs: playlist.items.map(item => item.songId),
+    playlistId: playlist.id,
+  });
+  revalidatePath(path);
+  return result;
 };
 
 export const removeSongsFromQueue = async ({
