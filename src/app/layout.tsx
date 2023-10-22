@@ -11,6 +11,7 @@ import { SongControlPanel } from '@/components/songs/controlPanel/SongControlPan
 import { ContextMenu } from '@/components/menu/ContextMenu';
 import { EditPlaylistModal } from '@/components/modals/PlaylistModal/EditPlaylistModal';
 import { DeletePlaylistModal } from '@/components/modals/PlaylistModal/DeletePlaylistModal';
+import { Tooltip } from '@/components/tooltip/ToolTip';
 
 export const metadata: Metadata = {
   title: 'ClickToPlay',
@@ -49,6 +50,7 @@ export default async function RootLayout({
           </div>
           <EditPlaylistModal />
           <DeletePlaylistModal />
+          <Tooltip />
         </MainProvider>
       </body>
     </html>

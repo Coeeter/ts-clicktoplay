@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/forms/Button';
+import { ImageInput } from '@/components/forms/ImageInput';
 import { TextField } from '@/components/forms/TextField';
 import { useToastStore } from '@/store/ToastStore';
 import { parseBlob } from 'music-metadata-browser';
@@ -129,13 +130,13 @@ type FormValues = {
 
 const SongForm = ({ metadata, file }: { metadata: Metadata; file: File }) => {
   const router = useRouter();
-  const [preview, setPreview] = useState<string | null>(null);
   const createToast = useToastStore(state => state.createToast);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
+    watch,
   } = useForm<FormValues>({
     defaultValues: {
       title: metadata.title,
@@ -144,22 +145,12 @@ const SongForm = ({ metadata, file }: { metadata: Metadata; file: File }) => {
     },
   });
 
-  useEffect(() => {
-    const listener = (e: ClipboardEvent) => {
-      const files = e.clipboardData?.files ?? null;
-      setValue('albumCover', files);
-      if (!files?.[0]) return;
-      setPreview(URL.createObjectURL(files[0]));
-    };
-    window.addEventListener('paste', listener);
-    return () => window.removeEventListener('paste', listener);
-  }, [metadata]);
+  const albumCover = watch('albumCover');
 
   useEffect(() => {
     setValue('title', metadata.title);
     setValue('artist', metadata.artist);
     setValue('albumCover', null);
-    setPreview(metadata.image?.url ?? null);
   }, [metadata]);
 
   const onSubmit: SubmitHandler<FormValues> = async data => {
@@ -255,25 +246,17 @@ const SongForm = ({ metadata, file }: { metadata: Metadata; file: File }) => {
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div className="flex gap-4">
         <div className="flex flex-col gap-1">
-          <label htmlFor="albumCover">
-            <img
-              src={preview ?? '/album-cover.png'}
-              alt="Album Cover"
-              className="w-full aspect-square rounded-md box-border object-cover cursor-pointer"
-            />
-          </label>
+          <ImageInput
+            defaultPreview={metadata.image?.url}
+            registerValues={register('albumCover')}
+            setValue={value => setValue('albumCover', value)}
+            value={albumCover}
+          />
           {errors.albumCover && (
             <div className="text-red-500 text-sm">
               {errors.albumCover.message}
             </div>
           )}
-          <input
-            id="albumCover"
-            type="file"
-            className="hidden"
-            accept="image/*"
-            {...register('albumCover')}
-          />
         </div>
         <div className="flex flex-col gap-4">
           <TextField

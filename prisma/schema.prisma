@@ -8,20 +8,23 @@ datasource db {
 }
 
 model User {
-  id                 String              @id @default(cuid()) @map("_id")
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  email              String              @unique
-  name               String?
-  image              String?
-  uploadedSongs      Song[]              @relation("uploadedSongs")
-  playlists          Playlist[]
-  searchHistory      SearchHistory[]
-  accounts           Account[]
-  sessions           Session[]
-  verificationTokens VerificationToken[]
-  emailVerified      DateTime?
-  PlayHistory        PlayHistory[]
+  id                      String              @id @default(cuid()) @map("_id")
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  email                   String              @unique
+  name                    String?
+  image                   String?
+  uploadedSongs           Song[]              @relation("uploadedSongs")
+  playlists               Playlist[]
+  searchHistory           SearchHistory[]
+  accounts                Account[]
+  sessions                Session[]
+  verificationTokens      VerificationToken[]
+  emailVerified           DateTime?
+  PlayHistory             PlayHistory[]
+  sideBarOpen             Boolean             @default(true)
+  sideBarMoreDetailsShown Boolean             @default(false)
+  sideBarWidth            Float?
 }
 
 model Playlist {
@@ -94,7 +97,7 @@ model QueueItem {
   queue          Queue     @relation(fields: [queueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   queueId        String
   playlistId     String?
-  playlist       Playlist? @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  playlist       Playlist? @relation(fields: [playlistId], references: [id], onDelete: SetNull)
 }
 
 model SearchHistory {

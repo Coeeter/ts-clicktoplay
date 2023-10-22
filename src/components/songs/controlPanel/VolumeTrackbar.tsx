@@ -7,6 +7,7 @@ import { MdVolumeMute, MdVolumeDown, MdVolumeUp } from 'react-icons/md';
 import { HiQueueList } from 'react-icons/hi2';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useToolTip } from '@/hooks/useToolTip';
 
 export const VolumeTrackbar = () => {
   const mounted = useMounted();
@@ -16,6 +17,16 @@ export const VolumeTrackbar = () => {
   const currentQueueItemId = useQueueStore(state => state.currentlyPlayingId);
 
   const volumeRef = useRef(volume);
+
+  const { register: registerForQueue, removeTooltip: removeQueueToolTip } =
+    useToolTip({
+      content: 'Queue',
+    });
+
+  const { register: registerForVolume, removeTooltip: removeVolume } =
+    useToolTip({
+      content: volume === 0 ? 'Unmute' : 'Mute',
+    });
 
   useEffect(() => {
     if (volumeRef.current === volume) return;
@@ -61,7 +72,9 @@ export const VolumeTrackbar = () => {
             ? 'text-slate-300/70 hover:text-slate-100'
             : 'text-blue-500'
         }`}
+        {...registerForQueue({ place: 'top-center' })}
         onClick={() => {
+          removeQueueToolTip();
           localStorage.setItem('queuePath', pathname);
         }}
       >
@@ -73,12 +86,21 @@ export const VolumeTrackbar = () => {
       <div
         className="text-xl text-slate-300/70 hover:text-slate-100 -mr-1 cursor-pointer"
         onClick={() => {
-          if (volume === 0) {
-            setVolume(50);
-          } else {
+          removeVolume();
+          const mute = () => {
+            const beforeMute = volume;
+            localStorage.setItem('volume', beforeMute.toString());
             setVolume(0);
-          }
+          };
+          const unmute = () => {
+            const beforeMute = parseInt(localStorage.getItem('volume') || '75');
+            localStorage.removeItem('volume');
+            setVolume(beforeMute);
+          };
+          if (volume === 0) return unmute();
+          return mute();
         }}
+        {...registerForVolume({ place: 'top-center' })}
       >
         {volume === 0 ? (
           <MdVolumeMute />
