@@ -136,7 +136,7 @@ const SongListItem = ({
       className={`w-full grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors group ${
         isContextMenuShowing
           ? 'bg-slate-700'
-          : 'bg-slate-900 hover:bg-slate-700'
+          : 'hover:bg-slate-700'
       }`}
       onContextMenu={e => {
         setIsContextMenuShowing(true);
@@ -291,7 +291,7 @@ const SongGridItem = ({
         e.defaultPrevented = false;
       }}
     >
-      <div className="flex flex-col gap-2 bg-gradient-to-b from-slate-900 to-slate-100/5 p-3 rounded-md w-48 group cursor-pointer hover:bg-slate-700 transition-colors duration-300">
+      <div className="flex flex-col gap-2 bg-gradient-to-b from-slate-800 to-slate-100/5 p-3 rounded-md w-48 group cursor-pointer hover:bg-slate-600 transition-colors duration-300">
         <div className="relative">
           <img
             src={albumCover}

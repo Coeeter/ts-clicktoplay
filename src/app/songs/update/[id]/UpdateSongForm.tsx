@@ -99,7 +99,7 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
 
   return (
     <form
-      className="flex flex-col gap-5 bg-slate-800 p-6 rounded-md max-w-md w-full mx-auto mt-6"
+      className="flex flex-col gap-5 bg-slate-900 p-6 rounded-md max-w-md w-full mx-auto mt-6"
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="text-slate-200 text-2xl">

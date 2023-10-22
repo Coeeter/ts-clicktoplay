@@ -105,7 +105,7 @@ export const PlaylistItem = ({
         contextMenuHandler(e);
       }}
       className={`w-full grid grid-cols-3 items-center py-2 px-6 mb-2 rounded-md transition-colors group ${
-        isContextMenuOpen || isDragging ? 'bg-slate-700' : 'bg-slate-900 hover:bg-slate-700'
+        isContextMenuOpen || isDragging ? 'bg-slate-700' : 'hover:bg-slate-700/50'
       }`}
     >
       <div className="flex items-center gap-6">

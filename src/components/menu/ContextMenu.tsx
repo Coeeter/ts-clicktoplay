@@ -87,7 +87,7 @@ const Menu = ({
       {isOpen && (
         <motion.div
           ref={ref}
-          className={`w-52 bg-slate-600 rounded-md shadow-2xl absolute z-50 p-1 ${
+          className={`w-52 bg-slate-900 rounded-md shadow-2xl absolute z-50 p-1 ${
             isSubMenu ? 'overflow-y-auto max-h-72' : ''
           }`}
           style={{
@@ -149,13 +149,13 @@ const MenuItem = ({
     p-3
     rounded-md
     group
-    ${item.selectable != false && !item.title ? 'hover:bg-slate-700' : ''}
+    ${item.selectable != false && !item.title ? 'hover:bg-slate-800' : ''}
     ${
       item.subMenu || item.selectable == false || item.title
         ? 'cursor-default'
         : 'cursor-pointer'
     }
-    ${showDropdown && item.subMenu ? 'bg-slate-700' : ''}
+    ${showDropdown && item.subMenu ? 'bg-slate-800' : ''}
     ${item.title ? 'text-slate-300/75 font-bold text-xs' : 'text-sm'}
   `
     .split(/\s+/)
@@ -251,7 +251,7 @@ const MenuItem = ({
         </button>
       )}
       {item.divider && (
-        <div className="h-[2px] bg-slate-500 rounded-full w-full my-1" />
+        <div className="h-[2px] bg-slate-700 rounded-full w-full my-1" />
       )}
     </>
   );

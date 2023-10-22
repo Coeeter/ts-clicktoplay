@@ -1,15 +1,25 @@
 import Vibrant from 'node-vibrant';
 
 export const extractMainColor = async (
-  image: string|null,
+  image: string | null,
   fallBackColor?: string
-): Promise<string | undefined> => {
+): Promise<{ vibrant?: string; darkVibrant?: string }> => {
   try {
-    if (!image) return fallBackColor;
-    const colors = (await Vibrant.from(image).getPalette()).Vibrant?.hex;
-    return colors || fallBackColor;
+    if (!image)
+      return {
+        vibrant: fallBackColor,
+        darkVibrant: fallBackColor,
+      };
+    const colors = await Vibrant.from(image).getPalette();
+    return {
+      vibrant: colors.Vibrant?.hex ?? fallBackColor,
+      darkVibrant: colors.DarkVibrant?.hex ?? fallBackColor,
+    };
   } catch (e) {
     console.log(e);
-    return fallBackColor;
+    return {
+      vibrant: fallBackColor,
+      darkVibrant: fallBackColor,
+    };
   }
 };

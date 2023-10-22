@@ -13,7 +13,7 @@ export const SongControlPanel = async () => {
   if (err || !favorites) console.error(err);
 
   return (
-    <div className="bg-slate-800 text-slate-300 p-3 flex justify-between sticky bottom-0 w-full">
+    <div className="bg-slate-900 text-slate-300 p-3 flex justify-between sticky bottom-0 w-full">
       <SongDetail songs={songs} favoriteSongs={[...(favorites ?? [])]} />
       <SongPlayer songs={songs} session={session} />
       <VolumeTrackbar />

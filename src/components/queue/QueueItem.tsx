@@ -76,8 +76,8 @@ export const QueueItem = ({
       key={queueItem.id}
       className={`w-full flex items-center justify-between py-2 px-6 mb-2 rounded-md transition-colors group ${
         isContextMenuOpen || isDragging
-          ? 'bg-slate-700'
-          : 'bg-slate-900 hover:bg-slate-700 '
+          ? 'bg-slate-700/50'
+          : 'hover:bg-slate-700/50'
       }`}
       onContextMenu={e => {
         setIsContextMenuOpen(true);

@@ -76,7 +76,7 @@ export const SidebarContent = ({
 
   return (
     <aside
-      className={`gap-3 flex flex-col sticky top-3 bottom-3 max-h-[calc(100vh-7rem)] transition ${
+      className={`gap-3 flex flex-col sticky top-3 bottom-0 max-h-[calc(100vh-6.25rem)] transition ${
         expanded ? (showMoreDetails ? 'w-3/4' : 'w-1/4') : ''
       }`}
     >
@@ -111,7 +111,7 @@ export const SidebarContent = ({
           </Link>
         ))}
       </div>
-      <div className="flex-grow bg-slate-800 rounded-md max-h-[calc(100vh-7rem-112px)]">
+      <div className="flex-grow bg-slate-800 rounded-md max-h-[calc(100vh-6.25rem-112px)]">
         <div
           className={`flex flex-col max-h-full py-3 ${
             expanded ? 'px-4 gap-3' : 'px-2 gap-6 items-center'
