@@ -37,11 +37,11 @@ export default async function RootLayout({
       <body className="bg-slate-900 antialiased text-slate-400 min-h-screen no-scrollbar">
         <MainProvider session={session} queue={queue}>
           <div className="min-h-screen flex flex-col">
-            <div className="flex relative p-3 gap-3 flex-1">
+            <div className="flex relative p-3 pb-0 gap-3 flex-1">
               <Sidebar />
-              <div className="flex flex-col w-full gap-3">
+              <div className="flex flex-col w-full bg-slate-800 max-h-[calc(100vh-6.25rem)] overflow-y-auto no-scrollbar rounded-md pb-3">
                 <Navbar />
-                <main>{children}</main>
+                <main className='h-full'>{children}</main>
               </div>
             </div>
             <ContextMenu />
