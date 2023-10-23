@@ -14,11 +14,13 @@ export default async function Home() {
       ?.items.map(i => songs.find(s => s.id === i.songId)!) ?? [];
 
   return (
-    <SongList
-      songs={songs}
-      playlists={playlists.filter(p => !p.isFavoritePlaylist)}
-      session={session}
-      favoriteSongs={favoriteSongs}
-    />
+    <div className='pt-[64px]'>
+      <SongList
+        songs={songs}
+        playlists={playlists.filter(p => !p.isFavoritePlaylist)}
+        session={session}
+        favoriteSongs={favoriteSongs}
+      />
+    </div>
   );
 }

@@ -76,7 +76,7 @@ const SongUploader = () => {
 
   return (
     <div
-      className={`flex flex-col gap-6 bg-slate-900 text-white rounded-md p-6 max-w-md mx-auto mt-6`}
+      className={`flex flex-col gap-6 bg-slate-900 text-white rounded-md p-6 max-w-md mx-auto mt-[calc(1.5rem+64px)]`}
     >
       <h3 className="text-2xl font-semibold">Upload Your Music</h3>
       <label

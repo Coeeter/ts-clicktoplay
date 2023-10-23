@@ -1,4 +1,5 @@
 'use client';
+import { getUpdateAlbumCoverUploadUrl } from '@/actions/songs';
 import { Button } from '@/components/forms/Button';
 import { ImageInput } from '@/components/forms/ImageInput';
 import { TextField } from '@/components/forms/TextField';
@@ -99,7 +100,7 @@ export const UpdateSongForm = ({ song }: UpdateSongProps) => {
 
   return (
     <form
-      className="flex flex-col gap-5 bg-slate-900 p-6 rounded-md max-w-md w-full mx-auto mt-6"
+      className="flex flex-col gap-5 bg-slate-900 p-6 rounded-md max-w-md w-full mx-auto mt-[calc(1.5rem+64px)]"
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="text-slate-200 text-2xl">

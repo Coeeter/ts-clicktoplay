@@ -61,9 +61,9 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
   const primaryColor = await extractMainColor(song.albumCover, '#64748b');
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col min-h-full">
       <div
-        className="p-6 pb-0 rounded-t-lg"
+        className="p-6 pb-0 rounded-t-lg pt-[76px]"
         style={{
           backgroundImage: `linear-gradient(${primaryColor.vibrant}, ${primaryColor.darkVibrant})`,
         }}
@@ -106,7 +106,7 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
         </header>
       </div>
       <div
-        className="pt-4 px-6 h-full gap-4 flex flex-col"
+        className="pt-4 px-6 h-full gap-4 flex flex-col min-h-[500px]"
         style={{
           background: `linear-gradient(${primaryColor.darkVibrant} , rgb(30 41 59 / 1) 300px)`,
         }}

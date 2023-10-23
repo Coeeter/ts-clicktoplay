@@ -61,13 +61,13 @@ const Menu = ({
         closeMenu();
       }
     };
-    window.addEventListener('resize', closeMenu);
-    window.addEventListener('scroll', closeMenu);
+    document.getElementById('root')?.addEventListener('resize', closeMenu);
+    document.getElementById('root')?.addEventListener('scroll', closeMenu);
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('resize', closeMenu);
-      window.removeEventListener('scroll', closeMenu);
+      document.getElementById('root')?.removeEventListener('resize', closeMenu);
+      document.getElementById('root')?.removeEventListener('scroll', closeMenu);
     };
   }, [closeMenu]);
 
@@ -87,7 +87,7 @@ const Menu = ({
       {isOpen && (
         <motion.div
           ref={ref}
-          className={`w-52 bg-slate-900 rounded-md shadow-2xl absolute z-50 p-1 ${
+          className={`w-52 bg-slate-900 rounded-md shadow-lg shadow-slate-900/80 absolute z-50 p-1 ${
             isSubMenu ? 'overflow-y-auto max-h-72' : ''
           }`}
           style={{

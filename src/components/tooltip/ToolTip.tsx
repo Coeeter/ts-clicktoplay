@@ -77,7 +77,7 @@ export const Tooltip = () => {
       style={style}
     >
       <motion.div
-        className="bg-slate-700 p-2 rounded-md shadow-md"
+        className="bg-slate-700 p-2 rounded-md shadow-lg"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.8 }}
