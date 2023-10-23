@@ -39,7 +39,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
   };
 
   return (
-    <div className="flex flex-col gap-5 bg-slate-900 p-6 rounded-md max-w-md w-full mx-auto mt-6">
+    <div className="flex flex-col gap-5 bg-slate-900 p-6 rounded-md max-w-md w-full mx-auto mt-[calc(64px+1.5rem)]">
       <button
         onClick={() => signIn('google', { callbackUrl: callback })}
         className="bg-slate-200 p-3 rounded-md text-slate-800 hover:bg-slate-300 transition-all duration-150 flex justify-center gap-2"

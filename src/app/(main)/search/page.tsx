@@ -1,9 +1,9 @@
-import { Metadata } from "next";
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Search | ClickToPlay',
-}
+};
 
 export default function SearchPage() {
-  return <div>Search Page</div>;
+  return <div className="px-6 pt-[64px]">Search Page</div>;
 }

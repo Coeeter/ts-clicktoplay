@@ -34,14 +34,17 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className="bg-slate-900 antialiased text-slate-400 min-h-screen no-scrollbar">
+      <body className="bg-slate-900 antialiased text-slate-400 min-h-screen no-scrollbar overflow-hidden">
         <MainProvider session={session} queue={queue}>
           <div className="min-h-screen flex flex-col">
             <div className="flex relative p-3 pb-0 gap-3 flex-1">
               <Sidebar />
-              <div className="flex flex-col w-full bg-slate-800 max-h-[calc(100vh-6.25rem)] overflow-y-auto no-scrollbar rounded-md pb-3">
+              <div
+                id="root"
+                className="flex flex-col w-full bg-slate-800 min-h-[calc(100vh-6.25rem)] max-h-[calc(100vh-6.25rem)] rounded-md pb-3 no-scrollbar overflow-y-scroll relative"
+              >
                 <Navbar />
-                <main className='h-full'>{children}</main>
+                <main className="h-full">{children}</main>
               </div>
             </div>
             <ContextMenu />

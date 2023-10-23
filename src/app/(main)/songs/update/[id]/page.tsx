@@ -6,7 +6,7 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Update Song | ClickToPlay',
-}
+};
 
 export default async function UpdateSongPage({
   params: { id },

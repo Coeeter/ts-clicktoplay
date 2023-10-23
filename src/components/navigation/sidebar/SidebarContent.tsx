@@ -10,6 +10,7 @@ import { Session } from 'next-auth';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { BiSolidCloudUpload } from 'react-icons/bi';
 import { FaFolder, FaFolderOpen } from 'react-icons/fa';
 import { MdArrowBack, MdArrowForward, MdHome, MdSearch } from 'react-icons/md';
 import { SidebarItemList } from './SidebarItemList';
@@ -26,7 +27,12 @@ const sidebarItems = [
     href: '/search',
     icon: <MdSearch size={32} />,
   },
-];
+  {
+    name: 'Upload Songs',
+    href: '/songs/upload',
+    icon: <BiSolidCloudUpload size={32} />,
+  },
+] as const;
 
 type SidebarContentProps = {
   session: Session | null;
@@ -81,35 +87,37 @@ export const SidebarContent = ({
       }`}
     >
       <div className="flex flex-col bg-slate-800 rounded-md px-4 py-3 gap-3">
-        {sidebarItems.map(({ href, icon, name }, index) => (
-          <Link
-            key={index}
-            href={href}
-            className={`text-md hover:text-slate-200 duration-150 font-semibold ${
-              pathname === href ? 'text-slate-200' : 'text-slate-300/50'
-            }`}
-            {...(expanded
-              ? {}
-              : index === 0
-              ? registerHomeBtn({
-                  place: 'right',
-                })
-              : index === 1
-              ? registerSearchBtn({
-                  place: 'right',
-                })
-              : {})}
-          >
-            <div
-              className={`flex items-center gap-4 ${
-                expanded ? '' : 'justify-center'
+        {sidebarItems
+          .filter(item => session || item.name !== 'Upload Songs')
+          .map(({ href, icon, name }, index) => (
+            <Link
+              key={index}
+              href={href}
+              className={`text-md hover:text-slate-200 duration-150 font-semibold ${
+                pathname === href ? 'text-slate-200' : 'text-slate-300/50'
               }`}
+              {...(expanded
+                ? {}
+                : index === 0
+                ? registerHomeBtn({
+                    place: 'right',
+                  })
+                : index === 1
+                ? registerSearchBtn({
+                    place: 'right',
+                  })
+                : {})}
             >
-              {icon}
-              {expanded && name}
-            </div>
-          </Link>
-        ))}
+              <div
+                className={`flex items-center gap-4 ${
+                  expanded ? '' : 'justify-center'
+                }`}
+              >
+                {icon}
+                {expanded && name}
+              </div>
+            </Link>
+          ))}
       </div>
       <div className="flex-grow bg-slate-800 rounded-md max-h-[calc(100vh-6.25rem-112px)]">
         <div
@@ -172,7 +180,7 @@ export const SidebarContent = ({
             )
           ) : (
             <div className="text-md text-slate-300/50 font-semibold">
-              Please login to view your playlists
+              {expanded && 'Please login to view your playlists'}
             </div>
           )}
         </div>
