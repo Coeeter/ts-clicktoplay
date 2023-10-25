@@ -13,7 +13,7 @@ type PlayButtonProps = {
   size?: 'normal' | 'small';
 };
 
-export const PlayButton = ({ song, songs, session, size }: PlayButtonProps) => {
+export const PlayButton = ({ song, songs, session, size = 'normal' }: PlayButtonProps) => {
   const isPlaying = useQueueStore(state => state.isPlaying);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const playSong = useQueueStore(state => state.playSong);
