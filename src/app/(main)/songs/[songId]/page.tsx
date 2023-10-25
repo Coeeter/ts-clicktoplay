@@ -11,6 +11,7 @@ import { FavoriteButton } from './_components/FavoriteButton';
 import { MoreOptionsButton } from './_components/MoreOptionsButton';
 import { PlayButton } from './_components/PlayButton';
 import { Metadata } from 'next';
+import { NavbarMetadata } from '@/components/navigation/navbar/NavbarMetadata';
 
 type SongPageProps = {
   params: { songId: string };
@@ -150,6 +151,13 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
             playlists={createdPlaylists}
             session={session}
             type="list"
+          />
+          <NavbarMetadata
+            session={session}
+            type="song"
+            colors={primaryColor}
+            song={song}
+            songsInQueue={[song, ...allSongs]}
           />
         </section>
       </div>

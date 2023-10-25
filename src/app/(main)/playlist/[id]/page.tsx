@@ -1,11 +1,12 @@
 import { getCreatedPlaylists, getPlaylistById } from '@/actions/playlist';
 import { getSongs } from '@/actions/songs';
+import { NavbarMetadata } from '@/components/navigation/navbar/NavbarMetadata';
 import { MoreOptionsButton } from '@/components/playlist/MoreOptionsButton';
 import { OpenPlaylistModal } from '@/components/playlist/OpenEditModal';
 import { PlaylistPlayButton } from '@/components/playlist/PlayButton';
 import { PlaylistItemList } from '@/components/playlist/PlaylistItemList';
 import { getServerSession } from '@/lib/auth';
-import { NotFoundError, sortLinkedList } from '@/utils';
+import { sortLinkedList } from '@/utils';
 import { extractMainColor } from '@/utils/extractMainColor';
 import { Metadata } from 'next';
 import Link from 'next/link';
@@ -36,7 +37,7 @@ export default async function PlaylistScreen({
   const songs = await getSongs();
   const songsInPlaylist = sortLinkedList(playlist.items).map(playlistItem => {
     const song = songs.find(song => song.id === playlistItem.songId);
-    if (!song) throw new NotFoundError('Song not found');
+    if (!song) return redirect('/');
     return song;
   });
   const totalDurationInMinutes = Math.floor(
@@ -111,12 +112,12 @@ export default async function PlaylistScreen({
         </header>
       </div>
       <div
-        className="pt-4 px-6 h-full gap-4 flex flex-col min-h-[500px]"
+        className="pt-4 h-full gap-4 flex flex-col min-h-[500px]"
         style={{
           background: `linear-gradient(${primaryColor.darkVibrant} , rgb(30 41 59 / 1) 300px)`,
         }}
       >
-        <section className="flex gap-4 mt-3">
+        <section className="flex gap-4 mt-3 items-center px-6">
           <PlaylistPlayButton playlist={playlist} session={session} />
           {playlist.creatorId !== session?.user.id && (
             <button className="text-blue-500 p-3 rounded-full transition hover:scale-[1.1]">
@@ -127,14 +128,6 @@ export default async function PlaylistScreen({
             <MoreOptionsButton playlist={playlist} session={session} />
           )}
         </section>
-        <header className="grid grid-cols-3 px-6 py-3 text-slate-300/50 font-semibold border-b-2 border-slate-300/20 sticky top-0">
-          <div className="flex gap-6">
-            <div className="w-8 text-center">#</div>
-            <div>Title</div>
-          </div>
-          <div className="text-start">Date added</div>
-          <div className="text-end mr-8">Time</div>
-        </header>
         <PlaylistItemList
           songs={songsInPlaylist}
           playlist={playlist}
@@ -147,6 +140,12 @@ export default async function PlaylistScreen({
                 songs.find(song => song.id === item.songId)
               ) ?? []
           }
+        />
+        <NavbarMetadata
+          session={session}
+          type="playlist"
+          colors={primaryColor}
+          playlist={playlist}
         />
       </div>
     </div>

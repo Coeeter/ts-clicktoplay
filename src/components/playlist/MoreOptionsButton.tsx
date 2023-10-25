@@ -3,6 +3,7 @@
 import { Playlist } from '@/actions/playlist';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { useContextMenuItems } from '@/hooks/useContextMenu';
+import { useToolTip } from '@/hooks/useToolTip';
 import { Session } from 'next-auth';
 import { MdMoreHoriz } from 'react-icons/md';
 
@@ -20,14 +21,24 @@ export const MoreOptionsButton = ({
     playlist,
     session,
   });
+  const { register, removeTooltip } = useToolTip({
+    content: `More options for ${playlist.title}`,
+  });
 
   return (
-    <ContextMenuButton
-      className="text-slate-300/50 hover:text-slate-300/75 mx-3 py-3 rounded-full transition"
-      baseHorizontal="left"
-      contextMenuItems={contextMenuItems}
+    <div
+      onClick={removeTooltip}
+      {...register({
+        place: 'top-center',
+      })}
     >
-      <MdMoreHoriz className="w-8 h-8" />
-    </ContextMenuButton>
+      <ContextMenuButton
+        className="text-slate-300/50 hover:text-slate-300/75 mx-3 py-3 rounded-full transition"
+        baseHorizontal="left"
+        contextMenuItems={contextMenuItems}
+      >
+        <MdMoreHoriz className="w-8 h-8" />
+      </ContextMenuButton>
+    </div>
   );
 };

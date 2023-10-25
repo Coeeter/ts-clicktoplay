@@ -10,9 +10,10 @@ type PlayButtonProps = {
   song: Song;
   songs: Song[];
   session: Session | null;
+  size?: 'normal' | 'small';
 };
 
-export const PlayButton = ({ song, songs, session }: PlayButtonProps) => {
+export const PlayButton = ({ song, songs, session, size = 'normal' }: PlayButtonProps) => {
   const isPlaying = useQueueStore(state => state.isPlaying);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const playSong = useQueueStore(state => state.playSong);
@@ -22,15 +23,20 @@ export const PlayButton = ({ song, songs, session }: PlayButtonProps) => {
   const isCurrentSong = song.id === currentlyPlayingQueueItem?.songId;
   const createToast = useToastStore(state => state.createToast);
 
+  const padding = size === 'normal' ? 'p-3' : 'p-1';
+
   return (
     <button
-      className="bg-blue-700 text-white p-3 rounded-full transition hover:scale-[1.1]"
+      className={`bg-blue-700 text-white rounded-full transition hover:scale-[1.1] ${padding}`}
       onClick={() => {
         if (!session) return createToast('You must be logged in', 'normal');
         if (isCurrentSong) {
           return setIsPlaying(!isPlaying);
         }
-        playSong(song.id, songs.map(s => s.id));
+        playSong(
+          song.id,
+          songs.map(s => s.id)
+        );
       }}
     >
       {isPlaying && isCurrentSong ? (

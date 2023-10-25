@@ -9,9 +9,14 @@ import { MdPause, MdPlayArrow } from 'react-icons/md';
 type PlaylistPlayButtonProps = {
   playlist: Playlist;
   session: Session | null;
+  size?: 'normal' | 'small';
 };
 
-export const PlaylistPlayButton = ({ playlist, session }: PlaylistPlayButtonProps) => {
+export const PlaylistPlayButton = ({
+  playlist,
+  session,
+  size = 'normal',
+}: PlaylistPlayButtonProps) => {
   const playPlaylist = useQueueStore(state => state.playPlaylist);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const isPlaying = useQueueStore(state => state.isPlaying);
@@ -21,11 +26,13 @@ export const PlaylistPlayButton = ({ playlist, session }: PlaylistPlayButtonProp
   );
   const createToast = useToastStore(state => state.createToast);
 
+  const padding = size === 'normal' ? 'p-3' : 'p-1';
+
   return (
     <button
-      className="bg-blue-700 text-white p-3 rounded-full transition hover:scale-[1.1]"
+      className={`bg-blue-700 text-white rounded-full transition hover:scale-[1.1] ${padding}`}
       onClick={() => {
-        if (!session) return createToast('You must be logged in', 'normal')
+        if (!session) return createToast('You must be logged in', 'normal');
         if (playlist.id === currentlyPlayingSong?.playlistId) {
           return setIsPlaying(!isPlaying);
         }
