@@ -13,6 +13,10 @@ type NavbarContentProps = {
 };
 
 export const NavbarContent = ({ session }: NavbarContentProps) => {
+  const [backStack, setBackStack] = useState<string[]>([]);
+  const [backStackIndex, setBackStackIndex] = useState<number>(0);
+  const isPoppedRef = useRef(false);
+
   const [sticky, setSticky] = useState(false);
   const heightRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
@@ -42,6 +46,33 @@ export const NavbarContent = ({ session }: NavbarContentProps) => {
     return () => element.removeEventListener('scroll', handleScroll);
   }, [heightRef, collapsePixels]);
 
+  useEffect(() => {
+    if (backStackIndex !== 0 && pathname === backStack[backStackIndex - 1]) {
+      setBackStackIndex(backStackIndex - 1);
+      return;
+    }
+    if (
+      backStackIndex !== backStack.length - 1 &&
+      pathname === backStack[backStackIndex + 1]
+    ) {
+      setBackStackIndex(backStackIndex + 1);
+      return;
+    }
+    if (pathname === backStack[backStack.length - 1]) return;
+    if (isPoppedRef.current) {
+      isPoppedRef.current = false;
+      return;
+    }
+    const newBackStack = [
+      ...(backStackIndex === backStack.length - 1
+        ? backStack
+        : backStack.slice(0, backStackIndex + 1)),
+      pathname,
+    ];
+    setBackStack(newBackStack);
+    setBackStackIndex(newBackStack.length - 1);
+  }, [pathname, backStack]);
+
   return (
     <nav
       className={`sticky top-0 w-full z-10 text-slate-300 rounded-t-md transition -mb-[64px] ${
@@ -58,8 +89,12 @@ export const NavbarContent = ({ session }: NavbarContentProps) => {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => {}}
-              disabled={false}
+              onClick={() => {
+                isPoppedRef.current = true;
+                window.history.back();
+                setBackStackIndex(backStackIndex - 1);
+              }}
+              disabled={backStack.slice(0, backStackIndex).length === 0}
               className="bg-slate-900/70 rounded-full disabled:opacity-60 disabled:cursor-not-allowed"
               {...registerForBackBtn({
                 place: 'bottom-center',
@@ -68,8 +103,12 @@ export const NavbarContent = ({ session }: NavbarContentProps) => {
               <MdNavigateBefore size={36} />
             </button>
             <button
-              onClick={() => {}}
-              disabled={false}
+              onClick={() => {
+                isPoppedRef.current = true;
+                window.history.forward();
+                setBackStackIndex(backStackIndex + 1);
+              }}
+              disabled={backStackIndex === backStack.length - 1}
               className="bg-slate-900/70 rounded-full disabled:opacity-60 disabled:cursor-not-allowed"
               {...registerForFrontBtn({
                 place: 'bottom-center',
