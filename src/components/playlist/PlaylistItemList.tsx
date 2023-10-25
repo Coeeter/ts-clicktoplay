@@ -69,8 +69,8 @@ export const PlaylistItemList = ({
     <>
       <header
         ref={headerRef}
-        className={`grid grid-cols-3 px-12 py-3 text-slate-300/50 transition text-sm font-semibold border-b-2 border-slate-300/20 sticky top-16 ${
-          sticky ? 'bg-slate-800' : 'bg-transparent'
+        className={`grid grid-cols-3 py-3 text-slate-300/50 transition text-sm font-semibold border-b border-slate-300/20 sticky top-16 ${
+          sticky ? 'bg-slate-800 px-12' : 'bg-transparent mx-6 px-6'
         }`}
       >
         <div className="flex gap-6">
