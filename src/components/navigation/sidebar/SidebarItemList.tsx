@@ -15,6 +15,7 @@ type SidebarItemListProps = {
   history: { id: string; lastPlayedAt: Date | null }[];
   expanded: boolean;
   showMoreDetails: boolean;
+  isResizing: boolean;
 };
 
 type PlaylistSortType =
@@ -36,6 +37,7 @@ export const SidebarItemList = ({
   history,
   expanded,
   showMoreDetails,
+  isResizing,
 }: SidebarItemListProps) => {
   const [sortType, setSortType] = useState<PlaylistSortType>('Creator');
   const [query, setQuery] = useState('');
@@ -155,13 +157,18 @@ export const SidebarItemList = ({
         )}
         <AnimatePresence>
           {searchedPlaylists.map(playlist => (
-            <motion.div key={playlist.id} layout={'position'}>
+            <motion.div
+              key={playlist.id}
+              layout={isResizing ? false : 'position'}
+            >
               <SidebarItem
                 playlist={playlist}
                 session={session}
                 expanded={expanded}
                 showMoreDetails={showMoreDetails}
-                lastPlayed={history.find(item => item.id == playlist.id)?.lastPlayedAt}
+                lastPlayed={
+                  history.find(item => item.id == playlist.id)?.lastPlayedAt
+                }
               />
             </motion.div>
           ))}

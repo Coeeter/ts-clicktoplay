@@ -37,7 +37,7 @@ export const setSideBarMoreDetails = async (moreDetails: boolean) => {
   });
 };
 
-export const setSidebarWidthOpen = async (width: number) => {
+export const setSidebarWidth = async (width: number) => {
   const session = await getServerSession();
 
   if (!session) {

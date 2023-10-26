@@ -59,6 +59,7 @@ export const Sidebar = async () => {
       playHistory={playHistory}
       sideBarMoreDetails={settings.sideBarMoreDetailsShown}
       sideBarOpen={settings.sideBarOpen}
+      sideBarWidth={settings.sideBarWidth ?? undefined}
     />
   );
 };

@@ -71,6 +71,7 @@ export const NavbarContent = ({ session }: NavbarContentProps) => {
     ];
     setBackStack(newBackStack);
     setBackStackIndex(newBackStack.length - 1);
+    setSticky(false);
   }, [pathname, backStack]);
 
   return (
