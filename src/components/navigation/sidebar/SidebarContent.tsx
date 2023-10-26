@@ -1,4 +1,5 @@
 'use client';
+
 import { Playlist } from '@/actions/playlist';
 import {
   setSideBarMoreDetails,
@@ -52,7 +53,6 @@ export const SidebarContent = ({
   sideBarMoreDetails,
   sideBarWidth,
 }: SidebarContentProps) => {
-  const pathname = usePathname();
   const [expanded, setExpanded] = useState(sideBarOpen);
   const [showMoreDetails, setshowMoreDetails] = useState(sideBarMoreDetails);
   const [widthPx, setWidthPx] = useState(sideBarWidth);
@@ -165,24 +165,8 @@ export const SidebarContent = ({
         <div className="flex flex-col bg-slate-800 rounded-md px-4 py-3 gap-3">
           {sidebarItems
             .filter(item => session || item.name !== 'Upload Songs')
-            .map(({ href, icon, name }, index) => (
-              <Link
-                key={index}
-                href={href}
-                className={`text-md hover:text-slate-200 duration-150 font-semibold ${
-                  pathname === href ? 'text-slate-200' : 'text-slate-300/50'
-                }`}
-                {...useToolTip({ content: name }).register({ place: 'right' })}
-              >
-                <div
-                  className={`flex items-center gap-4 ${
-                    expanded ? '' : 'justify-center'
-                  }`}
-                >
-                  {icon}
-                  {expanded && name}
-                </div>
-              </Link>
+            .map((link, index) => (
+              <SidebarLink index={index} expanded={expanded} {...link} />
             ))}
         </div>
         <div className="flex-grow bg-slate-800 rounded-md max-h-[calc(100vh-6.25rem-112px)]">
@@ -254,5 +238,46 @@ export const SidebarContent = ({
         </div>
       </div>
     </aside>
+  );
+};
+
+type SidebarLinkProps = {
+  index: number;
+  href: string;
+  icon: React.ReactNode;
+  name: string;
+  expanded: boolean;
+};
+
+const SidebarLink = ({
+  href,
+  icon,
+  name,
+  expanded,
+  index,
+}: SidebarLinkProps) => {
+  const pathname = usePathname();
+  const { register } = useToolTip({
+    content: name,
+  });
+
+  return (
+    <Link
+      key={index}
+      href={href}
+      className={`text-md hover:text-slate-200 duration-150 font-semibold ${
+        pathname === href ? 'text-slate-200' : 'text-slate-300/50'
+      }`}
+      {...(!expanded ? register({ place: 'right' }) : {})}
+    >
+      <div
+        className={`flex items-center gap-4 ${
+          expanded ? '' : 'justify-center'
+        }`}
+      >
+        {icon}
+        {expanded && name}
+      </div>
+    </Link>
   );
 };
