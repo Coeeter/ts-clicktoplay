@@ -51,7 +51,7 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
     ? await getFavoriteSongs()
     : [null, []];
 
-  if (error || favoriteSongs === null) return redirect('/');
+  if (error && error !== 'Favorite playlist not found') return redirect('/');
 
   const minutes = Math.floor(song.duration / 60);
   const seconds = Math.floor(song.duration % 60);
@@ -121,7 +121,9 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
           <FavoriteButton
             song={song}
             session={session}
-            isFavorite={favoriteSongs.find(s => s.id === song.id) !== undefined}
+            isFavorite={
+              favoriteSongs?.find(s => s.id === song.id) !== undefined
+            }
           />
           {session && (
             <MoreOptionsButton
@@ -129,7 +131,7 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
               session={session}
               songs={[song, ...allSongs]}
               isFavorite={
-                favoriteSongs.find(s => s.id === song.id) !== undefined
+                favoriteSongs?.find(s => s.id === song.id) !== undefined
               }
               playlists={createdPlaylists}
             />
@@ -147,7 +149,7 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
           </header>
           <SongList
             songs={allSongs}
-            favoriteSongs={favoriteSongs}
+            favoriteSongs={favoriteSongs ?? []}
             playlists={createdPlaylists}
             session={session}
             type="list"
