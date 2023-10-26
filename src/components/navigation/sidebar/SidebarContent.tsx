@@ -140,18 +140,6 @@ export const SidebarContent = ({
     content: expanded ? 'Collapse Your Library' : 'Expand Your Library',
   });
 
-  const { register: registerSearchBtn } = useToolTip({
-    content: 'Search',
-  });
-
-  const { register: registerHomeBtn } = useToolTip({
-    content: 'Home',
-  });
-
-  const { register: registerUploadBtn } = useToolTip({
-    content: 'Upload Songs',
-  });
-
   const { register, removeTooltip } = useToolTip({
     content: showMoreDetails ? 'Show less' : 'Show more',
   });
@@ -184,19 +172,7 @@ export const SidebarContent = ({
                 className={`text-md hover:text-slate-200 duration-150 font-semibold ${
                   pathname === href ? 'text-slate-200' : 'text-slate-300/50'
                 }`}
-                {...(expanded
-                  ? {}
-                  : index === 0
-                  ? registerHomeBtn({
-                      place: 'right',
-                    })
-                  : index === 1
-                  ? registerSearchBtn({
-                      place: 'right',
-                    })
-                  : registerUploadBtn({
-                      place: 'right',
-                    }))}
+                {...useToolTip({ content: name }).register({ place: 'right' })}
               >
                 <div
                   className={`flex items-center gap-4 ${
