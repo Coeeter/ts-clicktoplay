@@ -6,13 +6,12 @@ import { PlaylistPlayButton } from '@/components/playlist/PlayButton';
 import { useNavbarStore } from '@/store/NavbarStore/NavbarStore';
 import { Song } from '@prisma/client';
 import { Session } from 'next-auth';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 type NavbarMetadataProps = {
   session: Session | null;
-  children?: React.ReactNode;
   colors: {
-    vibrant?: string;
+    darkVibrant?: string;
   };
 } & (
   | {
@@ -24,16 +23,25 @@ type NavbarMetadataProps = {
       song: Song;
       songsInQueue: Song[];
     }
-);
+) &
+  (
+    | {
+        children?: React.ReactNode;
+      }
+    | {
+        collapsePx?: number;
+      }
+  );
 
 export const NavbarMetadata = ({
   colors,
   session,
-  children,
   ...props
 }: NavbarMetadataProps) => {
   const setColor = useNavbarStore(state => state.setCollapseColor);
   const setContent = useNavbarStore(state => state.setContent);
+  const setCollapsePx = useNavbarStore(state => state.setCollapsePx);
+  const heightRef = useRef<HTMLDivElement | null>(null);
 
   if (props.type === 'playlist') {
     useEffect(() => {
@@ -77,11 +85,30 @@ export const NavbarMetadata = ({
   }
 
   useEffect(() => {
-    setColor(colors.vibrant ?? null);
+    setColor(colors.darkVibrant ?? null);
     return () => {
       setColor(null);
     };
   }, [colors]);
 
-  return <>{children}</>;
+  if ('collapsePx' in props) {
+    useEffect(() => {
+      setCollapsePx(props.collapsePx ?? null);
+      return () => setCollapsePx(null);
+    }, [props.collapsePx]);
+    return <></>;
+  }
+
+  if ('children' in props) {
+    useEffect(() => {
+      if (!heightRef.current) return;
+      const height = heightRef.current.getBoundingClientRect().height;
+      if (!height) return;
+      setCollapsePx(height - 64);
+      return () => setCollapsePx(null);
+    }, [heightRef]);
+    return <div ref={heightRef}>{props.children}</div>;
+  }
+
+  return null;
 };

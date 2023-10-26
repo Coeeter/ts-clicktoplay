@@ -63,49 +63,57 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
 
   return (
     <div className="flex flex-col min-h-full">
-      <div
-        className="p-6 pb-0 rounded-t-lg pt-[76px]"
-        style={{
-          backgroundImage: `linear-gradient(${primaryColor.vibrant}, ${primaryColor.darkVibrant})`,
-        }}
+      <NavbarMetadata
+        session={session}
+        type="song"
+        colors={primaryColor}
+        song={song}
+        songsInQueue={[song, ...allSongs]}
       >
-        <header className="flex gap-4">
-          <img
-            src={song?.albumCover ?? '/album-cover.png'}
-            alt={song.title}
-            className={`w-48 shadow-2xl h-48 rounded-xl object-cover bg-slate-100`}
-          />
-          <div className="flex flex-col justify-end">
-            <span className="text-lg text-slate-200">Song</span>
-            <div className="text-6xl text-slate-200 font-bold mb-6">
-              {song.title}
-            </div>
-            <span className="text-md truncate mb-3">
-              <span className="text-slate-200 font-semibold">
-                {song.artist?.length ? song.artist : 'Unknown artist'}
+        <div
+          className="p-6 pb-0 rounded-t-lg pt-[76px]"
+          style={{
+            backgroundImage: `linear-gradient(${primaryColor.vibrant}, ${primaryColor.darkVibrant})`,
+          }}
+        >
+          <header className="flex gap-4">
+            <img
+              src={song?.albumCover ?? '/album-cover.png'}
+              alt={song.title}
+              className={`w-48 shadow-2xl h-48 rounded-xl object-cover bg-slate-100`}
+            />
+            <div className="flex flex-col justify-end">
+              <span className="text-lg text-slate-200">Song</span>
+              <div className="text-6xl text-slate-200 font-bold mb-6">
+                {song.title}
+              </div>
+              <span className="text-md truncate mb-3">
+                <span className="text-slate-200 font-semibold">
+                  {song.artist?.length ? song.artist : 'Unknown artist'}
+                </span>
+                {' • ' +
+                  duration +
+                  ' • ' +
+                  song.playhistories.length.toLocaleString() +
+                  ' plays'}
               </span>
-              {' • ' +
-                duration +
-                ' • ' +
-                song.playhistories.length.toLocaleString() +
-                ' plays'}
-            </span>
-            <span>
-              {'Uploaded by '}
-              <Link
-                href={`/profile/${song.uploaderId}`}
-                className="text-slate-200 font-semibold hover:underline"
-              >
-                {song.uploader.name}
-              </Link>
-              {', ' +
-                formatDistanceToNow(new Date(song.createdAt), {
-                  addSuffix: true,
-                }).toString()}
-            </span>
-          </div>
-        </header>
-      </div>
+              <span>
+                {'Uploaded by '}
+                <Link
+                  href={`/profile/${song.uploaderId}`}
+                  className="text-slate-200 font-semibold hover:underline"
+                >
+                  {song.uploader.name}
+                </Link>
+                {', ' +
+                  formatDistanceToNow(new Date(song.createdAt), {
+                    addSuffix: true,
+                  }).toString()}
+              </span>
+            </div>
+          </header>
+        </div>
+      </NavbarMetadata>
       <div
         className="pt-4 px-6 h-full gap-4 flex flex-col min-h-[500px]"
         style={{
@@ -153,13 +161,6 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
             playlists={createdPlaylists}
             session={session}
             type="list"
-          />
-          <NavbarMetadata
-            session={session}
-            type="song"
-            colors={primaryColor}
-            song={song}
-            songsInQueue={[song, ...allSongs]}
           />
         </section>
       </div>

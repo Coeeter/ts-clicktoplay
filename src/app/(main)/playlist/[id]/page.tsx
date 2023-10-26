@@ -58,59 +58,70 @@ export default async function PlaylistScreen({
 
   return (
     <div className="flex flex-col min-h-full">
-      <div
-        className="p-6 pb-0 rounded-t-lg pt-[76px]"
-        style={{
-          background: `linear-gradient(${primaryColor.vibrant}, ${primaryColor.darkVibrant})`,
-        }}
+      <NavbarMetadata
+        session={session}
+        type="playlist"
+        colors={primaryColor}
+        playlist={playlist}
       >
-        <header className="flex gap-4">
-          <OpenPlaylistModal session={session} playlist={playlist} type="edit">
-            <img
-              src={
-                playlist.isFavoritePlaylist
-                  ? '/favorites.png'
-                  : playlist.image ?? '/playlist-cover.png'
-              }
-              alt={playlist.title}
-              className={`w-48 shadow-2xl h-48 rounded-xl object-cover ${
-                !playlist.isFavoritePlaylist && !playlist.image
-                  ? 'bg-slate-100'
-                  : ''
-              }`}
-            />
-          </OpenPlaylistModal>
-          <div className="flex flex-col justify-end">
-            <span className="text-lg text-slate-200">Playlist</span>
+        <div
+          className="p-6 pb-0 rounded-t-lg pt-[76px]"
+          style={{
+            background: `linear-gradient(${primaryColor.vibrant}, ${primaryColor.darkVibrant})`,
+          }}
+        >
+          <header className="flex gap-4">
             <OpenPlaylistModal
               session={session}
               playlist={playlist}
               type="edit"
             >
-              <div className="text-6xl text-slate-200 font-bold mb-6">
-                {playlist.title}
-              </div>
-              {playlist.description && (
-                <div className="text-md line-clamp-2 text-slate-300/50 max-w-12 mb-3">
-                  {playlist.description}
-                </div>
-              )}
+              <img
+                src={
+                  playlist.isFavoritePlaylist
+                    ? '/favorites.png'
+                    : playlist.image ?? '/playlist-cover.png'
+                }
+                alt={playlist.title}
+                className={`w-48 shadow-2xl h-48 rounded-xl object-cover ${
+                  !playlist.isFavoritePlaylist && !playlist.image
+                    ? 'bg-slate-100'
+                    : ''
+                }`}
+              />
             </OpenPlaylistModal>
-            <span className="text-md truncate">
-              <span className="text-slate-200 font-semibold">
-                <Link
-                  href={`/profile/${playlist.creatorId}`}
-                  className="hover:underline"
-                >
-                  {playlist.creator.name}
-                </Link>
-                {' • ' + playlist.items.length + ' songs'}
+            <div className="flex flex-col justify-end">
+              <span className="text-lg text-slate-200">Playlist</span>
+              <OpenPlaylistModal
+                session={session}
+                playlist={playlist}
+                type="edit"
+              >
+                <div className="text-6xl text-slate-200 font-bold mb-6">
+                  {playlist.title}
+                </div>
+                {playlist.description && (
+                  <div className="text-md line-clamp-2 text-slate-300/50 max-w-12 mb-3">
+                    {playlist.description}
+                  </div>
+                )}
+              </OpenPlaylistModal>
+              <span className="text-md truncate">
+                <span className="text-slate-200 font-semibold">
+                  <Link
+                    href={`/profile/${playlist.creatorId}`}
+                    className="hover:underline"
+                  >
+                    {playlist.creator.name}
+                  </Link>
+                  {' • ' + playlist.items.length + ' songs'}
+                </span>
+                {', around ' + totalDuration}
               </span>
-              {', around ' + totalDuration}
-            </span>
-          </div>
-        </header>
-      </div>
+            </div>
+          </header>
+        </div>
+      </NavbarMetadata>
       <div
         className="pt-4 h-full gap-4 flex flex-col min-h-[500px]"
         style={{
@@ -140,12 +151,6 @@ export default async function PlaylistScreen({
                 songs.find(song => song.id === item.songId)
               ) ?? []
           }
-        />
-        <NavbarMetadata
-          session={session}
-          type="playlist"
-          colors={primaryColor}
-          playlist={playlist}
         />
       </div>
     </div>
