@@ -148,6 +148,10 @@ export const SidebarContent = ({
     content: 'Home',
   });
 
+  const { register: registerUploadBtn } = useToolTip({
+    content: 'Upload Songs',
+  });
+
   const { register, removeTooltip } = useToolTip({
     content: showMoreDetails ? 'Show less' : 'Show more',
   });
@@ -190,7 +194,9 @@ export const SidebarContent = ({
                   ? registerSearchBtn({
                       place: 'right',
                     })
-                  : {})}
+                  : registerUploadBtn({
+                      place: 'right',
+                    }))}
               >
                 <div
                   className={`flex items-center gap-4 ${
