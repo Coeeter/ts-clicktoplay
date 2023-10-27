@@ -11,7 +11,6 @@ import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { format, formatDistanceToNow, isThisWeek } from 'date-fns';
 import { Session } from 'next-auth';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { FaPause, FaPlay } from 'react-icons/fa';
@@ -19,6 +18,7 @@ import { HiPause, HiPlay } from 'react-icons/hi2';
 import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
+import { NavigationLink } from '@/hooks/useNavigation';
 
 type SongItemProps = {
   song: Song;
@@ -134,9 +134,7 @@ const SongListItem = ({
   return (
     <div
       className={`w-full grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors group ${
-        isContextMenuShowing
-          ? 'bg-slate-700'
-          : 'hover:bg-slate-700'
+        isContextMenuShowing ? 'bg-slate-700' : 'hover:bg-slate-700'
       }`}
       onContextMenu={e => {
         setIsContextMenuShowing(true);
@@ -187,14 +185,14 @@ const SongListItem = ({
             />
           </div>
           <div className="flex flex-col items-start">
-            <Link
+            <NavigationLink
               className={`text-md font-bold hover:underline ${
                 isCurrentSong ? 'text-blue-500' : 'text-slate-300'
               }`}
               href={`/songs/${song.id}`}
             >
               {song.title}
-            </Link>
+            </NavigationLink>
             <span className="text-sm text-slate-300/50">
               {song.artist?.length ? song.artist : 'Unknown'}
             </span>
@@ -277,18 +275,14 @@ const SongGridItem = ({
   const { contextMenuHandler } = useContextMenu(contextMenuItems);
 
   return (
-    <Link
+    <NavigationLink
       href={`/songs/${song.id}`}
       onContextMenu={contextMenuHandler}
       onClick={e => {
-        e.preventDefault();
-        if (
+        const isBtnClicked =
           e.target === ref.current ||
-          ref.current?.contains(e.target as Node)
-        ) {
-          return;
-        }
-        e.defaultPrevented = false;
+          ref.current?.contains(e.target as Node) === true;
+        return !isBtnClicked;
       }}
     >
       <div className="flex flex-col gap-2 bg-gradient-to-b from-slate-800 to-slate-100/5 p-3 rounded-md w-48 group cursor-pointer hover:bg-slate-600 transition-colors duration-300">
@@ -327,6 +321,6 @@ const SongGridItem = ({
           </div>
         </div>
       </div>
-    </Link>
+    </NavigationLink>
   );
 };

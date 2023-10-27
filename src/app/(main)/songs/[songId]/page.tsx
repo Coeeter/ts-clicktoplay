@@ -12,6 +12,7 @@ import { MoreOptionsButton } from './_components/MoreOptionsButton';
 import { PlayButton } from './_components/PlayButton';
 import { Metadata } from 'next';
 import { NavbarMetadata } from '@/components/navigation/navbar/NavbarMetadata';
+import { NavigationLink } from '@/hooks/useNavigation';
 
 type SongPageProps = {
   params: { songId: string };
@@ -99,12 +100,12 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
               </span>
               <span>
                 {'Uploaded by '}
-                <Link
+                <NavigationLink
                   href={`/profile/${song.uploaderId}`}
                   className="text-slate-200 font-semibold hover:underline"
                 >
                   {song.uploader.name}
-                </Link>
+                </NavigationLink>
                 {', ' +
                   formatDistanceToNow(new Date(song.createdAt), {
                     addSuffix: true,
@@ -148,12 +149,12 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
         <section className="flex flex-col gap-2">
           <header>
             Other songs by{' '}
-            <Link
+            <NavigationLink
               href={`/profile/${song.uploaderId}`}
               className="text-slate-200 font-semibold hover:underline"
             >
               {song.uploader.name}
-            </Link>
+            </NavigationLink>
           </header>
           <SongList
             songs={allSongs}

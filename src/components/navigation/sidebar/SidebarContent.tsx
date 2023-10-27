@@ -1,5 +1,4 @@
 'use client';
-
 import { Playlist } from '@/actions/playlist';
 import {
   setSideBarMoreDetails,
@@ -9,7 +8,6 @@ import {
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToolTip } from '@/hooks/useToolTip';
 import { Session } from 'next-auth';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BiSolidCloudUpload } from 'react-icons/bi';
@@ -17,6 +15,7 @@ import { FaFolder, FaFolderOpen } from 'react-icons/fa';
 import { MdArrowBack, MdArrowForward, MdHome, MdSearch } from 'react-icons/md';
 import { SidebarItemList } from './SidebarItemList';
 import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
+import { NavigationLink } from '@/hooks/useNavigation';
 
 const sidebarItems = [
   {
@@ -255,10 +254,12 @@ const SidebarLink = ({ href, icon, name, expanded }: SidebarLinkProps) => {
   });
 
   return (
-    <Link
+    <NavigationLink
       href={href}
       className={`text-md hover:text-slate-200 duration-150 font-semibold ${
-        pathname === href ? 'text-slate-200' : 'text-slate-300/50'
+        pathname === href
+          ? 'text-slate-200 pointer-events-none'
+          : 'text-slate-300/50'
       }`}
       {...(!expanded ? register({ place: 'right' }) : {})}
     >
@@ -270,6 +271,6 @@ const SidebarLink = ({ href, icon, name, expanded }: SidebarLinkProps) => {
         {icon}
         {expanded && name}
       </div>
-    </Link>
+    </NavigationLink>
   );
 };

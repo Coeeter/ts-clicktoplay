@@ -105,8 +105,10 @@ export const NavbarMetadata = ({
             type="text"
             placeholder="Search"
             className="w-[256px] h-full bg-slate-700 text-slate-200 rounded-full px-3 py-2 focus:outline-none"
-            onChange={e => props.onTextChange(e.target.value)}
-            defaultValue={props.text}
+            onChange={e => {
+              props.onTextChange(e.target.value);
+            }}
+            value={props.text}
           />
         ),
         sticky: false,
@@ -114,7 +116,7 @@ export const NavbarMetadata = ({
       return () => {
         setContent(null);
       };
-    }, []);
+    }, [props.text]);
   }
 
   useEffect(() => {

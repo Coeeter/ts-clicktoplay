@@ -19,12 +19,17 @@ export default function SearchLayout({
     if (pathname === '/search') {
       setQuery('');
     } else {
-      setQuery(pathname.replace('/search/', ''));
+      const q = decodeURIComponent(pathname.replace('/search/', ''));
+      setQuery(q);
     }
   }, []);
 
-  useDebounce(query, 500, q => {
-    if (!q) return router.replace('/search');
+  useDebounce(query, 1000, q => {
+    if (!q) {
+      if (pathname === '/search') return;
+      return router.replace('/search');
+    }
+    if (pathname === `/search/${q}`) return;
     router.replace(`/search/${q}`);
   });
 

@@ -1,13 +1,12 @@
 'use client';
-
 import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
 import { useEffect, useRef } from 'react';
 import { MdVolumeMute, MdVolumeDown, MdVolumeUp } from 'react-icons/md';
 import { HiQueueList } from 'react-icons/hi2';
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
 import { useToolTip } from '@/hooks/useToolTip';
+import { NavigationLink } from '@/hooks/useNavigation';
 
 export const VolumeTrackbar = () => {
   const mounted = useMounted();
@@ -61,7 +60,7 @@ export const VolumeTrackbar = () => {
 
   return (
     <div className="flex items-center justify-end flex-1 gap-3">
-      <Link
+      <NavigationLink
         href={
           pathname !== '/queue'
             ? '/queue'
@@ -82,7 +81,7 @@ export const VolumeTrackbar = () => {
         {pathname === '/queue' && (
           <div className="w-1 h-1 bg-blue-500 rounded-full absolute -bottom-2 left-1/2 -translate-x-1/2" />
         )}
-      </Link>
+      </NavigationLink>
       <div
         className="text-xl text-slate-300/70 hover:text-slate-100 -mr-1 cursor-pointer"
         onClick={() => {

@@ -11,7 +11,6 @@ import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { useQueueStore } from '@/store/QueueStore';
 import { ToastActions, useToastStore } from '@/store/ToastStore';
 import { QueueItem as QueueItemType, Song } from '@prisma/client';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { HiPause, HiPlay } from 'react-icons/hi2';
 import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
@@ -19,6 +18,7 @@ import { useEffect, useState } from 'react';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { Session } from 'next-auth';
+import { NavigationLink } from '@/hooks/useNavigation';
 
 type QueuItemProps = {
   queueItem: QueueItemType;
@@ -130,14 +130,14 @@ export const QueueItem = ({
             />
           </div>
           <div className="flex flex-col items-start">
-            <Link
+            <NavigationLink
               href={`/songs/${song.id}`}
               className={`text-md font-bold hover:underline ${
                 isCurrentItem ? 'text-blue-500' : 'text-slate-300'
               }`}
             >
               {song.title}
-            </Link>
+            </NavigationLink>
             <span className="text-sm text-slate-300/50">
               {song.artist?.length ? song.artist : 'Unknown'}
             </span>

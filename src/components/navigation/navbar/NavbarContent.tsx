@@ -1,14 +1,12 @@
 'use client';
-
 import { useToolTip } from '@/hooks/useToolTip';
 import { useNavbarStore } from '@/store/NavbarStore/NavbarStore';
 import { Session } from 'next-auth';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { MdNavigateBefore, MdNavigateNext } from 'react-icons/md';
 import { ProfileButton } from './ProfileButton';
-import { useNavigation } from '@/hooks/useNavigation';
+import { NavigationLink, useNavigation } from '@/hooks/useNavigation';
 import { useMounted } from '@/hooks/useMounted';
 
 type NavbarContentProps = {
@@ -28,10 +26,11 @@ export const NavbarContent = ({ session }: NavbarContentProps) => {
   } = useNavigation();
   const isMounted = useMounted();
 
-  const [sticky, setSticky] = useState(false);
   const heightRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
 
+  const sticky = useNavbarStore(state => state.sticky);
+  const setSticky = useNavbarStore(state => state.setSticky);
   const collapseColor = useNavbarStore(state => state.collapseColor);
   const collapsePixels = useNavbarStore(state => state.collapsePx);
   const content = useNavbarStore(state => state.content);
@@ -68,8 +67,9 @@ export const NavbarContent = ({ session }: NavbarContentProps) => {
       setCurrentIndex(currentIndex - 1);
       return;
     }
-    setBackstack([...backstack.slice(0, currentIndex + 1), pathname]);
-    setCurrentIndex(currentIndex + 1);
+    const newBackstack = [...backstack.slice(0, currentIndex + 1), pathname];
+    setBackstack(newBackstack);
+    setCurrentIndex(newBackstack.length - 1);
     setSticky(false);
   }, [pathname, backstack, currentIndex]);
 
@@ -121,14 +121,14 @@ export const NavbarContent = ({ session }: NavbarContentProps) => {
           {session?.user ? (
             <ProfileButton session={session} />
           ) : (
-            <Link
+            <NavigationLink
               href="/login"
               className={`text-lg font-semibold hover:text-slate-200 transition duration-150 ${
                 pathname === '/login' ? 'text-slate-200' : 'text-slate-300/75'
               }`}
             >
               Sign in
-            </Link>
+            </NavigationLink>
           )}
         </div>
       </div>

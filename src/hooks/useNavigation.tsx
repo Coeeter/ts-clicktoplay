@@ -1,5 +1,9 @@
-import { useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+'use client';
+
+import { useNavbarStore } from '@/store/NavbarStore/NavbarStore';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { forwardRef, useEffect, useMemo } from 'react';
 import { create } from 'zustand';
 
 type UseNavigationReturn = {
@@ -62,7 +66,7 @@ export const useNavigation: UseNavigation = listener => {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setRouterFired(false);
-    }, 200);
+    }, 500);
     return () => clearTimeout(timeout);
   }, [routerFired]);
 
@@ -95,7 +99,7 @@ export const useNavigation: UseNavigation = listener => {
       push: (...args) => {
         listener?.('push', ...args);
         setRouterFired(true);
-        const newBackstack = [...backstack, args[0]];
+        const newBackstack = [...backstack.slice(0, currentIndex + 1), args[0]];
         setBackstack(newBackstack);
         setCurrentIndex(newBackstack.length - 1);
         router.push(...args);
@@ -119,5 +123,42 @@ export const useNavigation: UseNavigation = listener => {
     setRouterFired,
   };
 };
+
+type ToNavigate = boolean | undefined | void;
+
+type NavigationLinkProps = Omit<Parameters<typeof Link>[0], 'onClick'> & {
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => ToNavigate;
+};
+
+export const NavigationLink = forwardRef<
+  HTMLAnchorElement,
+  NavigationLinkProps
+>(({ children, ...props }: NavigationLinkProps, ref) => {
+  const router = useNavigationRouter();
+  const setSticky = useNavbarStore(state => state.setSticky);
+  const collapsePx = useNavbarStore(state => state.collapsePx);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const scrollElement = document.getElementById('root')!;
+    setSticky(scrollElement.scrollTop > (collapsePx ?? 64));
+  }, [pathname, collapsePx]);
+
+  return (
+    <Link
+      ref={ref}
+      {...props}
+      onClick={e => {
+        e.preventDefault();
+        const result = props.onClick?.(e);
+        if (typeof result === 'boolean' && result !== true) return;
+        router.push(props.href.toString());
+      }}
+      prefetch
+    >
+      {children}
+    </Link>
+  );
+});
 
 export const useNavigationRouter = () => useNavigation().router;

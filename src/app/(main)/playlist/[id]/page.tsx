@@ -5,6 +5,7 @@ import { MoreOptionsButton } from '@/components/playlist/MoreOptionsButton';
 import { OpenPlaylistModal } from '@/components/playlist/OpenEditModal';
 import { PlaylistPlayButton } from '@/components/playlist/PlayButton';
 import { PlaylistItemList } from '@/components/playlist/PlaylistItemList';
+import { NavigationLink } from '@/hooks/useNavigation';
 import { getServerSession } from '@/lib/auth';
 import { sortLinkedList } from '@/utils';
 import { extractMainColor } from '@/utils/extractMainColor';
@@ -108,12 +109,12 @@ export default async function PlaylistScreen({
               </OpenPlaylistModal>
               <span className="text-md truncate">
                 <span className="text-slate-200 font-semibold">
-                  <Link
+                  <NavigationLink
                     href={`/profile/${playlist.creatorId}`}
                     className="hover:underline"
                   >
                     {playlist.creator.name}
-                  </Link>
+                  </NavigationLink>
                   {' • ' + playlist.items.length + ' songs'}
                 </span>
                 {', around ' + totalDuration}
