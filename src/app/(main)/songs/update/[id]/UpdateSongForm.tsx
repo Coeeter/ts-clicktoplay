@@ -1,11 +1,10 @@
 'use client';
-import { getUpdateAlbumCoverUploadUrl } from '@/actions/songs';
 import { Button } from '@/components/forms/Button';
 import { ImageInput } from '@/components/forms/ImageInput';
 import { TextField } from '@/components/forms/TextField';
+import { useNavigationRouter } from '@/hooks/useNavigation';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
-import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -22,7 +21,7 @@ type UpdateSongFormValues = {
 export const UpdateSongForm = ({ song }: UpdateSongProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const createToast = useToastStore(state => state.createToast);
-  const router = useRouter();
+  const router = useNavigationRouter();
   const {
     register,
     handleSubmit,

@@ -1,11 +1,10 @@
 'use client';
-
 import { Button } from '@/components/forms/Button';
 import { ImageInput } from '@/components/forms/ImageInput';
 import { TextField } from '@/components/forms/TextField';
+import { useNavigationRouter } from '@/hooks/useNavigation';
 import { useToastStore } from '@/store/ToastStore';
 import { parseBlob } from 'music-metadata-browser';
-import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -129,7 +128,7 @@ type FormValues = {
 };
 
 const SongForm = ({ metadata, file }: { metadata: Metadata; file: File }) => {
-  const router = useRouter();
+  const router = useNavigationRouter();
   const createToast = useToastStore(state => state.createToast);
   const {
     register,

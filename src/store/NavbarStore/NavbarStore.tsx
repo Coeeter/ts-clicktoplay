@@ -4,10 +4,18 @@ import { create } from 'zustand';
 type NavbarStore = {
   collapseColor?: string | null;
   collapsePx?: number | null;
-  content?: ReactNode | null;
+  content?: {
+    node: ReactNode | null;
+    sticky: boolean;
+  } | null;
   setCollapseColor: (collapseColor: string | null) => void;
   setCollapsePx: (collapsePx: number | null) => void;
-  setContent: (content: ReactNode | null) => void;
+  setContent: (
+    content: {
+      node: ReactNode | null;
+      sticky: boolean;
+    } | null
+  ) => void;
   reset: () => void;
 };
 

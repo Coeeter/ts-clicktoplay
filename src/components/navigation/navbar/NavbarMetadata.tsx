@@ -9,8 +9,8 @@ import { Session } from 'next-auth';
 import { useEffect, useRef } from 'react';
 
 type NavbarMetadataProps = {
-  session: Session | null;
-  colors: {
+  session?: Session | null;
+  colors?: {
     darkVibrant?: string;
   };
 } & (
@@ -22,6 +22,11 @@ type NavbarMetadataProps = {
       type: 'song';
       song: Song;
       songsInQueue: Song[];
+    }
+  | {
+      type: 'search';
+      text: string;
+      onTextChange: (text: string) => void;
     }
 ) &
   (
@@ -45,18 +50,22 @@ export const NavbarMetadata = ({
 
   if (props.type === 'playlist') {
     useEffect(() => {
-      setContent(
-        <div className="flex items-center gap-2">
-          <PlaylistPlayButton
-            playlist={props.playlist}
-            session={session}
-            size="small"
-          />
-          <h1 className="text-2xl font-bold text-slate-200">
-            {props.playlist.title}
-          </h1>
-        </div>
-      );
+      if (!session) return;
+      setContent({
+        node: (
+          <div className="flex items-center gap-2">
+            <PlaylistPlayButton
+              playlist={props.playlist}
+              session={session}
+              size="small"
+            />
+            <h1 className="text-2xl font-bold text-slate-200">
+              {props.playlist.title}
+            </h1>
+          </div>
+        ),
+        sticky: true,
+      });
       return () => {
         setContent(null);
       };
@@ -65,26 +74,51 @@ export const NavbarMetadata = ({
 
   if (props.type === 'song') {
     useEffect(() => {
-      setContent(
-        <div className="flex items-center gap-2">
-          <PlayButton
-            session={session}
-            song={props.song}
-            songs={props.songsInQueue}
-            size="small"
-          />
-          <h1 className="text-2xl font-bold text-slate-200">
-            {props.song.title}
-          </h1>
-        </div>
-      );
+      if (!session) return;
+      setContent({
+        node: (
+          <div className="flex items-center gap-2">
+            <PlayButton
+              session={session}
+              song={props.song}
+              songs={props.songsInQueue}
+              size="small"
+            />
+            <h1 className="text-2xl font-bold text-slate-200">
+              {props.song.title}
+            </h1>
+          </div>
+        ),
+        sticky: true,
+      });
       return () => {
         setContent(null);
       };
     }, [props.song]);
   }
 
+  if (props.type === 'search') {
+    useEffect(() => {
+      setContent({
+        node: (
+          <input
+            type="text"
+            placeholder="Search"
+            className="w-[256px] h-full bg-slate-700 text-slate-200 rounded-full px-3 py-2 focus:outline-none"
+            onChange={e => props.onTextChange(e.target.value)}
+            defaultValue={props.text}
+          />
+        ),
+        sticky: false,
+      });
+      return () => {
+        setContent(null);
+      };
+    }, []);
+  }
+
   useEffect(() => {
+    if (!colors) return;
     setColor(colors.darkVibrant ?? null);
     return () => {
       setColor(null);
