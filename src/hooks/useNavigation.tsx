@@ -65,6 +65,7 @@ export const useNavigation: UseNavigation = listener => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
+      if (!routerFired) return;
       setRouterFired(false);
     }, 500);
     return () => clearTimeout(timeout);
@@ -99,7 +100,9 @@ export const useNavigation: UseNavigation = listener => {
       push: (...args) => {
         listener?.('push', ...args);
         setRouterFired(true);
-        const newBackstack = [...backstack.slice(0, currentIndex + 1), args[0]];
+        const newBackstack = backstack.length
+          ? [...backstack.slice(0, currentIndex + 1), args[0]]
+          : [args[0]];
         setBackstack(newBackstack);
         setCurrentIndex(newBackstack.length - 1);
         router.push(...args);

@@ -7,6 +7,7 @@ import { useNavbarStore } from '@/store/NavbarStore/NavbarStore';
 import { Song } from '@prisma/client';
 import { Session } from 'next-auth';
 import { useEffect, useRef } from 'react';
+import { MdClose, MdSearch } from 'react-icons/md';
 
 type NavbarMetadataProps = {
   session?: Session | null;
@@ -43,6 +44,7 @@ export const NavbarMetadata = ({
   session,
   ...props
 }: NavbarMetadataProps) => {
+  const sticky = useNavbarStore(state => state.sticky);
   const setColor = useNavbarStore(state => state.setCollapseColor);
   const setContent = useNavbarStore(state => state.setContent);
   const setCollapsePx = useNavbarStore(state => state.setCollapsePx);
@@ -101,22 +103,41 @@ export const NavbarMetadata = ({
     useEffect(() => {
       setContent({
         node: (
-          <input
-            type="text"
-            placeholder="Search"
-            className="w-[256px] h-full bg-slate-700 text-slate-200 rounded-full px-3 py-2 focus:outline-none"
-            onChange={e => {
-              props.onTextChange(e.target.value);
-            }}
-            value={props.text}
-          />
+          <div className="relative group scale-110 left-3 origin-center border-slate-700 border-2 transition rounded-full focus-within:border-slate-300/75">
+            <MdSearch
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-300/50 transition group-focus-within:text-slate-300"
+              size={24}
+            />
+            <input
+              id="search"
+              type="text"
+              placeholder="Search"
+              className={`min-w-[256px] h-full text-slate-300 bg-slate-900 rounded-full px-10 py-2 outline-none`}
+              onChange={e => {
+                props.onTextChange(e.target.value);
+              }}
+              value={props.text}
+              autoFocus={true}
+            />
+            {props.text && (
+              <button
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-300/50 focus:outline focus:outline-slate-300 focus:-outline-offset-2 transition outline-none group-focus-within:text-slate-300"
+                onClick={() => {
+                  document.getElementById('search')?.focus();
+                  props.onTextChange('');
+                }}
+              >
+                <MdClose size={24} />
+              </button>
+            )}
+          </div>
         ),
         sticky: false,
       });
       return () => {
         setContent(null);
       };
-    }, [props.text]);
+    }, [props.text, sticky]);
   }
 
   useEffect(() => {

@@ -60,9 +60,12 @@ export const SongDetail = ({ songs, favoriteSongs }: SongDetailProps) => {
         >
           {title}
         </NavigationLink>
-        <div className="text-sm text-slate-300/50">
+        <NavigationLink
+          className="text-sm text-slate-300/50 hover:underline"
+          href={`/artist/${currentSong.artistIds[0]}`}
+        >
           {artist === '' ? 'Unknown' : artist ?? 'Unknown'}
-        </div>
+        </NavigationLink>
       </div>
       <button
         className={'text-2xl cursor-pointer'}

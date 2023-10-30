@@ -71,7 +71,7 @@ export const SidebarContent = ({
 
   const maxWidth = useMemo(() => {
     if (!expanded) return undefined;
-    if (showMoreDetails) return '50%';
+    if (showMoreDetails) return '40%';
     return '30%';
   }, [expanded, showMoreDetails]);
 
