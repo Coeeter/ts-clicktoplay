@@ -172,9 +172,12 @@ export const PlaylistItem = ({
             >
               {song.title}
             </NavigationLink>
-            <span className="text-sm text-slate-300/50">
+            <NavigationLink
+              className="text-sm text-slate-300/50 hover:underline"
+              href={`/artist/${song.artistIds[0]}`}
+            >
               {song.artist?.length ? song.artist : 'Unknown'}
-            </span>
+            </NavigationLink>
           </div>
         </div>
       </div>

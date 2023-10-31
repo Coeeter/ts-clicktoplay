@@ -172,9 +172,7 @@ const SongListItem = ({
               <>
                 <span
                   className={`text-4xl font-bold transition-all ${
-                    isCurrentSong
-                      ? 'text-blue-500'
-                      : 'text-slate-200'
+                    isCurrentSong ? 'text-blue-500' : 'text-slate-200'
                   }`}
                 >
                   <HiPlay />
@@ -192,9 +190,12 @@ const SongListItem = ({
           >
             {song.title}
           </NavigationLink>
-          <span className="text-sm text-slate-300/50 truncate overflow-hidden max-w-full">
+          <NavigationLink
+            href={`/artist/${song.artistIds[0]}`}
+            className="text-sm text-slate-300/50 truncate overflow-hidden max-w-full hover:underline"
+          >
             {song.artist?.length ? song.artist : 'Unknown'}
-          </span>
+          </NavigationLink>
         </div>
       </div>
       <span className="text-slate-300/50">{timeAdded}</span>

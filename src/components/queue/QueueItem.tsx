@@ -138,9 +138,12 @@ export const QueueItem = ({
             >
               {song.title}
             </NavigationLink>
-            <span className="text-sm text-slate-300/50">
+            <NavigationLink
+              href={`/artist/${song.artistIds[0]}`}
+              className="text-sm text-slate-300/50 hover:underline"
+            >
               {song.artist?.length ? song.artist : 'Unknown'}
-            </span>
+            </NavigationLink>
           </div>
         </div>
       </div>

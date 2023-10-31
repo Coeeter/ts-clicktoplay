@@ -9,7 +9,9 @@ export const metadata: Metadata = {
 const SongUploader = () => {
   return (
     <WithAuth>
-      <UploadSongForm />
+      <div className="pb-6">
+        <UploadSongForm />
+      </div>
     </WithAuth>
   );
 };

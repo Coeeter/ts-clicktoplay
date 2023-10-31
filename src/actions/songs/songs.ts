@@ -29,14 +29,36 @@ export const getSongFileUploadUrl = async ({
 };
 
 export const createSong = async (createSongProps: CreateSongProps) => {
+  const artist = createSongProps.artist
+    ? await prisma.artist.findUnique({
+        where: {
+          name: createSongProps.artist,
+        },
+      })
+    : null;
   return await prisma.song.create({
     data: {
       url: createSongProps.url,
       title: createSongProps.title,
       duration: createSongProps.duration,
-      artist: createSongProps.artist ?? '',
       albumCover: createSongProps.albumCover,
       uploaderId: createSongProps.session.user.id,
+      artist: createSongProps.artist ?? '',
+      ...(artist && {
+        artists: {
+          connect: {
+            id: artist.id,
+          },
+        },
+      }),
+      ...(!artist &&
+        createSongProps.artist && {
+          artists: {
+            create: {
+              name: createSongProps.artist,
+            },
+          },
+        }),
     },
   });
 };

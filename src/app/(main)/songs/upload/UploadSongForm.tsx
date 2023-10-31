@@ -1,11 +1,14 @@
 'use client';
+import { searchArtists } from '@/actions/artist/artist';
 import { Button } from '@/components/forms/Button';
 import { ImageInput } from '@/components/forms/ImageInput';
 import { TextField } from '@/components/forms/TextField';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useNavigationRouter } from '@/hooks/useNavigation';
 import { useToastStore } from '@/store/ToastStore';
+import { Artist } from '@prisma/client';
 import { parseBlob } from 'music-metadata-browser';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { BiSolidCloudUpload } from 'react-icons/bi';
@@ -145,6 +148,29 @@ const SongForm = ({ metadata, file }: { metadata: Metadata; file: File }) => {
   });
 
   const albumCover = watch('albumCover');
+  const artist = watch('artist');
+
+  const [loading, setLoading] = useState(false);
+  const [artistResults, setArtistResults] = useState<Artist[]>([]);
+  const { ref, ...registerValues } = register('artist');
+  const dropdownRef = useRef<HTMLInputElement | null>(null);
+  useDebounce(artist, 1000, value => {
+    try {
+      if (!value) return;
+      searchArtists(value).then(setArtistResults);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  useEffect(() => {
+    try {
+      if (!artist) return;
+      setLoading(true);
+    } finally {
+      setArtistResults([]);
+    }
+  }, [artist]);
 
   useEffect(() => {
     setValue('title', metadata.title);
@@ -243,36 +269,91 @@ const SongForm = ({ metadata, file }: { metadata: Metadata; file: File }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <div className="flex gap-4">
-        <div className="flex flex-col gap-1">
-          <ImageInput
-            defaultPreview={metadata.image?.url}
-            registerValues={register('albumCover')}
-            setValue={value => setValue('albumCover', value)}
-            value={albumCover}
-          />
-          {errors.albumCover && (
-            <div className="text-red-500 text-sm">
-              {errors.albumCover.message}
+      <ImageInput
+        defaultPreview={metadata.image?.url}
+        registerValues={register('albumCover')}
+        setValue={value => setValue('albumCover', value)}
+        value={albumCover}
+      />
+      {errors.albumCover && (
+        <div className="text-red-500 text-sm">{errors.albumCover.message}</div>
+      )}
+      <TextField
+        label="Title"
+        id="title"
+        {...register('title', { required: true })}
+        error={errors.title?.message}
+      />
+      <div className="relative group">
+        <TextField
+          id="artist"
+          ref={e => {
+            ref(e);
+            dropdownRef.current = e;
+          }}
+          onKeyDown={e => {
+            if (e.key !== 'ArrowDown') return;
+            if (!artistResults.length) return;
+            e.preventDefault();
+            document.getElementById(artistResults[0].id)?.focus();
+          }}
+          label="Artist"
+          error={errors.artist?.message}
+          {...registerValues}
+        />
+        <div className="flex-col bg-slate-600 rounded-md absolute top-full right-0 left-0 z-10 translate-y-1 hidden group-focus-within:flex shadow-lg max-h-[120px] overflow-y-auto">
+          {loading && (
+            <div className="w-full text-start px-4 py-2 hover:bg-slate-800 transition outline-none focus:bg-slate-800 border-b border-slate-300/75 last:border-0 first:rounded-t-md last:rounded-b-md">
+              Loading...
             </div>
           )}
-        </div>
-        <div className="flex flex-col gap-4">
-          <TextField
-            label="Title"
-            id="title"
-            {...register('title', { required: true })}
-            error={errors.title?.message}
-          />
-          <TextField
-            label="Artist"
-            id="artist"
-            {...register('artist')}
-            error={errors.artist?.message}
-          />
+          {!loading && !artistResults.length && artist && (
+            <div className="w-full text-start px-4 py-2 hover:bg-slate-800 transition outline-none focus:bg-slate-800 border-b border-slate-300/75 last:border-0 first:rounded-t-md last:rounded-b-md">
+              No results found, we will create this artist for you.
+            </div>
+          )}
+          {!artist && (
+            <div className="w-full text-start px-4 py-2 hover:bg-slate-800 transition outline-none focus:bg-slate-800 border-b border-slate-300/75 last:border-0 first:rounded-t-md last:rounded-b-md">
+              Enter an artist name
+            </div>
+          )}
+          {artistResults.map(artist => (
+            <button
+              id={artist.id}
+              key={artist.id}
+              type="button"
+              onKeyDown={e => {
+                if (e.key === 'ArrowDown') {
+                  const next = e.currentTarget.nextSibling;
+                  if (!next) return;
+                  e.preventDefault();
+                  (next as HTMLElement).focus();
+                }
+                if (e.key === 'ArrowUp') {
+                  const prev = e.currentTarget.previousSibling;
+                  if (!prev) return;
+                  e.preventDefault();
+                  (prev as HTMLElement).focus();
+                }
+              }}
+              onClick={e => {
+                e.currentTarget.blur();
+                dropdownRef.current?.blur();
+                setValue('artist', artist.name);
+              }}
+              className="w-full text-start px-4 py-2 hover:bg-slate-800 transition outline-none focus:bg-slate-800 border-b border-slate-300/75 last:border-0 first:rounded-t-md last:rounded-b-md"
+            >
+              {artist.name}
+            </button>
+          ))}
         </div>
       </div>
-      <Button isLoading={isSubmitting}>Upload File</Button>
+      <p className="text-sm text-slate-300/50 -mt-3">
+        If this artist does not exist we will create the artist for you.
+      </p>
+      <Button isLoading={isSubmitting} className="mt-3">
+        Upload File
+      </Button>
     </form>
   );
 };
