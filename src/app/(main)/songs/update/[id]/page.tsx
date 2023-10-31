@@ -25,7 +25,9 @@ export default async function UpdateSongPage({
 
   return (
     <WithAuth userId={song.uploaderId}>
-      <UpdateSongForm song={song} />
+      <div className="pb-6">
+        <UpdateSongForm song={song} />
+      </div>
     </WithAuth>
   );
 }

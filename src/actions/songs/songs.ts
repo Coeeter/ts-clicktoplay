@@ -108,6 +108,16 @@ export const updateSong = async ({
   if (song.uploaderId !== session.user.id) {
     throw new ForbiddenError('You are not the owner of this song');
   }
+  const artistId = artist
+    ? (
+        await prisma.artist.findUnique({
+          where: {
+            name: artist,
+          },
+          select: { id: true },
+        })
+      )?.id ?? null
+    : null;
   return await prisma.song.update({
     where: {
       id: song.id,
@@ -116,6 +126,29 @@ export const updateSong = async ({
       title: title ?? song.title,
       artist: artist ?? song.artist,
       albumCover: albumCover ?? song.albumCover,
+      ...(artistId
+        ? {
+            artists: {
+              disconnect: {
+                id: song.artistIds[0],
+              },
+              connect: {
+                id: artistId,
+              },
+            },
+          }
+        : artist
+        ? {
+            artists: {
+              disconnect: {
+                id: song.artistIds[0],
+              },
+              create: {
+                name: artist,
+              },
+            },
+          }
+        : {}),
     },
   });
 };
