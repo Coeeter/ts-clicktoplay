@@ -12,12 +12,14 @@ import {
 import {
   addNextPlaylistToQueue,
   insertPlaylistToBackOfQueue,
+  playArtistLast,
+  playArtistNext,
 } from '@/actions/queue';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
-import { Song } from '@prisma/client';
+import { Artist, Song } from '@prisma/client';
 import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { MouseEventHandler } from 'react';
@@ -55,6 +57,9 @@ export type ContextMenuItemProps = {
   | ({
       type: 'queue';
     } & Parameters<typeof getQueueMenuItems>[0])
+  | ({
+      type: 'artist';
+    } & Parameters<typeof getArtistMenuItems>[0])
 );
 
 export const useContextMenuItems = (
@@ -77,7 +82,10 @@ export const useContextMenuItems = (
   if (props.type === 'playlist') {
     return getPlaylistMenuItems(props);
   }
-  return getQueueMenuItems(props);
+  if (props.type === 'queue') {
+    return getQueueMenuItems(props);
+  }
+  return getArtistMenuItems(props);
 };
 
 const getSongMenuItems = ({
@@ -250,7 +258,9 @@ const getPlaylistSongMenuItems = ({
 
   const newItems: ContextMenuItem[] = [
     ...items.splice(0, 4),
-    ...(songProps.session?.user.id === playlist.creatorId ? [favoriteItem] : []),
+    ...(songProps.session?.user.id === playlist.creatorId
+      ? [favoriteItem]
+      : []),
     ...items,
   ];
   if (newItems.at(-1)?.label.includes('Edit')) {
@@ -447,5 +457,80 @@ const getQueueMenuItems = ({
     });
   }
 
+  return items;
+};
+
+const getArtistMenuItems = ({
+  session,
+  artist,
+}: {
+  session: Session | null;
+  artist: Artist & {
+    songs: Song[];
+  };
+}): ContextMenuItem[] => {
+  const isPlaying = useQueueStore(state => state.isPlaying);
+  const setIsPlaying = useQueueStore(state => state.setIsPlaying);
+  const currentlyPlayingSong = useQueueStore(state =>
+    state.items.find(item => item.id === state.currentlyPlayingId)
+  );
+  const isCurrentArtist = artist.songs.some(
+    song => song.id === currentlyPlayingSong?.songId
+  );
+  const playSongs = useQueueStore(state => state.playSong);
+  const pathname = usePathname();
+  const createToast = useToastStore(state => state.createToast);
+
+  if (!session) return [];
+
+  const items: ContextMenuItem[] = [
+    {
+      label: isCurrentArtist ? (isPlaying ? 'Pause' : 'Play') : 'Play',
+      onClick: () => {
+        if (isCurrentArtist) {
+          return setIsPlaying(!isPlaying);
+        }
+        playSongs(artist.songIds[0], artist.songIds);
+      },
+      divider: true,
+    },
+    {
+      label: 'Play Next',
+      onClick: async () => {
+        const result = await playArtistNext(artist.id, pathname);
+        if (!result) {
+          return createToast(
+            'Something went wrong please try again later',
+            'error'
+          );
+        }
+        createToast('Playing next', 'success');
+      },
+    },
+    {
+      label: 'Play Last',
+      onClick: async () => {
+        const result = await playArtistLast(artist.id, pathname);
+        if (!result) {
+          return createToast(
+            'Something went wrong please try again later',
+            'error'
+          );
+        }
+        createToast('Playing last', 'success');
+      },
+      divider: true,
+    },
+    {
+      label: 'Edit Artist',
+      href: `/artists/update/${artist.id}`,
+    },
+    {
+      label: 'Delete',
+      onClick: async () => {
+        // TODO: Delete artist
+      },
+    },
+  ];
   return items;
 };

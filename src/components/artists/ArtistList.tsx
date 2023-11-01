@@ -1,4 +1,5 @@
 'use client';
+import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { NavigationLink } from '@/hooks/useNavigation';
 import { useQueueStore } from '@/store/QueueStore';
 import { Artist, Song } from '@prisma/client';
@@ -62,8 +63,17 @@ const ArtistCard = ({ artist, session }: ArtistCardProps) => {
 
   const ref = useRef<HTMLButtonElement | null>(null);
 
+  const contextMenuItems = useContextMenuItems({
+    type: 'artist',
+    artist,
+    session,
+  });
+
+  const { contextMenuHandler } = useContextMenu(contextMenuItems);
+
   return (
     <NavigationLink
+      onContextMenu={contextMenuHandler}
       className="w-48 flex flex-col gap-2 my-2 transition rounded-md p-2 bg-slate-100/5 hover:bg-slate-600 group"
       href={`/artist/${artist.id}`}
       onClick={e => {

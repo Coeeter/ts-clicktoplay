@@ -243,6 +243,43 @@ export const addNextSongToQueue = async ({
   revalidatePath(path);
 };
 
+export const playArtistNext = async (artistId: string, path: string) => {
+  const session = await getServerSession();
+  if (!session) return;
+  const songs = await prisma.song.findMany({
+    where: {
+      artistIds: {
+        has: artistId,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!songs) return;
+  const queue = await insertSongsToQueue({
+    session,
+    songs: songs.map(song => song.id),
+  });
+  const lastInsertedSongIndex = queue.items.findIndex(item => !item.nextId);
+  if (lastInsertedSongIndex === -1) return;
+  const insertedSongs = queue.items
+    .slice(queue.items.length - songs.length, lastInsertedSongIndex + 1)
+    .map(item => item.id);
+  const currentlyPlayingItem = queue.items.find(
+    item => item.id === queue.currentlyPlayingId
+  );
+  if (!currentlyPlayingItem) return;
+  const result = await moveSongsInQueue({
+    session,
+    queueItemIds: insertedSongs,
+    nextId: currentlyPlayingItem.nextId,
+    prevId: currentlyPlayingItem.id,
+  });
+  revalidatePath(path);
+  return result;
+};
+
 export const addNextPlaylistToQueue = async (
   playlistId: string,
   path: string
@@ -284,6 +321,28 @@ export const addNextPlaylistToQueue = async (
   revalidatePath(path);
   return result;
 };
+
+export const playArtistLast = async (artistId: string, path: string) => {
+  const session = await getServerSession();
+  if (!session) return;
+  const songs = await prisma.song.findMany({
+    where: {
+      artistIds: {
+        has: artistId,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!songs.length) return;
+  const result = await insertSongsToQueue({
+    session,
+    songs: songs.map(song => song.id),
+  });
+  revalidatePath(path);
+  return result;
+}
 
 export const insertPlaylistToBackOfQueue = async (
   playlistId: string,
