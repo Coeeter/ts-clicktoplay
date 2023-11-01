@@ -250,7 +250,7 @@ const getPlaylistSongMenuItems = ({
 
   const newItems: ContextMenuItem[] = [
     ...items.splice(0, 4),
-    favoriteItem,
+    ...(songProps.session?.user.id === playlist.creatorId ? [favoriteItem] : []),
     ...items,
   ];
   if (newItems.at(-1)?.label.includes('Edit')) {

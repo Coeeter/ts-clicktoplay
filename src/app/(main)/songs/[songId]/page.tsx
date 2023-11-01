@@ -5,13 +5,13 @@ import { SongList } from '@/components/songs/SongList';
 import { getServerSession } from '@/lib/auth';
 import { extractMainColor } from '@/utils/extractMainColor';
 import { formatDistanceToNow } from 'date-fns';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { FavoriteButton } from './_components/FavoriteButton';
 import { MoreOptionsButton } from './_components/MoreOptionsButton';
 import { PlayButton } from './_components/PlayButton';
 import { Metadata } from 'next';
 import { NavbarMetadata } from '@/components/navigation/navbar/NavbarMetadata';
+import { NavigationLink } from '@/hooks/useNavigation';
 
 type SongPageProps = {
   params: { songId: string };
@@ -88,9 +88,12 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
                 {song.title}
               </div>
               <span className="text-md truncate mb-3">
-                <span className="text-slate-200 font-semibold">
+                <NavigationLink
+                  href={`/artist/${song.artistIds[0]}`}
+                  className="text-slate-200 font-semibold hover:underline"
+                >
                   {song.artist?.length ? song.artist : 'Unknown artist'}
-                </span>
+                </NavigationLink>
                 {' • ' +
                   duration +
                   ' • ' +
@@ -99,12 +102,12 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
               </span>
               <span>
                 {'Uploaded by '}
-                <Link
+                <NavigationLink
                   href={`/profile/${song.uploaderId}`}
                   className="text-slate-200 font-semibold hover:underline"
                 >
                   {song.uploader.name}
-                </Link>
+                </NavigationLink>
                 {', ' +
                   formatDistanceToNow(new Date(song.createdAt), {
                     addSuffix: true,
@@ -148,12 +151,12 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
         <section className="flex flex-col gap-2">
           <header>
             Other songs by{' '}
-            <Link
+            <NavigationLink
               href={`/profile/${song.uploaderId}`}
               className="text-slate-200 font-semibold hover:underline"
             >
               {song.uploader.name}
-            </Link>
+            </NavigationLink>
           </header>
           <SongList
             songs={allSongs}

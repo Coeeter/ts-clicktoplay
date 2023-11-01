@@ -2,25 +2,35 @@
 import { useToolTip } from '@/hooks/useToolTip';
 import { useNavbarStore } from '@/store/NavbarStore/NavbarStore';
 import { Session } from 'next-auth';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { MdNavigateBefore, MdNavigateNext } from 'react-icons/md';
 import { ProfileButton } from './ProfileButton';
+import { NavigationLink, useNavigation } from '@/hooks/useNavigation';
+import { useMounted } from '@/hooks/useMounted';
 
 type NavbarContentProps = {
   session: Session | null;
 };
 
 export const NavbarContent = ({ session }: NavbarContentProps) => {
-  const [backStack, setBackStack] = useState<string[]>([]);
-  const [backStackIndex, setBackStackIndex] = useState<number>(0);
-  const isPoppedRef = useRef(false);
+  const {
+    router,
+    backstack,
+    setBackstack,
+    currentIndex,
+    setCurrentIndex,
+    hasBack,
+    hasForward,
+    routerFired,
+  } = useNavigation();
+  const isMounted = useMounted();
 
-  const [sticky, setSticky] = useState(false);
   const heightRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
 
+  const sticky = useNavbarStore(state => state.sticky);
+  const setSticky = useNavbarStore(state => state.setSticky);
   const collapseColor = useNavbarStore(state => state.collapseColor);
   const collapsePixels = useNavbarStore(state => state.collapsePx);
   const content = useNavbarStore(state => state.content);
@@ -47,32 +57,17 @@ export const NavbarContent = ({ session }: NavbarContentProps) => {
   }, [heightRef, collapsePixels]);
 
   useEffect(() => {
-    if (backStackIndex !== 0 && pathname === backStack[backStackIndex - 1]) {
-      setBackStackIndex(backStackIndex - 1);
+    if (routerFired) return;
+    if (pathname === backstack[currentIndex]) return;
+    if (pathname === backstack.at(currentIndex + 1)) {
+      setCurrentIndex(currentIndex + 1);
       return;
     }
-    if (
-      backStackIndex !== backStack.length - 1 &&
-      pathname === backStack[backStackIndex + 1]
-    ) {
-      setBackStackIndex(backStackIndex + 1);
+    if (pathname === backstack.at(currentIndex - 1)) {
+      setCurrentIndex(currentIndex - 1);
       return;
     }
-    if (pathname === backStack[backStack.length - 1]) return;
-    if (isPoppedRef.current) {
-      isPoppedRef.current = false;
-      return;
-    }
-    const newBackStack = [
-      ...(backStackIndex === backStack.length - 1
-        ? backStack
-        : backStack.slice(0, backStackIndex + 1)),
-      pathname,
-    ];
-    setBackStack(newBackStack);
-    setBackStackIndex(newBackStack.length - 1);
-    setSticky(false);
-  }, [pathname, backStack]);
+  }, [pathname, backstack, currentIndex]);
 
   return (
     <nav
@@ -91,11 +86,9 @@ export const NavbarContent = ({ session }: NavbarContentProps) => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                isPoppedRef.current = true;
-                window.history.back();
-                setBackStackIndex(backStackIndex - 1);
+                router.back();
               }}
-              disabled={backStack.slice(0, backStackIndex).length === 0}
+              disabled={!isMounted || !hasBack}
               className="bg-slate-900/70 rounded-full disabled:opacity-60 disabled:cursor-not-allowed"
               {...registerForBackBtn({
                 place: 'bottom-center',
@@ -104,12 +97,8 @@ export const NavbarContent = ({ session }: NavbarContentProps) => {
               <MdNavigateBefore size={36} />
             </button>
             <button
-              onClick={() => {
-                isPoppedRef.current = true;
-                window.history.forward();
-                setBackStackIndex(backStackIndex + 1);
-              }}
-              disabled={backStackIndex === backStack.length - 1}
+              onClick={router.forward}
+              disabled={!isMounted || !hasForward}
               className="bg-slate-900/70 rounded-full disabled:opacity-60 disabled:cursor-not-allowed"
               {...registerForFrontBtn({
                 place: 'bottom-center',
@@ -118,20 +107,24 @@ export const NavbarContent = ({ session }: NavbarContentProps) => {
               <MdNavigateNext size={36} />
             </button>
           </div>
-          {sticky && content}
+          {content
+            ? content.sticky
+              ? sticky && content.node
+              : content.node
+            : null}
         </div>
         <div className="flex items-center gap-6">
           {session?.user ? (
             <ProfileButton session={session} />
           ) : (
-            <Link
+            <NavigationLink
               href="/login"
               className={`text-lg font-semibold hover:text-slate-200 transition duration-150 ${
                 pathname === '/login' ? 'text-slate-200' : 'text-slate-300/75'
               }`}
             >
               Sign in
-            </Link>
+            </NavigationLink>
           )}
         </div>
       </div>

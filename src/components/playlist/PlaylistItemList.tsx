@@ -82,7 +82,7 @@ export const PlaylistItemList = ({
       </header>
       <section className="px-6">
         <DraggableList
-          enabled={session !== null}
+          enabled={session !== null && session.user.id === playlist.creatorId}
           size={playlistItems.length}
           getId={index => playlistItems[index].id}
           itemBuilder={(index, isDragging) => (

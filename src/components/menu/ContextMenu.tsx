@@ -1,9 +1,8 @@
 'use client';
-
+import { NavigationLink } from '@/hooks/useNavigation';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { AnimatePresence, motion } from 'framer-motion';
-import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MdNavigateNext } from 'react-icons/md';
 
@@ -230,14 +229,14 @@ const MenuItem = ({
           {children}
         </div>
       ) : item.href ? (
-        <Link
+        <NavigationLink
           href={item.href}
           onClick={close}
           className={className}
           onMouseEnter={() => onMouseEnter?.()}
         >
           {children}
-        </Link>
+        </NavigationLink>
       ) : (
         <button
           className={className}

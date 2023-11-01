@@ -1,15 +1,14 @@
 'use client';
-
 import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
 } from '@/actions/library';
 import { useMounted } from '@/hooks/useMounted';
+import { NavigationLink } from '@/hooks/useNavigation';
 import { useToolTip } from '@/hooks/useToolTip';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 import { MdFavorite, MdFavoriteBorder } from 'react-icons/md';
@@ -55,15 +54,18 @@ export const SongDetail = ({ songs, favoriteSongs }: SongDetailProps) => {
         />
       </div>
       <div className="flex flex-col justify-center">
-        <Link
+        <NavigationLink
           className="text-md font-bold hover:underline"
           href={`/songs/${id}`}
         >
           {title}
-        </Link>
-        <div className="text-sm text-slate-300/50">
+        </NavigationLink>
+        <NavigationLink
+          className="text-sm text-slate-300/50 hover:underline"
+          href={`/artist/${currentSong.artistIds[0]}`}
+        >
           {artist === '' ? 'Unknown' : artist ?? 'Unknown'}
-        </div>
+        </NavigationLink>
       </div>
       <button
         className={'text-2xl cursor-pointer'}

@@ -1,5 +1,4 @@
 'use client';
-
 import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
@@ -14,13 +13,13 @@ import {
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { useMounted } from '@/hooks/useMounted';
+import { NavigationLink } from '@/hooks/useNavigation';
 import { useContextMenuStore } from '@/store/ContextMenuStore';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { format, formatDistanceToNow, isThisWeek } from 'date-fns';
 import { Session } from 'next-auth';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { HiPause, HiPlay } from 'react-icons/hi2';
@@ -80,7 +79,7 @@ export const PlaylistItem = ({
     session,
     playlist,
   });
-  
+
   const { contextMenuHandler } = useContextMenu(contextMenuItems);
 
   useEffect(() => {
@@ -105,7 +104,9 @@ export const PlaylistItem = ({
         contextMenuHandler(e);
       }}
       className={`w-full grid grid-cols-3 items-center py-2 px-6 mb-2 rounded-md transition-colors group ${
-        isContextMenuOpen || isDragging ? 'bg-slate-700' : 'hover:bg-slate-700/50'
+        isContextMenuOpen || isDragging
+          ? 'bg-slate-700'
+          : 'hover:bg-slate-700/50'
       }`}
     >
       <div className="flex items-center gap-6">
@@ -160,7 +161,7 @@ export const PlaylistItem = ({
             />
           </div>
           <div className="flex flex-col items-start">
-            <Link
+            <NavigationLink
               className={`text-md font-bold hover:underline ${
                 isCurrentItem &&
                 playlist.id === currentlyPlayingItem?.playlistId
@@ -170,10 +171,13 @@ export const PlaylistItem = ({
               href={`/songs/${song.id}`}
             >
               {song.title}
-            </Link>
-            <span className="text-sm text-slate-300/50">
+            </NavigationLink>
+            <NavigationLink
+              className="text-sm text-slate-300/50 hover:underline"
+              href={`/artist/${song.artistIds[0]}`}
+            >
               {song.artist?.length ? song.artist : 'Unknown'}
-            </span>
+            </NavigationLink>
           </div>
         </div>
       </div>

@@ -1,11 +1,11 @@
 'use client';
 import { Playlist } from '@/actions/playlist';
 import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
+import { NavigationLink } from '@/hooks/useNavigation';
 import { useToolTip } from '@/hooks/useToolTip';
 import { useQueueStore } from '@/store/QueueStore';
 import { format, formatDistanceToNow, isThisMonth } from 'date-fns';
 import { Session } from 'next-auth';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 import { MdVolumeUp } from 'react-icons/md';
@@ -81,7 +81,7 @@ export const SidebarItem = ({
 
   if (!expanded) {
     return (
-      <Link
+      <NavigationLink
         href={`/playlist/${playlist.id}`}
         onContextMenu={contextMenuHandler}
       >
@@ -101,12 +101,12 @@ export const SidebarItem = ({
             place: 'right',
           })}
         />
-      </Link>
+      </NavigationLink>
     );
   }
 
   return (
-    <Link
+    <NavigationLink
       className={`p-2 rounded-md hover:bg-slate-700 w-full flex relative ${
         pathname.startsWith(`/playlist/${playlist.id}`)
           ? 'bg-slate-700'
@@ -157,7 +157,9 @@ export const SidebarItem = ({
         </div>
         {showMoreDetails && (
           <>
-            <div className="text-sm">{playlist.isFavoritePlaylist ? '' : timeAdded}</div>
+            <div className="text-sm">
+              {playlist.isFavoritePlaylist ? '' : timeAdded}
+            </div>
             <div className="text-end text-sm">{formattedLastPlayed}</div>
           </>
         )}
@@ -168,6 +170,6 @@ export const SidebarItem = ({
         currentlyPlayingSong?.playlistId === playlist.id && (
           <MdVolumeUp className="text-blue-500 text-lg absolute top-1/2 right-3 -translate-y-1/2" />
         )}
-    </Link>
+    </NavigationLink>
   );
 };

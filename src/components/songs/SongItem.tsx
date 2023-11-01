@@ -11,14 +11,14 @@ import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { format, formatDistanceToNow, isThisWeek } from 'date-fns';
 import { Session } from 'next-auth';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { FaPause, FaPlay } from 'react-icons/fa';
-import { HiPause, HiPlay } from 'react-icons/hi2';
 import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
+import { NavigationLink } from '@/hooks/useNavigation';
+import { HiPause, HiPlay } from 'react-icons/hi2';
 
 type SongItemProps = {
   song: Song;
@@ -27,6 +27,7 @@ type SongItemProps = {
   session: Session | null;
   isFavorite: boolean;
   type: 'list' | 'grid';
+  highlight?: boolean;
 };
 
 export const SongItem = ({
@@ -36,6 +37,7 @@ export const SongItem = ({
   session,
   isFavorite,
   type = 'grid',
+  highlight = false,
 }: SongItemProps) => {
   const isPlaying = useQueueStore(state => state.isPlaying);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
@@ -87,6 +89,7 @@ export const SongItem = ({
       albumCover={albumCover}
       artist={artist}
       duration={duration}
+      highlight={highlight}
     />
   );
 };
@@ -134,71 +137,65 @@ const SongListItem = ({
   return (
     <div
       className={`w-full grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors group ${
-        isContextMenuShowing
-          ? 'bg-slate-700'
-          : 'hover:bg-slate-700'
+        isContextMenuShowing ? 'bg-slate-700' : 'hover:bg-slate-700'
       }`}
       onContextMenu={e => {
         setIsContextMenuShowing(true);
         contextMenuHandler(e);
       }}
     >
-      <div className="flex items-center gap-6">
-        <div
-          className="w-8 flex justify-center items-center cursor-pointer"
-          onClick={() => {
-            if (isCurrentSong) {
-              return setIsPlaying(!isPlaying);
-            }
-            playSong();
-          }}
-        >
-          {isPlaying && isCurrentSong ? (
-            <>
-              <span className="text-lg font-bold text-blue-500 hidden group-hover:inline">
-                <HiPause />
-              </span>
-              <img
-                src="/playing.gif"
-                alt="playing"
-                className="w-full h-full rounded-md group-hover:hidden bg-blue-500 p-1"
-              />
-            </>
-          ) : (
-            <>
-              <span
-                className={`text-lg font-bold transition-all ${
-                  isCurrentSong
-                    ? 'text-blue-500'
-                    : 'text-slate-300/50 hover:text-slate-300'
-                }`}
-              >
-                <HiPlay />
-              </span>
-            </>
-          )}
+      <div className="flex items-center gap-2 w-full">
+        <div className="w-12 h-12 bg-slate-600 rounded-md shrink-0 group relative">
+          <img
+            src={song.albumCover ?? '/album-cover.png'}
+            alt="album cover"
+            className="w-full h-full rounded-md object-cover"
+          />
+          <div
+            className={`flex justify-center items-center cursor-pointer absolute top-0 left-0 w-full h-full bg-slate-800/50 z-[1] group-hover:opacity-100 opacity-0 ${
+              isPlaying && isCurrentSong ? 'opacity-100' : ''
+            }`}
+            onClick={() => {
+              if (isCurrentSong) {
+                return setIsPlaying(!isPlaying);
+              }
+              playSong();
+            }}
+          >
+            {isPlaying && isCurrentSong ? (
+              <>
+                <span className="text-4xl font-bold text-blue-500">
+                  <HiPause />
+                </span>
+              </>
+            ) : (
+              <>
+                <span
+                  className={`text-4xl font-bold transition-all ${
+                    isCurrentSong ? 'text-blue-500' : 'text-slate-200'
+                  }`}
+                >
+                  <HiPlay />
+                </span>
+              </>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-12 h-12 bg-slate-600 rounded-md">
-            <img
-              src={song.albumCover ?? '/album-cover.png'}
-              alt="album cover"
-              className="w-full h-full rounded-md object-cover"
-            />
-          </div>
-          <div className="flex flex-col items-start">
-            <Link
-              className={`text-md font-bold hover:underline ${
-                isCurrentSong ? 'text-blue-500' : 'text-slate-300'
-              }`}
-              href={`/songs/${song.id}`}
-            >
-              {song.title}
-            </Link>
-            <span className="text-sm text-slate-300/50">
-              {song.artist?.length ? song.artist : 'Unknown'}
-            </span>
-          </div>
+        <div className="flex flex-col items-start flex-1 overflow-hidden">
+          <NavigationLink
+            className={`text-md font-bold hover:underline truncate overflow-hidden max-w-full ${
+              isCurrentSong ? 'text-blue-500' : 'text-slate-300'
+            }`}
+            href={`/songs/${song.id}`}
+          >
+            {song.title}
+          </NavigationLink>
+          <NavigationLink
+            href={`/artist/${song.artistIds[0]}`}
+            className="text-sm text-slate-300/50 truncate overflow-hidden max-w-full hover:underline"
+          >
+            {song.artist?.length ? song.artist : 'Unknown'}
+          </NavigationLink>
         </div>
       </div>
       <span className="text-slate-300/50">{timeAdded}</span>
@@ -262,6 +259,7 @@ const SongGridItem = ({
   albumCover,
   artist,
   duration,
+  highlight,
 }: {
   song: Song;
   playSong: () => void;
@@ -272,38 +270,47 @@ const SongGridItem = ({
   albumCover: string;
   artist: string;
   duration: string;
+  highlight: boolean;
 }) => {
   const ref = useRef<HTMLButtonElement>(null);
   const { contextMenuHandler } = useContextMenu(contextMenuItems);
 
   return (
-    <Link
+    <NavigationLink
       href={`/songs/${song.id}`}
       onContextMenu={contextMenuHandler}
       onClick={e => {
-        e.preventDefault();
-        if (
+        const isBtnClicked =
           e.target === ref.current ||
-          ref.current?.contains(e.target as Node)
-        ) {
-          return;
-        }
-        e.defaultPrevented = false;
+          ref.current?.contains(e.target as Node) === true;
+        return !isBtnClicked;
       }}
     >
-      <div className="flex flex-col gap-2 bg-gradient-to-b from-slate-800 to-slate-100/5 p-3 rounded-md w-48 group cursor-pointer hover:bg-slate-600 transition-colors duration-300">
-        <div className="relative">
+      <div
+        className={`flex flex-col gap-2 p-3 rounded-md group cursor-pointer transition-colors duration-300 ${
+          highlight
+            ? 'w-full min-w-[24rem] bg-slate-100/5 hover:bg-slate-600 relative'
+            : 'w-48 bg-gradient-to-b from-slate-800 to-slate-100/5 hover:bg-slate-600'
+        }`}
+      >
+        <div className={highlight ? '' : 'relative'}>
           <img
             src={albumCover}
             alt="Album Cover"
-            className="w-full aspect-square rounded-md box-border object-cover group-hover:shadow-xl transition-shadow duration-300 group-hover:shadow-slate-800"
+            className={`aspect-square rounded-md box-border object-cover group-hover:shadow-xl transition-shadow duration-300 group-hover:shadow-slate-800 ${
+              highlight ? 'w-48' : 'w-full'
+            }`}
           />
           <button
             ref={ref}
-            className={`absolute right-0 bottom-0 p-4 rounded-full hover:scale-110 bg-blue-700 m-3 duration-300 transition-all ${
+            className={`absolute p-4 rounded-full hover:scale-110 bg-blue-700 duration-300 transition-all ${
               isPlaying && isCurrentSong
                 ? 'opacity-100'
                 : 'opacity-0 translate-y-5 group-hover:translate-y-0 group-hover:opacity-100'
+            } ${
+              highlight
+                ? 'right-0 bottom-0 m-4 !opacity-100 !translate-y-0'
+                : 'right-0 bottom-0 m-3'
             }`}
             onClick={() => {
               if (isCurrentSong) {
@@ -313,20 +320,29 @@ const SongGridItem = ({
             }}
           >
             {isPlaying && isCurrentSong ? (
-              <FaPause className="text-white" size={16} />
+              <FaPause className="text-white" size={highlight ? 24 : 16} />
             ) : (
-              <FaPlay className="text-white" size={16} />
+              <FaPlay
+                className="text-white translate-x-[1px]"
+                size={highlight ? 24 : 16}
+              />
             )}
           </button>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-white font-bold truncate">{song.title}</span>
+          <span
+            className={`text-white font-bold truncate ${
+              highlight ? 'text-3xl mt-3' : ''
+            }`}
+          >
+            {song.title}
+          </span>
           <div className="flex justify-between gap-2 w-full max-w-full">
             <span className="text-gray-400 truncate">{artist}</span>
-            <span className="text-gray-400">{duration}</span>
+            {!highlight && <span className="text-gray-400">{duration}</span>}
           </div>
         </div>
       </div>
-    </Link>
+    </NavigationLink>
   );
 };

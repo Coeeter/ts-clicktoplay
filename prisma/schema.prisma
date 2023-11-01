@@ -61,6 +61,8 @@ model Song {
   updatedAt     DateTime       @updatedAt
   title         String
   artist        String?
+  artists       Artist[]       @relation(references: [id], fields: [artistIds])
+  artistIds     String[]       @default([])
   albumCover    String?
   duration      Float
   url           String
@@ -70,6 +72,26 @@ model Song {
   queueItems    QueueItem[]    @ignore
   deletedAt     DateTime?
   playhistories PlayHistory[]
+  genres        Genre[]        @relation(references: [id], fields: [genreIds])
+  genreIds      String[]       @default([])
+}
+
+model Genre {
+  id      String   @id @default(cuid()) @map("_id")
+  name    String   @unique
+  songs   Song[]   @relation(references: [id], fields: [songIds])
+  songIds String[] @default([])
+}
+
+model Artist {
+  id          String   @id @default(cuid()) @map("_id")
+  name        String   @unique
+  songs       Song[]   @relation(references: [id], fields: [songIds])
+  songIds     String[] @default([])
+  image       String?
+  background  String?
+  description String   @default("")
+  playHistory PlayHistory[]
 }
 
 enum RepeatMode {
@@ -160,4 +182,6 @@ model PlayHistory {
   playlistId String?
   user       User      @relation(fields: [userId], references: [id])
   userId     String
+  artist     Artist?   @relation(fields: [artistId], references: [id])
+  artistId   String?
 }
