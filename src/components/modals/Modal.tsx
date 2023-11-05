@@ -24,15 +24,14 @@ export const Modal = ({ isOpen, close, children, title }: ModalProps) => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black/50 flex justify-center items-center backdrop-blur-md"
+          className="fixed inset-0 bg-black/50 flex justify-center items-center backdrop-blur-md z-[100]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           <motion.div
-            key="edit-playlist-modal"
             ref={ref}
-            className="bg-slate-900 p-6 rounded-md min-w-[450px] w-1/3 max-w-[550px]"
+            className="bg-slate-800 p-6 rounded-md min-w-[450px] w-1/3 max-w-[550px]"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
