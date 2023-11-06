@@ -59,7 +59,7 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
     seconds < 10 ? '0' : ''
   }${seconds}`;
 
-  const primaryColor = await extractMainColor(song.albumCover, '#64748b');
+  const primaryColor = await extractMainColor(song.albumCover, '#243d82');
 
   return (
     <div className="flex flex-col min-h-full">

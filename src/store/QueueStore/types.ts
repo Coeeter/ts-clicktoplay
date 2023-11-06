@@ -22,7 +22,6 @@ export type QueueActions = {
   setVolume: (volume: number) => void;
   setShuffle: (shuffle: boolean) => void;
   setRepeat: (repeat: RepeatMode) => void;
-  clearQueue: () => void;
   resetState: () => void;
   reorderItems: (
     reorderedItems: QueueItem[],

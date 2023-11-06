@@ -4,7 +4,7 @@ import { Playlist } from '@/actions/playlist';
 import { PlayButton } from '@/app/(main)/songs/[songId]/_components/PlayButton';
 import { PlaylistPlayButton } from '@/components/playlist/PlayButton';
 import { useNavbarStore } from '@/store/NavbarStore/NavbarStore';
-import { Song } from '@prisma/client';
+import { Artist, Song } from '@prisma/client';
 import { Session } from 'next-auth';
 import { useEffect, useRef } from 'react';
 import { MdClose, MdSearch } from 'react-icons/md';
@@ -28,6 +28,12 @@ type NavbarMetadataProps = {
       type: 'search';
       text: string;
       onTextChange: (text: string) => void;
+    }
+  | {
+      type: 'artist';
+      artist: Artist & {
+        songs: Song[];
+      };
     }
 ) &
   (
@@ -97,6 +103,31 @@ export const NavbarMetadata = ({
         setContent(null);
       };
     }, [props.song]);
+  }
+
+  if (props.type === 'artist') {
+    useEffect(() => {
+      if (!session) return;
+      setContent({
+        node: (
+          <div className="flex items-center gap-2">
+            <PlayButton
+              session={session}
+              song={props.artist.songs[0]}
+              songs={props.artist.songs}
+              size="small"
+            />
+            <h1 className="text-2xl font-bold text-slate-200">
+              {props.artist.name}
+            </h1>
+          </div>
+        ),
+        sticky: true,
+      });
+      return () => {
+        setContent(null);
+      };
+    }, [props.artist]);
   }
 
   if (props.type === 'search') {

@@ -1,5 +1,4 @@
 import {
-  clearQueue,
   insertSongsToQueue,
   moveSongsInQueue,
   playPlaylist,
@@ -30,13 +29,6 @@ export const POST = protectedApiRoute<Params>(async (req, session, params) => {
       body: await insertSongsToQueue({
         session: session!,
         songs: [songId],
-      }),
-    };
-  }
-  if (firstPath === 'clear') {
-    return {
-      body: await clearQueue({
-        session: session!,
       }),
     };
   }

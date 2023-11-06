@@ -54,7 +54,7 @@ export default async function PlaylistScreen({
 
   const primaryColor = await extractMainColor(
     playlist.image,
-    playlist.isFavoritePlaylist ? '#35547f' : '#64748b'
+    playlist.isFavoritePlaylist ? '#35547f' : '#243d82'
   );
 
   return (

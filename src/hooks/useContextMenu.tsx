@@ -525,12 +525,16 @@ const getArtistMenuItems = ({
       label: 'Edit Artist',
       href: `/artists/update/${artist.id}`,
     },
-    {
-      label: 'Delete',
-      onClick: async () => {
-        // TODO: Delete artist
-      },
-    },
+    ...(artist.songIds.length
+      ? []
+      : [
+          {
+            label: 'Delete',
+            onClick: async () => {
+              // TODO: Delete artist
+            },
+          },
+        ]),
   ];
   return items;
 };
