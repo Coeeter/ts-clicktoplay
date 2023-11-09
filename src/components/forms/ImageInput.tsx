@@ -9,6 +9,7 @@ type ImageInputProps = {
   value?: FileList | null;
   registerValues: UseFormRegisterReturn;
   inModal?: boolean;
+  contain?: boolean;
 };
 
 export const ImageInput = ({
@@ -17,6 +18,7 @@ export const ImageInput = ({
   value,
   registerValues,
   inModal,
+  contain = false,
 }: ImageInputProps) => {
   const id = Math.random().toString(36).substring(2, 9);
   const [preview, setPreview] = useState<string | null>(defaultPreview ?? null);
@@ -57,7 +59,13 @@ export const ImageInput = ({
       <img
         src={preview ?? '/album-cover.png'}
         alt="Album Cover"
-        className="w-full aspect-square rounded-md box-border object-cover cursor-pointer"
+        className={`w-full rounded-md box-border cursor-pointer ${
+          contain ? 'object-contain' : 'object-cover aspect-square'
+        } ${
+          !preview && !defaultPreview && contain
+            ? 'aspect-video !object-cover'
+            : ''
+        }`}
       />
       <label
         htmlFor={id}

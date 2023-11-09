@@ -12,6 +12,7 @@ import { PlayButton } from './_components/PlayButton';
 import { Metadata } from 'next';
 import { NavbarMetadata } from '@/components/navigation/navbar/NavbarMetadata';
 import { NavigationLink } from '@/hooks/useNavigation';
+import Image from 'next/image';
 
 type SongPageProps = {
   params: { songId: string };
@@ -59,7 +60,7 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
     seconds < 10 ? '0' : ''
   }${seconds}`;
 
-  const primaryColor = await extractMainColor(song.albumCover, '#64748b');
+  const primaryColor = await extractMainColor(song.albumCover, '#243d82');
 
   return (
     <div className="flex flex-col min-h-full">
@@ -77,10 +78,12 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
           }}
         >
           <header className="flex gap-4">
-            <img
+            <Image
               src={song?.albumCover ?? '/album-cover.png'}
               alt={song.title}
               className={`w-48 shadow-2xl h-48 rounded-xl object-cover bg-slate-100`}
+              width={192}
+              height={192}
             />
             <div className="flex flex-col justify-end">
               <span className="text-lg text-slate-200">Song</span>

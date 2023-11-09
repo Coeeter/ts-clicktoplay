@@ -4,6 +4,7 @@ import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { NavigationLink } from '@/hooks/useNavigation';
 import { useQueueStore } from '@/store/QueueStore';
 import { Session } from 'next-auth';
+import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaPause, FaPlay } from 'react-icons/fa';
 
@@ -74,12 +75,14 @@ const PlaylistCard = ({ playlist, session }: PlaylistCardProps) => {
       onContextMenu={contextMenuHandler}
     >
       <div className="relative w-full aspect-square">
-        <img
+        <Image
           src={playlist.image ?? '/playlist-cover.png'}
           alt={playlist.title}
           className={`w-full aspect-square object-cover rounded-md group-hover:shadow-xl group-hover:shadow-slate-800 transition ${
             playlist.image ? '' : 'bg-slate-200'
           }`}
+          width={192}
+          height={192}
         />
         <button
           ref={ref}

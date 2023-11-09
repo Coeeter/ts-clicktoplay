@@ -229,17 +229,6 @@ const setRepeat = (repeat: RepeatMode): Partial<QueueState> => {
   return { repeatMode: repeat };
 };
 
-const clearQueue = (): Partial<QueueState> => {
-  fetch('/api/queue/clear', { method: 'POST' });
-  return {
-    ...initialState,
-    queueId: initialState.queueId,
-    volume: initialState.volume,
-    repeatMode: initialState.repeatMode,
-    shuffle: initialState.shuffle,
-  };
-};
-
 const reorderItems = (
   reorderedItems: QueueItem[],
   prevId: QueueItemId | null,
@@ -467,7 +456,6 @@ const removeSongFromQueue = (
 
 export {
   addSongToQueue,
-  clearQueue,
   playNext,
   playPlaylist,
   playPrev,

@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
   addSongToQueue,
-  clearQueue,
   playNext,
   playPlaylist,
   playPrev,
@@ -54,7 +53,6 @@ export const useQueueStore = create<QueueState & QueueActions>()(
       setVolume: volume => set(setVolume(volume)),
       setShuffle: shuffle => set(setShuffle(shuffle)),
       setRepeat: repeat => set(setRepeat(repeat)),
-      clearQueue: () => set(clearQueue),
       resetState: () => set(initialState),
       reorderItems: (...args) => set(reorderItems(...args)),
       addSongToQueue: songId => set(addSongToQueue(songId)),

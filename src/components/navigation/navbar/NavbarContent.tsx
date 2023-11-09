@@ -3,7 +3,7 @@ import { useToolTip } from '@/hooks/useToolTip';
 import { useNavbarStore } from '@/store/NavbarStore/NavbarStore';
 import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { MdNavigateBefore, MdNavigateNext } from 'react-icons/md';
 import { ProfileButton } from './ProfileButton';
 import { NavigationLink, useNavigation } from '@/hooks/useNavigation';

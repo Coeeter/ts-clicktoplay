@@ -1,8 +1,10 @@
 'use client';
+import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { NavigationLink } from '@/hooks/useNavigation';
 import { useQueueStore } from '@/store/QueueStore';
 import { Artist, Song } from '@prisma/client';
 import { Session } from 'next-auth';
+import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaPause, FaPlay } from 'react-icons/fa';
 
@@ -62,8 +64,17 @@ const ArtistCard = ({ artist, session }: ArtistCardProps) => {
 
   const ref = useRef<HTMLButtonElement | null>(null);
 
+  const contextMenuItems = useContextMenuItems({
+    type: 'artist',
+    artist,
+    session,
+  });
+
+  const { contextMenuHandler } = useContextMenu(contextMenuItems);
+
   return (
     <NavigationLink
+      onContextMenu={contextMenuHandler}
       className="w-48 flex flex-col gap-2 my-2 transition rounded-md p-2 bg-slate-100/5 hover:bg-slate-600 group"
       href={`/artist/${artist.id}`}
       onClick={e => {
@@ -74,12 +85,14 @@ const ArtistCard = ({ artist, session }: ArtistCardProps) => {
       }}
     >
       <div className="relative w-full aspect-square">
-        <img
+        <Image
           src={artist.image ?? '/default-user.png'}
           alt={artist.name}
           className={`w-full aspect-square object-cover rounded-full group-hover:shadow-xl group-hover:shadow-slate-800 transition ${
             artist.image ? '' : 'bg-slate-200'
           }`}
+          width={184}
+          height={184}
         />
         <button
           ref={ref}

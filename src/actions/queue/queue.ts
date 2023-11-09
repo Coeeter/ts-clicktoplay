@@ -10,8 +10,6 @@ import {
   sortLinkedList,
 } from '@/utils';
 import {
-  ClearQueueProps,
-  DeleteQueueProps,
   InsertSongsToQueueProps,
   MoveSongsInQueueProps,
   PlayPlaylistProps,
@@ -46,11 +44,18 @@ export const addPlayHistory = async ({ session }: { session: Session }) => {
     item => item.id === currentlyPlayingId
   );
   if (!currentlyPlayingItem) return;
+  const song = await prisma.song.findUnique({
+    where: {
+      id: currentlyPlayingItem.songId,
+    },
+  });
+  if (!song) return;
   await prisma.playHistory.create({
     data: {
       userId: session.user.id,
       songId: currentlyPlayingItem.songId,
       playlistId: currentlyPlayingItem.playlistId,
+      artistId: song.artistIds[0],
     },
   });
 };
@@ -160,23 +165,40 @@ export const insertSongsToQueue = async ({
   session,
   songs,
   playlistId,
+  start,
 }: InsertSongsToQueueProps & {
   playlistId?: string;
+  start?: string | null;
 }): Promise<Queue> => {
   const queue = await getQueue(session);
   const { id, items, shuffle } = queue;
-  const lastItem = items.find(item => !item.nextId);
+  const lastItem = start
+    ? items.find(item => item.id === start)
+    : items.find(item => !item.nextId);
   const shuffledLastItem = shuffle
-    ? items.find(item => !item.shuffledNextId)
+    ? start
+      ? items.find(item => item.id === start)
+      : items.find(item => !item.shuffledNextId)
     : undefined;
   const counts = new Map<string, number>();
   items.forEach(item => {
     const count = counts.get(item.songId) ?? 0;
     counts.set(item.songId, count + 1);
   });
-  const newItems = createQueueItems(songs, id, counts);
-  newItems[0].prevId = lastItem?.id;
-  newItems[0].shuffledPrevId = shuffledLastItem?.id;
+  const newItems = createQueueItems(songs, id, counts).map(item => ({
+    ...item,
+    ...(shuffle
+      ? { shuffledNextId: item.nextId, shuffledPrevId: item.prevId }
+      : {}),
+  }));
+  newItems[0].prevId = lastItem?.id ?? null;
+  newItems[0].shuffledPrevId = shuffledLastItem?.id ?? null;
+  newItems[newItems.length - 1].nextId = start
+    ? lastItem?.nextId ?? null
+    : null;
+  newItems[newItems.length - 1].shuffledNextId = start
+    ? shuffledLastItem?.shuffledNextId ?? null
+    : null;
   await prisma.$transaction([
     ...(lastItem
       ? [
@@ -194,6 +216,28 @@ export const insertSongsToQueue = async ({
             },
             data: {
               shuffledNextId: newItems[0].id,
+            },
+          }),
+        ]
+      : []),
+    ...(start && lastItem?.nextId
+      ? [
+          prisma.queueItem.update({
+            where: { id: lastItem?.nextId },
+            data: {
+              prevId: newItems[newItems.length - 1].id,
+            },
+          }),
+        ]
+      : []),
+    ...(shuffle && start && shuffledLastItem?.shuffledNextId
+      ? [
+          prisma.queueItem.update({
+            where: {
+              id: shuffledLastItem?.shuffledNextId,
+            },
+            data: {
+              shuffledPrevId: newItems[newItems.length - 1].id,
             },
           }),
         ]
@@ -227,20 +271,33 @@ export const addNextSongToQueue = async ({
   const queue = await insertSongsToQueue({
     session,
     songs: [songId],
-  });
-  const insertedSong = queue.items.find(item => !item.nextId)?.id;
-  if (!insertedSong) return;
-  const currentlyPlayingItem = queue.items.find(
-    item => item.id === queue.currentlyPlayingId
-  );
-  if (!currentlyPlayingItem) return;
-  await moveSongsInQueue({
-    session,
-    queueItemIds: [insertedSong],
-    nextId: currentlyPlayingItem.nextId,
-    prevId: currentlyPlayingItem.id,
+    start: (await getQueue(session)).currentlyPlayingId,
   });
   revalidatePath(path);
+  return queue;
+};
+
+export const playArtistNext = async (artistId: string, path: string) => {
+  const session = await getServerSession();
+  if (!session) return;
+  const songs = await prisma.song.findMany({
+    where: {
+      artistIds: {
+        has: artistId,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!songs) return;
+  const queue = await insertSongsToQueue({
+    session,
+    songs: songs.map(song => song.id),
+    start: (await getQueue(session)).currentlyPlayingId,
+  });
+  revalidatePath(path);
+  return queue;
 };
 
 export const addNextPlaylistToQueue = async (
@@ -262,24 +319,29 @@ export const addNextPlaylistToQueue = async (
     session,
     songs: playlist.items.map(item => item.songId),
     playlistId: playlist.id,
+    start: (await getQueue(session)).currentlyPlayingId,
   });
-  const lastInsertedSongIndex = queue.items.findIndex(item => !item.nextId);
-  if (lastInsertedSongIndex === -1) return;
-  const insertedSongs = queue.items
-    .slice(
-      queue.items.length - playlist?.items.length,
-      lastInsertedSongIndex + 1
-    )
-    .map(item => item.id);
-  const currentlyPlayingItem = queue.items.find(
-    item => item.id === queue.currentlyPlayingId
-  );
-  if (!currentlyPlayingItem) return;
-  const result = await moveSongsInQueue({
+  revalidatePath(path);
+  return queue;
+};
+
+export const playArtistLast = async (artistId: string, path: string) => {
+  const session = await getServerSession();
+  if (!session) return;
+  const songs = await prisma.song.findMany({
+    where: {
+      artistIds: {
+        has: artistId,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!songs.length) return;
+  const result = await insertSongsToQueue({
     session,
-    queueItemIds: insertedSongs,
-    nextId: currentlyPlayingItem.nextId,
-    prevId: currentlyPlayingItem.id,
+    songs: songs.map(song => song.id),
   });
   revalidatePath(path);
   return result;
@@ -508,31 +570,6 @@ export const moveSongsInQueue = async ({
       : []),
   ]);
   return await getQueue(session);
-};
-
-export const clearQueue = async ({
-  session,
-}: ClearQueueProps): Promise<Queue> => {
-  await addPlayHistory({ session });
-  return await prisma.queue.update({
-    where: {
-      id: session.user.id,
-    },
-    data: { items: { deleteMany: {} } },
-    include: {
-      items: true,
-    },
-  });
-};
-
-export const deleteQueue = async ({
-  session,
-}: DeleteQueueProps): Promise<void> => {
-  await prisma.queue.delete({
-    where: {
-      id: session.user.id,
-    },
-  });
 };
 
 export const updateQueueSettings = async ({
