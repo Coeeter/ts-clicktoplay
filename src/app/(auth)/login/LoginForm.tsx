@@ -7,6 +7,7 @@ import { Button } from '@/components/forms/Button';
 import { TextField } from '@/components/forms/TextField';
 import { useToastStore } from '@/store/ToastStore';
 import Image from 'next/image';
+import GoogleLogo from '../assets/google-logo.png';
 
 type SignInWithEmailValues = {
   email: string;
@@ -45,13 +46,15 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
         onClick={() => signIn('google', { callbackUrl: callback })}
         className="bg-slate-200 p-3 rounded-md text-slate-800 hover:bg-slate-300 transition-all duration-150 flex justify-center gap-2"
       >
-        <Image src="/google-logo.png" alt="Google Logo" width={24} height={24} />
+        <Image src={GoogleLogo} alt="Google Logo" width={24} height={24} />
         <div>Sign in with Google</div>
       </button>
       <form className="flex flex-col gap-5" onSubmit={handleSubmit(onSubmit)}>
         <div className="w-full h-0.5 bg-slate-700 relative pointer-events-none select-none my-1">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="bg-slate-800 px-2 text-md text-xl font-bold">OR</div>
+            <div className="bg-slate-800 px-2 text-md text-xl font-bold">
+              OR
+            </div>
           </div>
         </div>
         <div className="flex flex-col gap-2">
