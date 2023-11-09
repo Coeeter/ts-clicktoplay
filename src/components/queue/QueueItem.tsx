@@ -19,7 +19,6 @@ import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { Session } from 'next-auth';
 import { NavigationLink } from '@/hooks/useNavigation';
-import Image from 'next/image';
 
 type QueuItemProps = {
   queueItem: QueueItemType;
@@ -95,12 +94,10 @@ export const QueueItem = ({
               <span className="text-xl font-bold text-blue-500 hover:text-blue-600 hidden group-hover:inline">
                 <HiPause />
               </span>
-              <Image
+              <img
                 src="/playing.gif"
                 alt="playing"
                 className="w-full h-full rounded-md group-hover:hidden bg-blue-500 p-1"
-                width={32}
-                height={32}
               />
             </>
           ) : (
@@ -126,12 +123,10 @@ export const QueueItem = ({
         </button>
         <div className="flex items-center gap-2">
           <div className="w-12 h-12 bg-slate-600 rounded-md">
-            <Image
+            <img
               src={song.albumCover ?? '/album-cover.png'}
               alt="album cover"
               className="w-full h-full rounded-md object-cover"
-              width={48}
-              height={48}
             />
           </div>
           <div className="flex flex-col items-start">

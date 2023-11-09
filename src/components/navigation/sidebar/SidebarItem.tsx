@@ -6,7 +6,6 @@ import { useToolTip } from '@/hooks/useToolTip';
 import { useQueueStore } from '@/store/QueueStore';
 import { format, formatDistanceToNow, isThisMonth } from 'date-fns';
 import { Session } from 'next-auth';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 import { MdVolumeUp } from 'react-icons/md';
@@ -86,7 +85,7 @@ export const SidebarItem = ({
         href={`/playlist/${playlist.id}`}
         onContextMenu={contextMenuHandler}
       >
-        <Image
+        <img
           src={
             playlist.isFavoritePlaylist
               ? '/favorites.png'
@@ -101,8 +100,6 @@ export const SidebarItem = ({
           {...register({
             place: 'right',
           })}
-          width={56}
-          height={56}
         />
       </NavigationLink>
     );
@@ -124,7 +121,7 @@ export const SidebarItem = ({
             showMoreDetails ? 'col-span-2' : 'col-span-4'
           }`}
         >
-          <Image
+          <img
             src={
               playlist.isFavoritePlaylist
                 ? '/favorites.png'
@@ -136,8 +133,6 @@ export const SidebarItem = ({
                 ? 'bg-slate-100'
                 : ''
             }`}
-            width={48}
-            height={48}
           />
           <div className="flex flex-col justify-between whitespace-nowrap overflow-hidden">
             <div

@@ -9,7 +9,6 @@ import { useToolTip } from '@/hooks/useToolTip';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 import { MdFavorite, MdFavoriteBorder } from 'react-icons/md';
@@ -49,12 +48,10 @@ export const SongDetail = ({ songs, favoriteSongs }: SongDetailProps) => {
   return (
     <div className="flex gap-3 flex-1 items-center">
       <div className="w-16 aspect-square rounded-md overflow-hidden">
-        <Image
+        <img
           src={albumCover ?? '/album-cover.png'}
           className="w-full h-full box-border object-cover"
-          alt='album cover'
-          width={64}
-          height={64}
+          alt="album cover"
         />
       </div>
       <div className="flex flex-col justify-center">
