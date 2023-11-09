@@ -20,7 +20,6 @@ import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { format, formatDistanceToNow, isThisWeek } from 'date-fns';
 import { Session } from 'next-auth';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { HiPause, HiPlay } from 'react-icons/hi2';
@@ -122,12 +121,10 @@ export const PlaylistItem = ({
               <span className="text-lg font-bold text-blue-500 hidden group-hover:inline">
                 <HiPause />
               </span>
-              <Image
+              <img
                 src="/playing.gif"
                 alt="playing"
                 className="w-full h-full rounded-md group-hover:hidden bg-blue-500 p-1"
-                width={32}
-                height={32}
               />
             </>
           ) : (
@@ -157,12 +154,10 @@ export const PlaylistItem = ({
         </div>
         <div className="flex items-center gap-2">
           <div className="w-12 h-12 bg-slate-600 rounded-md">
-            <Image
+            <img
               src={song.albumCover ?? '/album-cover.png'}
               alt="album cover"
               className="w-full h-full rounded-md object-cover"
-              width={48}
-              height={48}
             />
           </div>
           <div className="flex flex-col items-start">

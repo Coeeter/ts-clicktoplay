@@ -19,7 +19,6 @@ import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { NavigationLink } from '@/hooks/useNavigation';
 import { HiPause, HiPlay } from 'react-icons/hi2';
-import Image from 'next/image';
 
 type SongItemProps = {
   song: Song;
@@ -147,12 +146,10 @@ const SongListItem = ({
     >
       <div className="flex items-center gap-2 w-full">
         <div className="w-12 h-12 bg-slate-600 rounded-md shrink-0 group relative">
-          <Image
+          <img
             src={song.albumCover ?? '/album-cover.png'}
             alt="album cover"
             className="w-full h-full rounded-md object-cover"
-            width={48}
-            height={48}
           />
           <div
             className={`flex justify-center items-center cursor-pointer absolute top-0 left-0 w-full h-full bg-slate-800/50 z-[1] group-hover:opacity-100 opacity-0 ${
@@ -297,14 +294,12 @@ const SongGridItem = ({
         }`}
       >
         <div className={highlight ? '' : 'relative'}>
-          <Image
+          <img
             src={albumCover}
             alt="Album Cover"
             className={`aspect-square rounded-md box-border object-cover group-hover:shadow-xl transition-shadow duration-300 group-hover:shadow-slate-800 ${
               highlight ? 'w-48' : 'w-full'
             }`}
-            width={192}
-            height={192}
           />
           <button
             ref={ref}

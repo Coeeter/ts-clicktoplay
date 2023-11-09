@@ -28,15 +28,6 @@ export const authOptions: AuthOptions = {
   ],
   adapter: PrismaAdapter(prisma),
   callbacks: {
-    // session: async ({ session, token }) => {
-    //   return {
-    //     ...session,
-    //     user: {
-    //       ...session.user,
-    //       id: token.sub,
-    //     },
-    //   };
-    // },
     jwt: ({ token, user }) => {
       if (user) {
         token.sub = user.id;
