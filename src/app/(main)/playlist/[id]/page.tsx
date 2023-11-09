@@ -10,7 +10,7 @@ import { getServerSession } from '@/lib/auth';
 import { sortLinkedList } from '@/utils';
 import { extractMainColor } from '@/utils/extractMainColor';
 import { Metadata } from 'next';
-import Link from 'next/link';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { MdFavorite } from 'react-icons/md';
 
@@ -77,7 +77,7 @@ export default async function PlaylistScreen({
               playlist={playlist}
               type="edit"
             >
-              <img
+              <Image
                 src={
                   playlist.isFavoritePlaylist
                     ? '/favorites.png'
@@ -89,6 +89,8 @@ export default async function PlaylistScreen({
                     ? 'bg-slate-100'
                     : ''
                 }`}
+                width={192}
+                height={192}
               />
             </OpenPlaylistModal>
             <div className="flex flex-col justify-end">

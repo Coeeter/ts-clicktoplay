@@ -523,7 +523,7 @@ const getArtistMenuItems = ({
     },
     {
       label: 'Edit Artist',
-      href: `/artists/update/${artist.id}`,
+      href: `/artist/update/${artist.id}`,
     },
     ...(artist.songIds.length
       ? []
