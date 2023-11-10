@@ -1,12 +1,18 @@
 import { prisma } from '@/lib/database';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { UpdateArtistForm } from './UpdateArtistForm';
+import { getServerSession } from '@/lib/auth';
 
 const UpdateArtistPage = async ({
   params: { id },
 }: {
   params: { id: string };
 }) => {
+  const session = await getServerSession();
+  if (!session) {
+    return redirect(`/login?callbackUrl=/artist/update/${id}`);
+  }
+
   const artist = await prisma.artist.findUnique({
     where: { id },
   });
