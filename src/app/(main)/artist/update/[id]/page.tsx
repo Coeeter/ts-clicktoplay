@@ -8,18 +8,13 @@ const UpdateArtistPage = async ({
 }: {
   params: { id: string };
 }) => {
-  const session = await getServerSession();
-  if (!session) {
-    return redirect(`/login?callbackUrl=/artist/update/${id}`);
-  }
+  (await getServerSession()) ??
+    redirect(`/login?callbackUrl=/artist/update/${id}`);
 
-  const artist = await prisma.artist.findUnique({
-    where: { id },
-  });
-
-  if (!artist) {
-    notFound();
-  }
+  const artist =
+    (await prisma.artist.findUnique({
+      where: { id },
+    })) ?? notFound();
 
   return (
     <>

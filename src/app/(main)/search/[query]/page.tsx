@@ -1,11 +1,4 @@
 import { prisma } from '@/lib/database';
-import { z } from 'zod';
-
-const SearchTypeSchema = z
-  .enum(['songs', 'playlists', 'artists', 'profiles'])
-  .optional();
-
-type SearchType = z.infer<typeof SearchTypeSchema>;
 
 const searchTypeToTitle = {
   songs: 'Songs',
@@ -14,57 +7,58 @@ const searchTypeToTitle = {
   profiles: 'Profiles',
 } as const;
 
-const searchOrder = ['artists', 'playlists', 'songs', 'profiles'] as const;
+const searchOrder = ['songs', 'playlists', 'artists', 'profiles'] as const;
 
 export default async function SearchResultsPage({
   params: { query },
 }: {
   params: { query: string };
 }) {
-  const results = {
-    songs: await prisma.song.findMany({
-      where: {
-        title: {
-          contains: decodeURIComponent(query),
-          mode: 'insensitive',
-        },
+  const songs = prisma.song.findMany({
+    where: {
+      title: {
+        contains: decodeURIComponent(query),
+        mode: 'insensitive',
       },
-    }),
-    playlists: await prisma.playlist.findMany({
-      where: {
-        title: {
-          contains: decodeURIComponent(query),
-          mode: 'insensitive',
-        },
-        isFavoritePlaylist: false,
-      },
-    }),
-    artists: await prisma.song.findMany({
-      where: {
-        artist: {
-          contains: decodeURIComponent(query),
-          mode: 'insensitive',
-        },
-      },
-      distinct: ['artist'],
-      select: {
-        artist: true,
-      },
-    }),
-    profiles: await prisma.user.findMany({
-      where: {
-        name: {
-          contains: decodeURIComponent(query),
-          mode: 'insensitive',
-        },
-      },
-    }),
-  } as const;
+    },
+  });
 
-  const resultsCount = Object.values(results).reduce(
-    (acc, cur) => acc + cur.length,
-    0
-  );
+  const playlists = prisma.playlist.findMany({
+    where: {
+      title: {
+        contains: decodeURIComponent(query),
+        mode: 'insensitive',
+      },
+      isFavoritePlaylist: false,
+    },
+  });
+
+  const artists = prisma.artist.findMany({
+    where: {
+      name: {
+        contains: decodeURIComponent(query),
+        mode: 'insensitive',
+      },
+    },
+  });
+
+  const profiles = prisma.user.findMany({
+    where: {
+      name: {
+        contains: decodeURIComponent(query),
+        mode: 'insensitive',
+      },
+    },
+  });
+
+  const [songsResult, playlistResult, artistResult, profileResult] =
+    await Promise.all([songs, playlists, artists, profiles]);
+
+  const resultsCount =
+    songsResult.length +
+    playlistResult.length +
+    artistResult.length +
+    profileResult.length;
 
   if (resultsCount === 0) {
     return (
@@ -73,6 +67,7 @@ export default async function SearchResultsPage({
       </div>
     );
   }
+
   return (
     <div className="px-6 pt-[64px]">
       <h2 className="text-xl text-slate-300 mt-6">
