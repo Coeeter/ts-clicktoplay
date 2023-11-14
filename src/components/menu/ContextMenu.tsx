@@ -203,7 +203,10 @@ const MenuItem = ({
 
   const children = (
     <>
-      {item.label}
+      <div className="flex gap-2 items-center">
+        {item.icon && <item.icon size={18} />}
+        {item.label}
+      </div>
       {item.subMenu && <MdNavigateNext className="text-lg" />}
       {item.subMenu && showDropdown && ref.current && (
         <Menu

@@ -23,6 +23,19 @@ import { Artist, Song } from '@prisma/client';
 import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { MouseEventHandler } from 'react';
+import {
+  Heart,
+  HeartOff,
+  ListEnd,
+  ListPlus,
+  ListStart,
+  ListX,
+  Pause,
+  Pen,
+  Play,
+  Plus,
+  Trash2,
+} from 'lucide-react';
 
 export const useContextMenu = (
   menuItems: ContextMenuItem[] | (() => ContextMenuItem[])
@@ -124,6 +137,7 @@ const getSongMenuItems = ({
         playSong();
       },
       divider: true,
+      icon: isPlaying ? Pause : Play,
     },
     {
       label: 'Play Next',
@@ -131,6 +145,7 @@ const getSongMenuItems = ({
         setNextSong(song.id, pathname);
         showToast('Playing next', 'success');
       },
+      icon: ListStart,
     },
     {
       label: 'Play Last',
@@ -139,12 +154,15 @@ const getSongMenuItems = ({
         showToast('Playing last', 'success');
       },
       divider: true,
+      icon: ListEnd,
     },
     {
       label: 'Add to Playlist',
+      icon: ListPlus,
       subMenu: [
         {
           label: 'New Playlist',
+          icon: Plus,
           onClick: async () => {
             const playlist = await createPlaylist({
               title: song.title,
@@ -182,6 +200,7 @@ const getSongMenuItems = ({
       ? {
           label: 'Add to Favorites',
           divider: session.user.id === song.uploaderId,
+          icon: Heart,
           onClick: async () => {
             const [error] = await addFavoriteSongToLibrary({
               songId: song.id,
@@ -193,6 +212,7 @@ const getSongMenuItems = ({
         }
       : {
           label: 'Remove from Favorites',
+          icon: HeartOff,
           divider: session.user.id === song.uploaderId,
           onClick: async () => {
             const [error] = await removeFavoriteSongFromLibrary({
@@ -208,6 +228,7 @@ const getSongMenuItems = ({
           {
             label: 'Edit Song',
             href: `/songs/update/${song.id}`,
+            icon: Pen,
           },
         ]
       : []),
@@ -245,6 +266,7 @@ const getPlaylistSongMenuItems = ({
     label: playlist.isFavoritePlaylist
       ? 'Remove from Favorites'
       : 'Remove from Playlist',
+    icon: playlist.isFavoritePlaylist ? HeartOff : ListX,
     onClick: async () => {
       const [error] = await removeSongFromPlaylist({
         playlistId: playlist.id,
@@ -293,6 +315,7 @@ const getPlaylistMenuItems = ({
   return [
     {
       label: isCurrentPlaylist ? (isPlaying ? 'Pause' : 'Play') : 'Play',
+      icon: isCurrentPlaylist ? (isPlaying ? Pause : Play) : Play,
       onClick: () => {
         if (isCurrentPlaylist) {
           return setIsPlaying(!isPlaying);
@@ -303,6 +326,7 @@ const getPlaylistMenuItems = ({
     },
     {
       label: 'Play Next',
+      icon: ListStart,
       onClick: async () => {
         const result = await addNextPlaylistToQueue(playlist.id, pathname);
         if (!result) {
@@ -316,6 +340,7 @@ const getPlaylistMenuItems = ({
     },
     {
       label: 'Play Last',
+      icon: ListEnd,
       onClick: async () => {
         const result = await insertPlaylistToBackOfQueue(playlist.id, pathname);
         if (!result) {
@@ -334,10 +359,12 @@ const getPlaylistMenuItems = ({
       ? [
           {
             label: 'Edit Playlist',
+            icon: Pen,
             onClick: () => openPlaylistModal(playlist, 'edit'),
           },
           {
             label: 'Delete',
+            icon: Trash2,
             onClick: async () => openPlaylistModal(playlist, 'delete'),
           },
         ]
@@ -372,6 +399,7 @@ const getQueueMenuItems = ({
   const items: ContextMenuItem[] = [
     {
       label: isCurrentItem && isPlaying ? 'Pause' : 'Play',
+      icon: isCurrentItem && isPlaying ? Pause : Play,
       onClick: () => {
         if (isCurrentItem) return setIsPlaying(!isPlaying);
         setCurrentlyPlayingId(queueItemId);
@@ -381,14 +409,17 @@ const getQueueMenuItems = ({
     },
     {
       label: 'Remove from Queue',
+      icon: ListX,
       onClick: () => removeFromQueue(queueItemId),
       divider: true,
     },
     {
       label: 'Add to Playlist',
+      icon: ListPlus,
       subMenu: [
         {
           label: 'New Playlist',
+          icon: Plus,
           onClick: async () => {
             const playlist = await createPlaylist({
               title: song.title,
@@ -424,6 +455,7 @@ const getQueueMenuItems = ({
   if (isFavorite) {
     items.push({
       label: 'Remove from Favorites',
+      icon: HeartOff,
       onClick: async () => {
         const [error] = await removeFavoriteSongFromLibrary({
           songId: song.id,
@@ -438,6 +470,7 @@ const getQueueMenuItems = ({
   if (!isFavorite) {
     items.push({
       label: 'Add to Favorites',
+      icon: Heart,
       onClick: async () => {
         const [error] = await addFavoriteSongToLibrary({
           songId: song.id,
@@ -454,6 +487,7 @@ const getQueueMenuItems = ({
     items.push({
       label: 'Edit Song',
       href: `/songs/update/${song.id}`,
+      icon: Pen,
     });
   }
 
@@ -486,6 +520,7 @@ const getArtistMenuItems = ({
   const items: ContextMenuItem[] = [
     {
       label: isCurrentArtist ? (isPlaying ? 'Pause' : 'Play') : 'Play',
+      icon: isCurrentArtist ? (isPlaying ? Pause : Play) : Play,
       onClick: () => {
         if (isCurrentArtist) {
           return setIsPlaying(!isPlaying);
@@ -496,6 +531,7 @@ const getArtistMenuItems = ({
     },
     {
       label: 'Play Next',
+      icon: ListStart,
       onClick: async () => {
         const result = await playArtistNext(artist.id, pathname);
         if (!result) {
@@ -509,6 +545,7 @@ const getArtistMenuItems = ({
     },
     {
       label: 'Play Last',
+      icon: ListEnd,
       onClick: async () => {
         const result = await playArtistLast(artist.id, pathname);
         if (!result) {
@@ -523,6 +560,7 @@ const getArtistMenuItems = ({
     },
     {
       label: 'Edit Artist',
+      icon: Pen,
       href: `/artist/update/${artist.id}`,
     },
     ...(artist.songIds.length
@@ -530,6 +568,7 @@ const getArtistMenuItems = ({
       : [
           {
             label: 'Delete',
+            icon: Trash2,
             onClick: async () => {
               // TODO: Delete artist
             },

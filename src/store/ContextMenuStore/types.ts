@@ -1,3 +1,5 @@
+import { LucideIcon } from 'lucide-react';
+
 export type ContextMenuItem = {
   label: string;
   onClick?: () => void;
@@ -6,6 +8,7 @@ export type ContextMenuItem = {
   selectable?: boolean;
   subMenu?: ContextMenuItem[];
   title?: boolean;
+  icon?: LucideIcon;
 };
 
 export type ContextMenuState = {

@@ -24,7 +24,7 @@ const ArtistPage = async ({ params: { id } }: { params: { id: string } }) => {
     },
   });
   const session = await getServerSession();
-  const [err, favoriteSongs] = await getFavoriteSongs();
+  const [err, favoriteSongs] = session ? await getFavoriteSongs() : [null, []];
   const playlists = session ? await getCreatedPlaylists(session) : [];
 
   if (!artist || err || !favoriteSongs) {

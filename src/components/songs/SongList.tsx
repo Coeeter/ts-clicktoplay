@@ -5,7 +5,6 @@ import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Playlist } from '@/actions/playlist';
 import { Session } from 'next-auth';
-import { MdAudiotrack } from 'react-icons/md';
 import { useEffect, useState } from 'react';
 
 type SongListProps = {
@@ -15,6 +14,7 @@ type SongListProps = {
   favoriteSongs: Song[];
   type?: 'list' | 'grid';
   highlight?: boolean;
+  title?: string;
 };
 
 export const SongList = ({
@@ -24,6 +24,7 @@ export const SongList = ({
   favoriteSongs,
   type = 'grid',
   highlight = false,
+  title = 'Top Songs',
 }: SongListProps) => {
   const playSong = useQueueStore(state => state.playSong);
   const createToast = useToastStore(state => state.createToast);
@@ -34,7 +35,7 @@ export const SongList = ({
     const element = document.querySelector('#root')!;
     const onResize = () => {
       setRow(element.clientWidth > window.innerWidth * 0.6);
-    }
+    };
     const observer = new ResizeObserver(onResize);
     observer.observe(element);
     onResize();
@@ -77,18 +78,16 @@ export const SongList = ({
     </div>
   );
 
-  if (highlight) {
+  if (highlight && songs.length > 0) {
     const song = songs[0];
     return (
       <div
-        className={`flex gap-3 items-center ${row ? 'flex-row' : 'flex-col w-full'}`}
+        className={`flex gap-3 items-center ${
+          row ? 'flex-row' : 'flex-col w-full'
+        }`}
       >
-        <div className={`flex flex-col ${
-          row ? '' : 'w-full'
-        }`}>
-          <h2 className="text-2xl font-bold text-slate-200 mb-5">
-            Top Songs <MdAudiotrack className="inline" />
-          </h2>
+        <div className={`flex flex-col ${row ? '' : 'w-full'}`}>
+          <h2 className="text-2xl font-bold text-slate-200 mb-5">{title}</h2>
           <SongItem
             key={song.id}
             session={session}
