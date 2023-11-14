@@ -11,9 +11,14 @@ import { FaPause, FaPlay } from 'react-icons/fa';
 type PlaylistItemProps = {
   playlists: Playlist[];
   session: Session | null;
+  justify?: 'start' | 'between';
 };
 
-export const PlaylistList = ({ playlists, session }: PlaylistItemProps) => {
+export const PlaylistList = ({
+  playlists,
+  session,
+  justify = 'between',
+}: PlaylistItemProps) => {
   const [cols, setCols] = useState(3);
 
   useEffect(() => {
@@ -30,7 +35,11 @@ export const PlaylistList = ({ playlists, session }: PlaylistItemProps) => {
   }, []);
 
   return (
-    <div className="flex justify-between">
+    <div
+      className={`flex ${
+        justify === 'start' ? 'justify-start gap-6' : 'justify-between'
+      }`}
+    >
       {playlists.slice(0, cols).map(playlist => (
         <PlaylistCard key={playlist.id} playlist={playlist} session={session} />
       ))}

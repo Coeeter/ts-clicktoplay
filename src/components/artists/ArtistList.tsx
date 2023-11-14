@@ -12,9 +12,14 @@ type ArtistListProps = {
     songs: Song[];
   })[];
   session: Session | null;
+  justify?: 'between' | 'start';
 };
 
-export const ArtistList = ({ artists, session }: ArtistListProps) => {
+export const ArtistList = ({
+  artists,
+  session,
+  justify = 'between',
+}: ArtistListProps) => {
   const [cols, setCols] = useState(3);
 
   useEffect(() => {
@@ -31,7 +36,11 @@ export const ArtistList = ({ artists, session }: ArtistListProps) => {
   }, []);
 
   return (
-    <div className="flex justify-between">
+    <div
+      className={`flex ${
+        justify === 'start' ? 'justify-start gap-6' : 'justify-between'
+      }`}
+    >
       {artists.slice(0, cols).map(artist => (
         <ArtistCard key={artist.id} artist={artist} session={session} />
       ))}
