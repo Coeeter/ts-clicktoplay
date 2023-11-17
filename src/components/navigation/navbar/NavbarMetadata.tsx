@@ -3,14 +3,14 @@
 import { Playlist } from '@/actions/playlist';
 import { PlayButton } from '@/app/(main)/songs/[songId]/_components/PlayButton';
 import { PlaylistPlayButton } from '@/components/playlist/PlayButton';
+import { AuthSession } from '@/lib/auth';
 import { useNavbarStore } from '@/store/NavbarStore/NavbarStore';
 import { Artist, Song } from '@prisma/client';
-import { Session } from 'next-auth';
 import { useEffect, useRef } from 'react';
 import { MdClose, MdSearch } from 'react-icons/md';
 
 type NavbarMetadataProps = {
-  session?: Session | null;
+  session?: AuthSession | null;
   colors?: {
     darkVibrant?: string;
   };

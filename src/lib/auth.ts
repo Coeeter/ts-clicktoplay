@@ -1,9 +1,14 @@
-import { AuthOptions, getServerSession as getSession } from 'next-auth';
+import {
+  AuthOptions,
+  Session,
+  getServerSession as getSession,
+} from 'next-auth';
 import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
 
 import { prisma } from '@/lib/database';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import { env } from './env';
 
 export const authOptions: AuthOptions = {
   session: {
@@ -11,19 +16,19 @@ export const authOptions: AuthOptions = {
   },
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: env.googleClientId,
+      clientSecret: env.googleClientSecret,
     }),
     EmailProvider({
       server: {
-        host: process.env.EMAIL_SERVER_HOST,
-        port: process.env.EMAIL_SERVER_PORT,
+        host: env.emailServerHost,
+        port: env.emailServerPort,
         auth: {
-          user: process.env.EMAIL_SERVER_USER,
-          pass: process.env.EMAIL_SERVER_PASSWORD,
+          user: env.emailServerUser,
+          pass: env.emailServerPassword,
         },
       },
-      from: process.env.EMAIL_FROM,
+      from: env.emailFrom,
     }),
   ],
   adapter: PrismaAdapter(prisma),
@@ -35,10 +40,13 @@ export const authOptions: AuthOptions = {
       return token;
     },
     session: ({ session, token }) => {
-      if (token.sub) {
-        session.user.id = token.sub;
-      }
-      return session;
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: token.sub,
+        },
+      };
     },
   },
   pages: {
@@ -47,4 +55,15 @@ export const authOptions: AuthOptions = {
   },
 };
 
-export const getServerSession = () => getSession(authOptions);
+export type AuthSession = Omit<Session, 'user'> & {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image: string;
+  };
+};
+
+export const getServerSession = () => {
+  return getSession(authOptions) as Promise<AuthSession | null>;
+};

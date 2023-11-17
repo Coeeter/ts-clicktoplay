@@ -1,19 +1,20 @@
 'use client';
+
 import { Playlist, moveSongsInPlaylist } from '@/actions/playlist';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
-import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { DraggableList } from '../draggable/DraggableList';
 import { PlaylistItem } from './PlaylistItem';
+import { AuthSession } from '@/lib/auth';
 
 type PlaylistItemListProps = {
   songs: Song[];
   playlist: Playlist;
   createdPlaylists: Playlist[];
   favoriteSongs: (Song | undefined)[];
-  session: Session | null;
+  session: AuthSession | null;
 };
 
 export const PlaylistItemList = ({

@@ -1,16 +1,16 @@
 'use client';
 
 import { useCallbackUrl } from '@/hooks/useCallbackUrl';
+import { AuthSession } from '@/lib/auth';
 import { useContextMenuStore } from '@/store/ContextMenuStore';
 import { motion } from 'framer-motion';
-import { Session } from 'next-auth';
 import { useRef } from 'react';
 
 type ProfileButtonProps = {
-  session: Session;
+  session: AuthSession;
 };
 
-const getDropDownItems = (session: Session) => {
+const getDropDownItems = (session: AuthSession) => {
   const callbackUrl = useCallbackUrl({ checkForPathname: '/logout' });
   return [
     {

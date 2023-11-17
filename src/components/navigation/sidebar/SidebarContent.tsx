@@ -1,4 +1,5 @@
 'use client';
+
 import { Playlist } from '@/actions/playlist';
 import {
   setSideBarMoreDetails,
@@ -7,7 +8,6 @@ import {
 } from '@/actions/settings/settings';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToolTip } from '@/hooks/useToolTip';
-import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BiSolidCloudUpload } from 'react-icons/bi';
@@ -16,6 +16,7 @@ import { MdArrowBack, MdArrowForward, MdHome, MdSearch } from 'react-icons/md';
 import { SidebarItemList } from './SidebarItemList';
 import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
 import { NavigationLink } from '@/hooks/useNavigation';
+import { AuthSession } from '@/lib/auth';
 
 const sidebarItems = [
   {
@@ -36,7 +37,7 @@ const sidebarItems = [
 ] as const;
 
 type SidebarContentProps = {
-  session: Session | null;
+  session: AuthSession | null;
   playlists: Playlist[];
   playHistory: { id: string; lastPlayedAt: Date | null }[];
   sideBarOpen: boolean;

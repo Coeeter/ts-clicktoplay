@@ -3,13 +3,13 @@
 import { Playlist } from '@/actions/playlist';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { useContextMenuItems } from '@/hooks/useContextMenu';
+import { AuthSession } from '@/lib/auth';
 import { useQueueStore } from '@/store/QueueStore';
 import { Song, User } from '@prisma/client';
-import { Session } from 'next-auth';
 import { MdMoreHoriz } from 'react-icons/md';
 
 type MoreOptionsButtonProps = {
-  session: Session | null;
+  session: AuthSession | null;
   song: Song & {
     uploader: User;
   };

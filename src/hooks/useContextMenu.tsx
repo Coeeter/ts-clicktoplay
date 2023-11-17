@@ -1,4 +1,5 @@
 'use client';
+
 import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
@@ -20,7 +21,6 @@ import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Artist, Song } from '@prisma/client';
-import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { MouseEventHandler } from 'react';
 import {
@@ -36,6 +36,7 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
+import { AuthSession } from '@/lib/auth';
 
 export const useContextMenu = (
   menuItems: ContextMenuItem[] | (() => ContextMenuItem[])
@@ -56,7 +57,7 @@ export const useContextMenu = (
 };
 
 export type ContextMenuItemProps = {
-  session: Session | null;
+  session: AuthSession | null;
 } & (
   | ({
       type: 'song';
@@ -108,7 +109,7 @@ const getSongMenuItems = ({
   playlists,
   playSong,
 }: {
-  session: Session | null;
+  session: AuthSession | null;
   song: Song;
   isFavorite: boolean;
   playlists: Playlist[];
@@ -296,7 +297,7 @@ const getPlaylistMenuItems = ({
   session,
   playlist,
 }: {
-  session: Session | null;
+  session: AuthSession | null;
   playlist: Playlist;
 }): ContextMenuItem[] => {
   const isPlaying = useQueueStore(state => state.isPlaying);
@@ -383,7 +384,7 @@ const getQueueMenuItems = ({
   song: Song;
   playlists: Playlist[];
   isFavorite: boolean;
-  session: Session | null;
+  session: AuthSession | null;
 }): ContextMenuItem[] => {
   const pathname = usePathname();
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
@@ -498,7 +499,7 @@ const getArtistMenuItems = ({
   session,
   artist,
 }: {
-  session: Session | null;
+  session: AuthSession | null;
   artist: Artist & {
     songs: Song[];
   };

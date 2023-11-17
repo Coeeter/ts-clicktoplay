@@ -1,11 +1,11 @@
 'use client';
 
 import { Playlist } from '@/actions/playlist';
+import { AuthSession } from '@/lib/auth';
 import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
-import { Session } from 'next-auth';
 
 type OpenEditModalProps = {
-  session: Session | null;
+  session: AuthSession | null;
   playlist: Playlist;
   type: 'edit' | 'delete';
   children: React.ReactNode;
@@ -24,7 +24,7 @@ export const OpenPlaylistModal = ({
     playlist.creator.id !== session.user.id ||
     playlist.isFavoritePlaylist
   ) {
-    return <div className='cursor-default'>{children}</div>;
+    return <div className="cursor-default">{children}</div>;
   }
 
   return (

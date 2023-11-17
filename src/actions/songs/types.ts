@@ -1,4 +1,4 @@
-import { Session } from 'next-auth';
+import { AuthSession } from '@/lib/auth';
 
 export type SongId = string;
 
@@ -14,14 +14,14 @@ export type CreateSongProps = {
   duration: number;
   artist: string | null;
   albumCover: string | null;
-  session: Session;
+  session: AuthSession;
 };
 
 export type GetUpdateFileUploadUrlProps = {
   id: string | undefined;
   fileType: string;
   extension: string;
-  session: Session;
+  session: AuthSession;
 };
 
 export type UpdateSongProps = {
@@ -29,5 +29,5 @@ export type UpdateSongProps = {
   title?: string | null;
   artist?: string | null;
   albumCover?: string | null;
-  session: Session;
+  session: AuthSession;
 };

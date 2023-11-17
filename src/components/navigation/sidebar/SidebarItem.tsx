@@ -1,18 +1,19 @@
 'use client';
+
 import { Playlist } from '@/actions/playlist';
 import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { NavigationLink } from '@/hooks/useNavigation';
 import { useToolTip } from '@/hooks/useToolTip';
+import { AuthSession } from '@/lib/auth';
 import { useQueueStore } from '@/store/QueueStore';
 import { format, formatDistanceToNow, isThisMonth } from 'date-fns';
-import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 import { MdVolumeUp } from 'react-icons/md';
 
 type SidebarPlaylistItemProps = {
   playlist: Playlist;
-  session: Session | null;
+  session: AuthSession | null;
   expanded: boolean;
   showMoreDetails: boolean;
   lastPlayed?: Date | null;

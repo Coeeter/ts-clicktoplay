@@ -1,4 +1,4 @@
-import { getServerSession } from '@/lib/auth';
+import { AuthSession, getServerSession } from '@/lib/auth';
 import {
   ApiError,
   UnauthorizedError,
@@ -6,7 +6,6 @@ import {
   createJsonResponse,
 } from './response';
 import { NextRequest, NextResponse } from 'next/server';
-import { Session } from 'next-auth';
 
 type ApiReturnType = {
   status?: number;
@@ -16,14 +15,14 @@ type ApiReturnType = {
 
 export type HandlerType<Params> = (
   req: NextRequest,
-  session: Session | null,
+  session: AuthSession | null,
   params: Params | null
 ) => ApiReturnType | Promise<ApiReturnType>;
 
 type ErrorHandlerType = (
   e: any,
   req: NextRequest,
-  session: Session | null
+  session: AuthSession | null
 ) => ApiReturnType | Promise<ApiReturnType>;
 
 type ProtectedApiRouteType = <Params>(
@@ -45,7 +44,7 @@ type PublicApiRouteType = <Params>(
 const errorHandler = async (
   e: any,
   req: NextRequest,
-  session: Session | null,
+  session: AuthSession | null,
   onError?: ErrorHandlerType
 ) => {
   console.log(e);
@@ -68,11 +67,13 @@ export const protectedApiRoute: ProtectedApiRouteType = <Params>(
   onError?: ErrorHandlerType
 ) => {
   return async (request: NextRequest, { params }: { params: Params }) => {
-    let session: Session | null = null;
+    let session: AuthSession | null = null;
     try {
       session = await getServerSession();
       if (!session?.user) {
-        throw new UnauthorizedError('You must be logged in to perform this action');
+        throw new UnauthorizedError(
+          'You must be logged in to perform this action'
+        );
       }
       const result = await handler(request, session, params);
       if (!result) return new NextResponse(null, { status: 204 });

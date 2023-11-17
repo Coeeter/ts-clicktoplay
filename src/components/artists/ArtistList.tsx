@@ -1,9 +1,10 @@
 'use client';
+
 import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { NavigationLink } from '@/hooks/useNavigation';
+import { AuthSession } from '@/lib/auth';
 import { useQueueStore } from '@/store/QueueStore';
 import { Artist, Song } from '@prisma/client';
-import { Session } from 'next-auth';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaPause, FaPlay } from 'react-icons/fa';
 
@@ -11,7 +12,7 @@ type ArtistListProps = {
   artists: (Artist & {
     songs: Song[];
   })[];
-  session: Session | null;
+  session: AuthSession | null;
   justify?: 'between' | 'start';
 };
 
@@ -52,7 +53,7 @@ type ArtistCardProps = {
   artist: Artist & {
     songs: Song[];
   };
-  session: Session | null;
+  session: AuthSession | null;
 };
 
 const ArtistCard = ({ artist, session }: ArtistCardProps) => {

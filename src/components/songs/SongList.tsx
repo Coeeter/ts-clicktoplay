@@ -1,16 +1,17 @@
 'use client';
+
 import { Song } from '@prisma/client';
 import { SongItem } from './SongItem';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Playlist } from '@/actions/playlist';
-import { Session } from 'next-auth';
 import { useEffect, useState } from 'react';
+import { AuthSession } from '@/lib/auth';
 
 type SongListProps = {
   songs: Song[];
   playlists: Playlist[];
-  session: Session | null;
+  session: AuthSession | null;
   favoriteSongs: Song[];
   type?: 'list' | 'grid';
   highlight?: boolean;

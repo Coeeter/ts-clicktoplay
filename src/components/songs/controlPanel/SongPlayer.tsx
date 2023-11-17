@@ -15,11 +15,11 @@ import { TbRepeat, TbRepeatOnce } from 'react-icons/tb';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { addPlayHistory } from '@/actions/queue';
-import { Session } from 'next-auth';
+import { AuthSession } from '@/lib/auth';
 
 type SongPlayerProps = {
   songs: Song[];
-  session: Session | null;
+  session: AuthSession | null;
 };
 
 export const SongPlayer = ({ songs, session }: SongPlayerProps) => {

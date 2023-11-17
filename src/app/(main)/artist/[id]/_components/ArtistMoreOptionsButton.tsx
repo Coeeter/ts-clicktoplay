@@ -2,12 +2,12 @@
 
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { useContextMenuItems } from '@/hooks/useContextMenu';
+import { AuthSession } from '@/lib/auth';
 import { Artist, Song } from '@prisma/client';
-import { Session } from 'next-auth';
 import { MdMoreHoriz } from 'react-icons/md';
 
 type ArtistMoreOptionsButtonProps = {
-  session: Session | null;
+  session: AuthSession | null;
   artist: Artist & {
     songs: Song[];
   };

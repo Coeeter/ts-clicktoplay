@@ -1,56 +1,56 @@
 import { RepeatMode } from '@prisma/client';
-import { Session } from 'next-auth';
 import { getQueue } from './queue';
 import { SongId } from '../songs';
+import { AuthSession } from '@/lib/auth';
 
 export type QueueItemId = string;
 
 export type Queue = Awaited<ReturnType<typeof getQueue>>;
 
 export type PlayPlaylistProps = {
-  session: Session;
+  session: AuthSession;
   playlistId: string;
   currentSongId?: SongId;
 };
 
 export type PlaySongProps = {
-  session: Session;
+  session: AuthSession;
   songId: SongId;
   songIds: SongId[];
 };
 
 export type UpdateCurrentSongInQueueProps = {
-  session: Session;
+  session: AuthSession;
   currentQueueItemId: QueueItemId;
 };
 
 export type InsertSongsToQueueProps = {
-  session: Session;
+  session: AuthSession;
   songs: SongId[];
 };
 
 export type RemoveSongsFromQueueProps = {
-  session: Session;
+  session: AuthSession;
   queueItemIds: QueueItemId[];
 };
 
 export type MoveSongsInQueueProps = {
-  session: Session;
+  session: AuthSession;
   queueItemIds: QueueItemId[];
   nextId: QueueItemId | null;
   prevId: QueueItemId | null;
 };
 
 export type ClearQueueProps = {
-  session: Session;
+  session: AuthSession;
 };
 
 export type DeleteQueueProps = {
-  session: Session;
+  session: AuthSession;
 };
 
 export type UpdateQueueSettingsProps = {
-  session: Session;
+  session: AuthSession;
   isShuffled?: boolean;
   repeatMode?: RepeatMode;
   newOrder?: SongId[];

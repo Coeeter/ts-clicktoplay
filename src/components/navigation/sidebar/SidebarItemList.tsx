@@ -1,17 +1,18 @@
 'use client';
+
 import { Playlist } from '@/actions/playlist';
 import { useContextMenuStore } from '@/store/ContextMenuStore';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Session } from 'next-auth';
 import { useEffect, useMemo, useState } from 'react';
 import { AiOutlineSearch } from 'react-icons/ai';
 import { MdArrowDropDown } from 'react-icons/md';
 import { SidebarItem } from './SidebarItem';
 import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
+import { AuthSession } from '@/lib/auth';
 
 type SidebarItemListProps = {
   playlists: Playlist[];
-  session: Session;
+  session: AuthSession;
   history: { id: string; lastPlayedAt: Date | null }[];
   expanded: boolean;
   showMoreDetails: boolean;

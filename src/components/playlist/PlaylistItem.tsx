@@ -1,4 +1,5 @@
 'use client';
+
 import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
@@ -14,12 +15,12 @@ import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { useMounted } from '@/hooks/useMounted';
 import { NavigationLink } from '@/hooks/useNavigation';
+import { AuthSession } from '@/lib/auth';
 import { useContextMenuStore } from '@/store/ContextMenuStore';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { format, formatDistanceToNow, isThisWeek } from 'date-fns';
-import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { HiPause, HiPlay } from 'react-icons/hi2';
@@ -32,7 +33,7 @@ type PlaylistItemProps = {
   listOrder: number;
   isFavorite: boolean;
   isDragging: boolean;
-  session: Session | null;
+  session: AuthSession | null;
 };
 
 export const PlaylistItem = ({

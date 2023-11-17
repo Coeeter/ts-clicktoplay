@@ -1,15 +1,16 @@
 'use client';
+
 import { Playlist } from '@/actions/playlist';
 import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { NavigationLink } from '@/hooks/useNavigation';
+import { AuthSession } from '@/lib/auth';
 import { useQueueStore } from '@/store/QueueStore';
-import { Session } from 'next-auth';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaPause, FaPlay } from 'react-icons/fa';
 
 type PlaylistItemProps = {
   playlists: Playlist[];
-  session: Session | null;
+  session: AuthSession | null;
   justify?: 'start' | 'between';
 };
 
@@ -48,7 +49,7 @@ export const PlaylistList = ({
 
 type PlaylistCardProps = {
   playlist: Playlist;
-  session: Session | null;
+  session: AuthSession | null;
 };
 
 const PlaylistCard = ({ playlist, session }: PlaylistCardProps) => {

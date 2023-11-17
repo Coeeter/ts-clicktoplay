@@ -1,19 +1,20 @@
 'use client';
+
 import { Playlist } from '@/actions/playlist';
 import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
 import { sortLinkedList } from '@/utils/linkedList';
 import { Song } from '@prisma/client';
-import { Session } from 'next-auth';
 import { useEffect, useState } from 'react';
 import { DraggableList } from '../draggable/DraggableList';
 import { QueueItem } from './QueueItem';
+import { AuthSession } from '@/lib/auth';
 
 type QueueListProps = {
   songs: Song[];
   favoriteSongs: (Song | undefined)[];
   playlists: Playlist[];
-  session: Session | null;
+  session: AuthSession | null;
 };
 
 export const QueueList = ({

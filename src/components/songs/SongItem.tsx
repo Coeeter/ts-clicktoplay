@@ -1,4 +1,5 @@
 'use client';
+
 import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
@@ -10,7 +11,6 @@ import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { format, formatDistanceToNow, isThisWeek } from 'date-fns';
-import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { FaPause, FaPlay } from 'react-icons/fa';
@@ -19,12 +19,13 @@ import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { NavigationLink } from '@/hooks/useNavigation';
 import { HiPause, HiPlay } from 'react-icons/hi2';
+import { AuthSession } from '@/lib/auth';
 
 type SongItemProps = {
   song: Song;
   playlists: Playlist[];
   playSong: () => void;
-  session: Session | null;
+  session: AuthSession | null;
   isFavorite: boolean;
   type: 'list' | 'grid';
   highlight?: boolean;
@@ -111,7 +112,7 @@ const SongListItem = ({
   isCurrentSong: boolean;
   isFavorite: boolean;
   contextMenuItems: ContextMenuItem[];
-  session: Session | null;
+  session: AuthSession | null;
 }) => {
   const [isContextMenuShowing, setIsContextMenuShowing] = useState(false);
   const createToast = useToastStore(state => state.createToast);

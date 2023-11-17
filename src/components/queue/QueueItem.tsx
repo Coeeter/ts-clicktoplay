@@ -17,8 +17,8 @@ import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
 import { useEffect, useState } from 'react';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
-import { Session } from 'next-auth';
 import { NavigationLink } from '@/hooks/useNavigation';
+import { AuthSession } from '@/lib/auth';
 
 type QueuItemProps = {
   queueItem: QueueItemType;
@@ -28,7 +28,7 @@ type QueuItemProps = {
   isFavorite: boolean;
   playlists: Playlist[];
   isDragging: boolean;
-  session: Session | null;
+  session: AuthSession | null;
 };
 
 export const QueueItem = ({

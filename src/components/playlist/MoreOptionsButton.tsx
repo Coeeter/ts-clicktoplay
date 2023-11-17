@@ -4,11 +4,11 @@ import { Playlist } from '@/actions/playlist';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { useContextMenuItems } from '@/hooks/useContextMenu';
 import { useToolTip } from '@/hooks/useToolTip';
-import { Session } from 'next-auth';
+import { AuthSession } from '@/lib/auth';
 import { MdMoreHoriz } from 'react-icons/md';
 
 type MoreOptionsButtonProps = {
-  session: Session | null;
+  session: AuthSession | null;
   playlist: Playlist;
 };
 

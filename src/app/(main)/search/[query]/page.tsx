@@ -2,8 +2,8 @@ import { getFavoriteSongs } from '@/actions/library';
 import { ArtistList } from '@/components/artists/ArtistList';
 import { PlaylistList } from '@/components/playlist/search/PlaylistList';
 import { SongList } from '@/components/songs/SongList';
+import { getServerSession } from '@/lib/auth';
 import { prisma } from '@/lib/database';
-import { getServerSession } from 'next-auth';
 import Link from 'next/link';
 
 const badges = [

@@ -1,14 +1,14 @@
 'use client';
 
 import { Playlist } from '@/actions/playlist';
+import { AuthSession } from '@/lib/auth';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
-import { Session } from 'next-auth';
 import { MdPause, MdPlayArrow } from 'react-icons/md';
 
 type PlaylistPlayButtonProps = {
   playlist: Playlist;
-  session: Session | null;
+  session: AuthSession | null;
   size?: 'normal' | 'small';
 };
 
