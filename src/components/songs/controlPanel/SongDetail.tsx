@@ -38,7 +38,7 @@ export const SongDetail = ({ songs, favoriteSongs }: SongDetailProps) => {
   }, [currentSong, favoriteSongs, songs]);
 
   const { register: registerFavBtn, removeTooltip } = useToolTip({
-    content: isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+    content: isFavorite ? 'Unfavorite' : 'Favorite',
   });
 
   if (!mounted || !currentSong) return <div className="h-16 flex-1" />;

@@ -86,7 +86,7 @@ const Menu = ({
       {isOpen && (
         <motion.div
           ref={ref}
-          className={`w-52 bg-slate-900 rounded-md shadow-lg shadow-slate-900/80 absolute z-50 p-1 ${
+          className={`w-56 bg-slate-900 rounded-md shadow-lg shadow-slate-900/80 absolute z-50 p-1 ${
             isSubMenu ? 'overflow-y-auto max-h-72' : ''
           }`}
           style={{

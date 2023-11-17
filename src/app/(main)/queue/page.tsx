@@ -1,17 +1,15 @@
 import { QueueList } from '@/components/queue/QueueList';
-import { WithAuth } from '@/components/server/WithAuth';
+import { withAuth } from '@/components/auth/WithAuth';
 import { getSongs } from '@/actions/songs';
 import { Metadata } from 'next';
 import { getCreatedPlaylists } from '@/actions/playlist';
-import { getServerSession } from '@/lib/auth';
 
 export const metadata: Metadata = {
   title: 'Queue | ClickToPlay',
 };
 
-export default async function QueuePage() {
+const QueuePage = withAuth(async ({ session }) => {
   const songs = await getSongs();
-  const session = await getServerSession();
   const playlists = session ? await getCreatedPlaylists(session) : [];
   const favoriteSongs =
     playlists
@@ -19,14 +17,14 @@ export default async function QueuePage() {
       ?.items?.map(item => songs.find(song => song.id === item.songId)) ?? [];
 
   return (
-    <WithAuth>
-      <div className="px-6 pt-[64px]">
-        <QueueList
-          songs={songs}
-          favoriteSongs={favoriteSongs}
-          playlists={playlists.filter(p => !p.isFavoritePlaylist)}
-        />
-      </div>
-    </WithAuth>
+    <div className="px-6 pt-[64px]">
+      <QueueList
+        songs={songs}
+        favoriteSongs={favoriteSongs}
+        playlists={playlists.filter(p => !p.isFavoritePlaylist)}
+      />
+    </div>
   );
-}
+});
+
+export default QueuePage;

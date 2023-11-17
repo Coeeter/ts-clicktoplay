@@ -67,3 +67,9 @@ export type AuthSession = Omit<Session, 'user'> & {
 export const getServerSession = () => {
   return getSession(authOptions) as Promise<AuthSession | null>;
 };
+
+export type AuthParams = {
+  authenticated?: boolean;
+  redirectTo?: string;
+  userId?: string;
+};

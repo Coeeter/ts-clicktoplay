@@ -11,7 +11,7 @@ export const useContextMenuStore = create<ContextMenuStore>(set => ({
   },
   openContextMenu: (x, y, menuItems) => {
     const heightOfMenu = menuItems.length * 50 + 100;
-    const widthOfMenu = 250;
+    const widthOfMenu = 256;
     const rawY = y - window.scrollY;
 
     const transformOrigin = {

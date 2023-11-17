@@ -262,7 +262,7 @@ const getPlaylistContextMenuItems = ({
     },
     {
       label: playlist.isFavoritePlaylist
-        ? 'Remove from Favorites'
+        ? 'Unfavorite'
         : 'Remove from Playlist',
       onClick: async () => {
         const [error] = await removeSongFromPlaylist({
@@ -323,7 +323,7 @@ const getPlaylistContextMenuItems = ({
       ? []
       : [
           {
-            label: isFavorite ? 'Remove from favorites' : 'Add to Favorites',
+            label: isFavorite ? 'Unfavorite' : 'Favorite',
             onClick: async () => {
               if (isFavorite) {
                 const [error] = await removeFavoriteSongFromLibrary({

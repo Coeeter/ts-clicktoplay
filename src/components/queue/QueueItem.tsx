@@ -257,7 +257,7 @@ function getContextMenuItems(
     },
     isFavorite
       ? {
-          label: 'Remove from Favorites',
+          label: 'Unfavorite',
           onClick: async () => {
             const [error] = await removeFavoriteSongFromLibrary({
               songId: song.id,
@@ -268,7 +268,7 @@ function getContextMenuItems(
           },
         }
       : {
-          label: 'Add to Favorites',
+          label: 'Favorite',
           onClick: async () => {
             const [error] = await addFavoriteSongToLibrary({
               songId: song.id,

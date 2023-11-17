@@ -7,7 +7,7 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Log Out | ClickToPlay',
-}
+};
 
 export default async function Logout({
   searchParams,

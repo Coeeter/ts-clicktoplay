@@ -1,33 +1,46 @@
 import { prisma } from '@/lib/database';
 import { redirect } from 'next/navigation';
 import { UpdateSongForm } from './UpdateSongForm';
-import { WithAuth } from '@/components/server/WithAuth';
+import { withAuth } from '@/components/auth/WithAuth';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Update Song | ClickToPlay',
 };
 
-export default async function UpdateSongPage({
-  params: { id },
-}: {
-  params: { id: string };
-}) {
-  const song = await prisma.song.findUnique({
-    where: {
-      id: id,
-    },
-  });
+const UpdateSongPage = withAuth<{ params: { id: string } }>(
+  async ({ params: { id } }) => {
+    const song = await prisma.song.findUnique({
+      where: {
+        id: id,
+      },
+    });
 
-  if (!song) {
-    return redirect('/');
-  }
+    if (!song) {
+      return redirect('/');
+    }
 
-  return (
-    <WithAuth userId={song.uploaderId}>
+    return (
       <div className="pb-6">
         <UpdateSongForm song={song} />
       </div>
-    </WithAuth>
-  );
-}
+    );
+  },
+  {
+    callbackUrl: props => `/song/update/${props.params.id}`,
+    hasPermissions: async (userId, props) => {
+      return (
+        userId ===
+        (
+          await prisma.song.findUnique({
+            where: {
+              id: props.params.id,
+            },
+          })
+        )?.uploaderId
+      );
+    },
+  }
+);
+
+export default UpdateSongPage;

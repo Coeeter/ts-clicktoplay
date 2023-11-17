@@ -199,7 +199,7 @@ const getSongMenuItems = ({
     },
     !isFavorite
       ? {
-          label: 'Add to Favorites',
+          label: 'Favorite',
           divider: session.user.id === song.uploaderId,
           icon: Heart,
           onClick: async () => {
@@ -212,7 +212,7 @@ const getSongMenuItems = ({
           },
         }
       : {
-          label: 'Remove from Favorites',
+          label: 'Unfavorite',
           icon: HeartOff,
           divider: session.user.id === song.uploaderId,
           onClick: async () => {
@@ -248,15 +248,15 @@ const getPlaylistSongMenuItems = ({
 
   if (playlist.isFavoritePlaylist) {
     if (
-      items[items.length - 1].label === 'Add to Favorites' ||
-      items[items.length - 1].label === 'Remove from Favorites'
+      items[items.length - 1].label === 'Favorite' ||
+      items[items.length - 1].label === 'Unfavorite'
     ) {
       items.pop();
     }
 
     if (
-      items[items.length - 2].label === 'Add to Favorites' ||
-      items[items.length - 2].label === 'Remove from Favorites'
+      items[items.length - 2].label === 'Favorite' ||
+      items[items.length - 2].label === 'Unfavorite'
     ) {
       items.splice(items.length - 2, 1);
       items[items.length - 2].divider = true;
@@ -264,9 +264,7 @@ const getPlaylistSongMenuItems = ({
   }
 
   const favoriteItem = {
-    label: playlist.isFavoritePlaylist
-      ? 'Remove from Favorites'
-      : 'Remove from Playlist',
+    label: playlist.isFavoritePlaylist ? 'Unfavorite' : 'Remove from Playlist',
     icon: playlist.isFavoritePlaylist ? HeartOff : ListX,
     onClick: async () => {
       const [error] = await removeSongFromPlaylist({
@@ -455,7 +453,7 @@ const getQueueMenuItems = ({
 
   if (isFavorite) {
     items.push({
-      label: 'Remove from Favorites',
+      label: 'Unfavorite',
       icon: HeartOff,
       onClick: async () => {
         const [error] = await removeFavoriteSongFromLibrary({
@@ -470,7 +468,7 @@ const getQueueMenuItems = ({
 
   if (!isFavorite) {
     items.push({
-      label: 'Add to Favorites',
+      label: 'Favorite',
       icon: Heart,
       onClick: async () => {
         const [error] = await addFavoriteSongToLibrary({
