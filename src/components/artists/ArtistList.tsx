@@ -2,7 +2,7 @@
 
 import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { NavigationLink } from '@/hooks/useNavigation';
-import { AuthSession } from '@/lib/auth';
+import { useClientSession } from '@/hooks/useSession';
 import { useQueueStore } from '@/store/QueueStore';
 import { Artist, Song } from '@prisma/client';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -12,13 +12,11 @@ type ArtistListProps = {
   artists: (Artist & {
     songs: Song[];
   })[];
-  session: AuthSession | null;
   justify?: 'between' | 'start';
 };
 
 export const ArtistList = ({
   artists,
-  session,
   justify = 'between',
 }: ArtistListProps) => {
   const [cols, setCols] = useState(3);
@@ -43,7 +41,7 @@ export const ArtistList = ({
       }`}
     >
       {artists.slice(0, cols).map(artist => (
-        <ArtistCard key={artist.id} artist={artist} session={session} />
+        <ArtistCard key={artist.id} artist={artist} />
       ))}
     </div>
   );
@@ -53,10 +51,10 @@ type ArtistCardProps = {
   artist: Artist & {
     songs: Song[];
   };
-  session: AuthSession | null;
 };
 
-const ArtistCard = ({ artist, session }: ArtistCardProps) => {
+const ArtistCard = ({ artist }: ArtistCardProps) => {
+  const { session } = useClientSession();
   const currentlyPlayingSong = useQueueStore(state => state.currentlyPlayingId);
   const queueItems = useQueueStore(state => state.items);
   const isPlaying = useQueueStore(state => state.isPlaying);

@@ -64,7 +64,6 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
   return (
     <div className="flex flex-col min-h-full">
       <NavbarMetadata
-        session={session}
         type="song"
         colors={primaryColor}
         song={song}
@@ -124,14 +123,9 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
         }}
       >
         <section className="flex gap-6 mt-3">
-          <PlayButton
-            song={song}
-            songs={[song, ...allSongs]}
-            session={session}
-          />
+          <PlayButton song={song} songs={[song, ...allSongs]} />
           <FavoriteButton
             song={song}
-            session={session}
             isFavorite={
               favoriteSongs?.find(s => s.id === song.id) !== undefined
             }
@@ -139,7 +133,6 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
           {session && (
             <MoreOptionsButton
               song={song}
-              session={session}
               songs={[song, ...allSongs]}
               isFavorite={
                 favoriteSongs?.find(s => s.id === song.id) !== undefined
@@ -162,7 +155,6 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
             songs={allSongs}
             favoriteSongs={favoriteSongs ?? []}
             playlists={createdPlaylists}
-            session={session}
             type="list"
           />
         </section>

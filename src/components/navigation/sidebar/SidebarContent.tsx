@@ -16,7 +16,7 @@ import { MdArrowBack, MdArrowForward, MdHome, MdSearch } from 'react-icons/md';
 import { SidebarItemList } from './SidebarItemList';
 import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
 import { NavigationLink } from '@/hooks/useNavigation';
-import { AuthSession } from '@/lib/auth';
+import { useClientSession } from '@/hooks/useSession';
 
 const sidebarItems = [
   {
@@ -37,7 +37,6 @@ const sidebarItems = [
 ] as const;
 
 type SidebarContentProps = {
-  session: AuthSession | null;
   playlists: Playlist[];
   playHistory: { id: string; lastPlayedAt: Date | null }[];
   sideBarOpen: boolean;
@@ -46,13 +45,13 @@ type SidebarContentProps = {
 };
 
 export const SidebarContent = ({
-  session,
   playlists,
   playHistory,
   sideBarOpen,
   sideBarMoreDetails,
   sideBarWidth,
 }: SidebarContentProps) => {
+  const { session } = useClientSession();
   const [expanded, setExpanded] = useState(sideBarOpen);
   const [showMoreDetails, setshowMoreDetails] = useState(sideBarMoreDetails);
   const [widthPx, setWidthPx] = useState(sideBarWidth);
@@ -221,7 +220,6 @@ export const SidebarContent = ({
                 <div className="overflow-y-auto max-h-full no-scrollbar">
                   <SidebarItemList
                     playlists={playlists}
-                    session={session}
                     history={playHistory}
                     expanded={expanded!}
                     showMoreDetails={showMoreDetails}

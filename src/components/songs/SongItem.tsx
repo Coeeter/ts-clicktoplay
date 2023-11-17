@@ -1,5 +1,4 @@
 'use client';
-
 import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
@@ -19,13 +18,12 @@ import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { NavigationLink } from '@/hooks/useNavigation';
 import { HiPause, HiPlay } from 'react-icons/hi2';
-import { AuthSession } from '@/lib/auth';
+import { useClientSession } from '@/hooks/useSession';
 
 type SongItemProps = {
   song: Song;
   playlists: Playlist[];
   playSong: () => void;
-  session: AuthSession | null;
   isFavorite: boolean;
   type: 'list' | 'grid';
   highlight?: boolean;
@@ -35,11 +33,11 @@ export const SongItem = ({
   song,
   playlists,
   playSong,
-  session,
   isFavorite,
   type = 'grid',
   highlight = false,
 }: SongItemProps) => {
+  const { session } = useClientSession();
   const isPlaying = useQueueStore(state => state.isPlaying);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const currentlyPlayingQueueItem = useQueueStore(state =>
@@ -74,7 +72,6 @@ export const SongItem = ({
         isCurrentSong={isCurrentSong}
         isFavorite={isFavorite}
         contextMenuItems={contextMenuItems}
-        session={session}
       />
     );
   }
@@ -103,7 +100,6 @@ const SongListItem = ({
   isCurrentSong,
   isFavorite,
   contextMenuItems,
-  session,
 }: {
   song: Song;
   playSong: () => void;
@@ -112,8 +108,8 @@ const SongListItem = ({
   isCurrentSong: boolean;
   isFavorite: boolean;
   contextMenuItems: ContextMenuItem[];
-  session: AuthSession | null;
 }) => {
+  const { session } = useClientSession();
   const [isContextMenuShowing, setIsContextMenuShowing] = useState(false);
   const createToast = useToastStore(state => state.createToast);
   const pathname = usePathname();

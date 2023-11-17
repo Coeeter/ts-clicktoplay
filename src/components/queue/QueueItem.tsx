@@ -1,3 +1,5 @@
+'use client';
+
 import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
@@ -18,7 +20,7 @@ import { useEffect, useState } from 'react';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { NavigationLink } from '@/hooks/useNavigation';
-import { AuthSession } from '@/lib/auth';
+import { useClientSession } from '@/hooks/useSession';
 
 type QueuItemProps = {
   queueItem: QueueItemType;
@@ -28,7 +30,6 @@ type QueuItemProps = {
   isFavorite: boolean;
   playlists: Playlist[];
   isDragging: boolean;
-  session: AuthSession | null;
 };
 
 export const QueueItem = ({
@@ -39,8 +40,8 @@ export const QueueItem = ({
   isFavorite,
   playlists,
   isDragging,
-  session,
 }: QueuItemProps) => {
+  const { session } = useClientSession();
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const pathname = usePathname();
   const isPlaying = useQueueStore(state => state.isPlaying && isCurrentItem);

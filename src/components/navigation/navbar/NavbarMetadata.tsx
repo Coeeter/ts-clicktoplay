@@ -1,16 +1,14 @@
 'use client';
-
 import { Playlist } from '@/actions/playlist';
 import { PlayButton } from '@/app/(main)/songs/[songId]/_components/PlayButton';
 import { PlaylistPlayButton } from '@/components/playlist/PlayButton';
-import { AuthSession } from '@/lib/auth';
+import { useClientSession } from '@/hooks/useSession';
 import { useNavbarStore } from '@/store/NavbarStore/NavbarStore';
 import { Artist, Song } from '@prisma/client';
 import { useEffect, useRef } from 'react';
 import { MdClose, MdSearch } from 'react-icons/md';
 
 type NavbarMetadataProps = {
-  session?: AuthSession | null;
   colors?: {
     darkVibrant?: string;
   };
@@ -45,11 +43,8 @@ type NavbarMetadataProps = {
       }
   );
 
-export const NavbarMetadata = ({
-  colors,
-  session,
-  ...props
-}: NavbarMetadataProps) => {
+export const NavbarMetadata = ({ colors, ...props }: NavbarMetadataProps) => {
+  const { session } = useClientSession();
   const sticky = useNavbarStore(state => state.sticky);
   const setColor = useNavbarStore(state => state.setCollapseColor);
   const setContent = useNavbarStore(state => state.setContent);
@@ -62,11 +57,7 @@ export const NavbarMetadata = ({
       setContent({
         node: (
           <div className="flex items-center gap-2">
-            <PlaylistPlayButton
-              playlist={props.playlist}
-              session={session}
-              size="small"
-            />
+            <PlaylistPlayButton playlist={props.playlist} size="small" />
             <h1 className="text-2xl font-bold text-slate-200">
               {props.playlist.title}
             </h1>
@@ -87,7 +78,6 @@ export const NavbarMetadata = ({
         node: (
           <div className="flex items-center gap-2">
             <PlayButton
-              session={session}
               song={props.song}
               songs={props.songsInQueue}
               size="small"
@@ -112,7 +102,6 @@ export const NavbarMetadata = ({
         node: (
           <div className="flex items-center gap-2">
             <PlayButton
-              session={session}
               song={props.artist.songs[0]}
               songs={props.artist.songs}
               size="small"

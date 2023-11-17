@@ -1,6 +1,6 @@
 'use client';
 
-import { AuthSession } from '@/lib/auth';
+import { useClientSession } from '@/hooks/useSession';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
@@ -9,16 +9,15 @@ import { MdPause, MdPlayArrow } from 'react-icons/md';
 type PlayButtonProps = {
   song: Song;
   songs: Song[];
-  session: AuthSession | null;
   size?: 'normal' | 'small';
 };
 
 export const PlayButton = ({
   song,
   songs,
-  session,
   size = 'normal',
 }: PlayButtonProps) => {
+  const { session } = useClientSession();
   const isPlaying = useQueueStore(state => state.isPlaying);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const playSong = useQueueStore(state => state.playSong);

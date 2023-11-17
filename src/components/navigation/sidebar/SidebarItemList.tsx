@@ -8,11 +8,9 @@ import { AiOutlineSearch } from 'react-icons/ai';
 import { MdArrowDropDown } from 'react-icons/md';
 import { SidebarItem } from './SidebarItem';
 import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
-import { AuthSession } from '@/lib/auth';
 
 type SidebarItemListProps = {
   playlists: Playlist[];
-  session: AuthSession;
   history: { id: string; lastPlayedAt: Date | null }[];
   expanded: boolean;
   showMoreDetails: boolean;
@@ -34,7 +32,6 @@ const playlistSorts = [
 
 export const SidebarItemList = ({
   playlists,
-  session,
   history,
   expanded,
   showMoreDetails,
@@ -93,7 +90,6 @@ export const SidebarItemList = ({
             <motion.div key={playlist.id} layout={'position'}>
               <SidebarItem
                 playlist={playlist}
-                session={session}
                 expanded={expanded}
                 showMoreDetails={false}
               />
@@ -164,7 +160,6 @@ export const SidebarItemList = ({
             >
               <SidebarItem
                 playlist={playlist}
-                session={session}
                 expanded={expanded}
                 showMoreDetails={showMoreDetails}
                 lastPlayed={

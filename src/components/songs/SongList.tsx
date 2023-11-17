@@ -1,17 +1,14 @@
 'use client';
-
 import { Song } from '@prisma/client';
 import { SongItem } from './SongItem';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Playlist } from '@/actions/playlist';
 import { useEffect, useState } from 'react';
-import { AuthSession } from '@/lib/auth';
 
 type SongListProps = {
   songs: Song[];
   playlists: Playlist[];
-  session: AuthSession | null;
   favoriteSongs: Song[];
   type?: 'list' | 'grid';
   highlight?: boolean;
@@ -21,7 +18,6 @@ type SongListProps = {
 export const SongList = ({
   songs,
   playlists,
-  session,
   favoriteSongs,
   type = 'grid',
   highlight = false,
@@ -56,7 +52,6 @@ export const SongList = ({
       {displayedSongs.map(song => (
         <SongItem
           key={song.id}
-          session={session}
           song={song}
           playlists={playlists}
           isFavorite={favoriteSongs.find(s => s.id === song.id) !== undefined}
@@ -91,7 +86,6 @@ export const SongList = ({
           <h2 className="text-2xl font-bold text-slate-200 mb-5">{title}</h2>
           <SongItem
             key={song.id}
-            session={session}
             song={song}
             playlists={playlists}
             isFavorite={favoriteSongs.find(s => s.id === song.id) !== undefined}

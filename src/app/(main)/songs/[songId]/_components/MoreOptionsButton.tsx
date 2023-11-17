@@ -1,15 +1,13 @@
 'use client';
-
 import { Playlist } from '@/actions/playlist';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { useContextMenuItems } from '@/hooks/useContextMenu';
-import { AuthSession } from '@/lib/auth';
+import { useClientSession } from '@/hooks/useSession';
 import { useQueueStore } from '@/store/QueueStore';
 import { Song, User } from '@prisma/client';
 import { MdMoreHoriz } from 'react-icons/md';
 
 type MoreOptionsButtonProps = {
-  session: AuthSession | null;
   song: Song & {
     uploader: User;
   };
@@ -19,12 +17,12 @@ type MoreOptionsButtonProps = {
 };
 
 export const MoreOptionsButton = ({
-  session,
   song,
   songs,
   playlists,
   isFavorite,
 }: MoreOptionsButtonProps) => {
+  const { session } = useClientSession();
   const playSong = useQueueStore(state => state.playSong);
   const contextMenuItems = useContextMenuItems({
     type: 'song',

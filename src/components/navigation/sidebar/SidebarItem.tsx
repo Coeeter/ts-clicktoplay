@@ -1,10 +1,9 @@
 'use client';
-
 import { Playlist } from '@/actions/playlist';
 import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { NavigationLink } from '@/hooks/useNavigation';
+import { useClientSession } from '@/hooks/useSession';
 import { useToolTip } from '@/hooks/useToolTip';
-import { AuthSession } from '@/lib/auth';
 import { useQueueStore } from '@/store/QueueStore';
 import { format, formatDistanceToNow, isThisMonth } from 'date-fns';
 import { usePathname } from 'next/navigation';
@@ -13,7 +12,6 @@ import { MdVolumeUp } from 'react-icons/md';
 
 type SidebarPlaylistItemProps = {
   playlist: Playlist;
-  session: AuthSession | null;
   expanded: boolean;
   showMoreDetails: boolean;
   lastPlayed?: Date | null;
@@ -21,11 +19,11 @@ type SidebarPlaylistItemProps = {
 
 export const SidebarItem = ({
   playlist,
-  session,
   expanded,
   showMoreDetails,
   lastPlayed,
 }: SidebarPlaylistItemProps) => {
+  const { session } = useClientSession();
   const pathname = usePathname();
   const isPlaying = useQueueStore(state => state.isPlaying);
   const currentlyPlayingSong = useQueueStore(state =>

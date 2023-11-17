@@ -1,5 +1,4 @@
 'use client';
-
 import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
@@ -15,7 +14,7 @@ import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { useMounted } from '@/hooks/useMounted';
 import { NavigationLink } from '@/hooks/useNavigation';
-import { AuthSession } from '@/lib/auth';
+import { useClientSession } from '@/hooks/useSession';
 import { useContextMenuStore } from '@/store/ContextMenuStore';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
@@ -33,7 +32,6 @@ type PlaylistItemProps = {
   listOrder: number;
   isFavorite: boolean;
   isDragging: boolean;
-  session: AuthSession | null;
 };
 
 export const PlaylistItem = ({
@@ -43,8 +41,8 @@ export const PlaylistItem = ({
   listOrder,
   isFavorite,
   isDragging,
-  session,
 }: PlaylistItemProps) => {
+  const { session } = useClientSession();
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const isPlaying = useQueueStore(state => state.isPlaying);
   const currentlyPlayingItem = useQueueStore(state =>

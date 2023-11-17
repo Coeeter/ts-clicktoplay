@@ -16,7 +16,7 @@ const MainLayout = async ({ children }: { children: ReactNode }) => {
   const queue = session ? await getQueue(session) : null;
 
   return (
-    <MainProvider queue={queue}>
+    <MainProvider queue={queue} session={session}>
       <div className="min-h-screen flex flex-col">
         <div className="flex relative p-3 pb-0 gap-3 flex-1">
           <Sidebar />

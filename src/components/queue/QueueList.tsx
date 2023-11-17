@@ -8,20 +8,17 @@ import { Song } from '@prisma/client';
 import { useEffect, useState } from 'react';
 import { DraggableList } from '../draggable/DraggableList';
 import { QueueItem } from './QueueItem';
-import { AuthSession } from '@/lib/auth';
 
 type QueueListProps = {
   songs: Song[];
   favoriteSongs: (Song | undefined)[];
   playlists: Playlist[];
-  session: AuthSession | null;
 };
 
 export const QueueList = ({
   songs,
   favoriteSongs,
   playlists,
-  session,
 }: QueueListProps) => {
   const isMounted = useMounted();
   const items = useQueueStore(state => state.items);
@@ -90,7 +87,6 @@ export const QueueList = ({
               listOrder={1}
               isDragging={false}
               playlists={playlists}
-              session={session}
               isFavorite={favoriteSongs.some(
                 favSong => favSong?.id === currentlyPlayingSong.id
               )}
@@ -118,7 +114,6 @@ export const QueueList = ({
                   song={song}
                   isDragging={isDragging}
                   listOrder={index + 2}
-                  session={session}
                   isFavorite={favoriteSongs.some(
                     favSong => favSong?.id === song.id
                   )}

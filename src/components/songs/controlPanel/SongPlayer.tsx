@@ -1,5 +1,4 @@
 'use client';
-
 import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
 import { Song } from '@prisma/client';
@@ -15,14 +14,14 @@ import { TbRepeat, TbRepeatOnce } from 'react-icons/tb';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { addPlayHistory } from '@/actions/queue';
-import { AuthSession } from '@/lib/auth';
+import { useClientSession } from '@/hooks/useSession';
 
 type SongPlayerProps = {
   songs: Song[];
-  session: AuthSession | null;
 };
 
-export const SongPlayer = ({ songs, session }: SongPlayerProps) => {
+export const SongPlayer = ({ songs }: SongPlayerProps) => {
+  const { session } = useClientSession();
   const isMounted = useMounted();
   const [userSeeking, setUserSeeking] = useState(false);
   const [isUserDragging, setIsUserDragging] = useState(false);

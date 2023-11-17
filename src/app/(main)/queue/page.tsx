@@ -22,7 +22,6 @@ export default async function QueuePage() {
     <WithAuth>
       <div className="px-6 pt-[64px]">
         <QueueList
-          session={session}
           songs={songs}
           favoriteSongs={favoriteSongs}
           playlists={playlists.filter(p => !p.isFavoritePlaylist)}

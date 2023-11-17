@@ -2,21 +2,20 @@
 
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { useContextMenuItems } from '@/hooks/useContextMenu';
-import { AuthSession } from '@/lib/auth';
+import { useClientSession } from '@/hooks/useSession';
 import { Artist, Song } from '@prisma/client';
 import { MdMoreHoriz } from 'react-icons/md';
 
 type ArtistMoreOptionsButtonProps = {
-  session: AuthSession | null;
   artist: Artist & {
     songs: Song[];
   };
 };
 
 export const ArtistMoreOptionsButton = ({
-  session,
   artist,
 }: ArtistMoreOptionsButtonProps) => {
+  const { session } = useClientSession();
   const contextMenuItems = useContextMenuItems({
     type: 'artist',
     artist,

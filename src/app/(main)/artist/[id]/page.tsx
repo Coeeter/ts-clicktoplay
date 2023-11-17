@@ -35,12 +35,7 @@ const ArtistPage = async ({ params: { id } }: { params: { id: string } }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <NavbarMetadata
-        session={session}
-        type="artist"
-        artist={artist}
-        colors={primaryColor}
-      >
+      <NavbarMetadata type="artist" artist={artist} colors={primaryColor}>
         <div
           className="p-6 pb-0 rounded-t-lg pt-[76px] relative"
           style={{
@@ -77,20 +72,13 @@ const ArtistPage = async ({ params: { id } }: { params: { id: string } }) => {
         }}
       >
         <section className="flex gap-4 mt-3 items-center px-6">
-          <PlayButton
-            session={session}
-            song={artist.songs[0]}
-            songs={artist.songs}
-          />
-          {session && (
-            <ArtistMoreOptionsButton artist={artist} session={session} />
-          )}
+          <PlayButton song={artist.songs[0]} songs={artist.songs} />
+          {session && <ArtistMoreOptionsButton artist={artist} />}
         </section>
         <div className="px-6">
           <SongList
             favoriteSongs={favoriteSongs}
             playlists={playlists}
-            session={session}
             songs={artist.songs}
             type="list"
           />

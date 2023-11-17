@@ -1,22 +1,20 @@
 'use client';
-
 import { Playlist } from '@/actions/playlist';
-import { AuthSession } from '@/lib/auth';
+import { useClientSession } from '@/hooks/useSession';
 import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 
 type OpenEditModalProps = {
-  session: AuthSession | null;
   playlist: Playlist;
   type: 'edit' | 'delete';
   children: React.ReactNode;
 };
 
 export const OpenPlaylistModal = ({
-  session,
   playlist,
   type,
   children,
 }: OpenEditModalProps) => {
+  const { session } = useClientSession();
   const open = usePlaylistModalStore(state => state.open);
 
   if (
