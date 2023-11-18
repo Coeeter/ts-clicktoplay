@@ -45,7 +45,7 @@ export const SongList = ({
     <div
       className={
         type === 'grid'
-          ? `flex flex-wrap gap-3 justify-center`
+          ? `grid grid-cols-2 p-3 md:p-0 md:flex md:flex-wrap gap-3 justify-center`
           : 'flex flex-col gap-3 w-full'
       }
     >

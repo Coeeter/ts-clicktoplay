@@ -287,7 +287,7 @@ const SongGridItem = ({
         className={`flex flex-col gap-2 p-3 rounded-md group cursor-pointer transition-colors duration-300 ${
           highlight
             ? 'w-full min-w-[24rem] bg-slate-100/5 hover:bg-slate-600 relative'
-            : 'w-48 bg-gradient-to-b from-slate-800 to-slate-100/5 hover:bg-slate-600'
+            : 'md:w-48 md:bg-gradient-to-b from-slate-800 to-slate-100/5 md:hover:bg-slate-600'
         }`}
       >
         <div className={highlight ? '' : 'relative'}>
@@ -295,15 +295,15 @@ const SongGridItem = ({
             src={albumCover}
             alt="Album Cover"
             className={`aspect-square rounded-md box-border object-cover group-hover:shadow-xl transition-shadow duration-300 group-hover:shadow-slate-800 ${
-              highlight ? 'w-48' : 'w-full'
+              highlight ? 'md:w-48' : 'w-full'
             }`}
           />
           <button
             ref={ref}
-            className={`absolute p-4 rounded-full hover:scale-110 bg-blue-700 duration-300 transition-all ${
+            className={`pointer-events-none md:pointer-events-auto absolute p-4 rounded-full hover:scale-110 bg-blue-700 duration-300 transition-all ${
               isPlaying && isCurrentSong
                 ? 'opacity-100'
-                : 'opacity-0 translate-y-5 group-hover:translate-y-0 group-hover:opacity-100'
+                : 'opacity-0 translate-y-5 md:group-hover:translate-y-0 md:group-hover:opacity-100'
             } ${
               highlight
                 ? 'right-0 bottom-0 m-4 !opacity-100 !translate-y-0'
@@ -326,7 +326,7 @@ const SongGridItem = ({
             )}
           </button>
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 text-~ md:text-base ">
           <span
             className={`text-white font-bold truncate ${
               highlight ? 'text-3xl mt-3' : ''

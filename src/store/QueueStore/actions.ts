@@ -4,7 +4,6 @@ import { createQueueItems, generateQueueItemId } from '@/actions/queue/helper';
 import { SongId } from '@/actions/songs';
 import { sortLinkedList } from '@/utils/linkedList';
 import { QueueItem, RepeatMode } from '@prisma/client';
-import { initialState } from './QueueStore';
 import { QueueState } from './types';
 
 const setQueue = (queue: Queue): Partial<QueueState> => {

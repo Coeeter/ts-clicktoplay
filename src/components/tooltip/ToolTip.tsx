@@ -71,7 +71,7 @@ export const Tooltip = () => {
 
   return (
     <div
-      className={`absolute z-[60] ${
+      className={`hidden md:block absolute z-[60] ${
         typeof content !== 'string' ? '' : 'text-slate-200 text-sm'
       }`}
       style={style}

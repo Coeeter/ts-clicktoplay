@@ -46,58 +46,60 @@ export const SongDetail = ({ songs, favoriteSongs }: SongDetailProps) => {
   const { id, title, artist, albumCover } = currentSong;
 
   return (
-    <div className="flex gap-3 flex-1 items-center">
-      <div className="w-16 aspect-square rounded-md overflow-hidden">
+    <div className="flex gap-2 md:gap-3 flex-1 items-center">
+      <div className="w-12 md:w-16 aspect-square rounded-md overflow-hidden">
         <img
           src={albumCover ?? '/album-cover.png'}
           className="w-full h-full box-border object-cover"
           alt="album cover"
         />
       </div>
-      <div className="flex flex-col justify-center">
+      <div className="flex flex-col justify-between md:justify-center h-12 py-1 md:p-0 md:h-full">
         <NavigationLink
-          className="text-md font-bold hover:underline"
+          className="text-sm md:text-base font-bold hover:underline"
           href={`/songs/${id}`}
         >
           {title}
         </NavigationLink>
         <NavigationLink
-          className="text-sm text-slate-300/50 hover:underline"
+          className="text-xs md:text-sm text-slate-300/50 hover:underline"
           href={`/artist/${currentSong.artistIds[0]}`}
         >
           {artist === '' ? 'Unknown' : artist ?? 'Unknown'}
         </NavigationLink>
       </div>
-      <button
-        className={'text-2xl cursor-pointer'}
-        onClick={async () => {
-          removeTooltip();
-          if (isFavorite) {
-            const [error] = await removeFavoriteSongFromLibrary({
+      <div className="flex-1 flex items-center justify-end md:justify-start pr-2 md:p-0">
+        <button
+          className={'text-2xl cursor-pointer'}
+          onClick={async () => {
+            removeTooltip();
+            if (isFavorite) {
+              const [error] = await removeFavoriteSongFromLibrary({
+                songId: currentSong.id,
+                path: pathname,
+              });
+              if (error) return createToast(error, 'error');
+              createToast('Removed from Favorites', 'success');
+              return;
+            }
+            const [error] = await addFavoriteSongToLibrary({
               songId: currentSong.id,
               path: pathname,
             });
             if (error) return createToast(error, 'error');
-            createToast('Removed from Favorites', 'success');
-            return;
-          }
-          const [error] = await addFavoriteSongToLibrary({
-            songId: currentSong.id,
-            path: pathname,
-          });
-          if (error) return createToast(error, 'error');
-          createToast('Added song to Favorites', 'success');
-        }}
-        {...registerFavBtn({
-          place: 'top-center',
-        })}
-      >
-        {isFavorite ? (
-          <MdFavorite className="text-blue-700 hover:text-blue-600" />
-        ) : (
-          <MdFavoriteBorder className="text-slate-300/50 hover:text-slate-300" />
-        )}
-      </button>
+            createToast('Added song to Favorites', 'success');
+          }}
+          {...registerFavBtn({
+            place: 'top-center',
+          })}
+        >
+          {isFavorite ? (
+            <MdFavorite className="text-blue-700 hover:text-blue-600" />
+          ) : (
+            <MdFavoriteBorder className="text-slate-300/50 hover:text-slate-300" />
+          )}
+        </button>
+      </div>
     </div>
   );
 };

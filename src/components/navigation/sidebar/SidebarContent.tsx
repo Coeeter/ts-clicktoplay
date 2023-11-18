@@ -18,7 +18,7 @@ import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
 import { NavigationLink } from '@/hooks/useNavigation';
 import { useClientSession } from '@/hooks/useSession';
 
-const sidebarItems = [
+export const sidebarItems = [
   {
     name: 'Home',
     href: '/',
@@ -146,7 +146,7 @@ export const SidebarContent = ({
   return (
     <aside
       ref={sidebarRef}
-      className={`sticky top-3 bottom-0 max-h-[calc(100vh-6.25rem)] flex flex-row-reverse grow-0 shrink-0`}
+      className={`hidden sticky top-3 bottom-0 max-h-[calc(100vh-6.25rem)] md:flex flex-row-reverse grow-0 shrink-0`}
       style={{ width, minWidth, maxWidth }}
       onMouseDown={e => e.preventDefault()}
     >
