@@ -9,7 +9,7 @@ export const Toast = () => {
   const toasts = useToastStore(state => state.toasts);
 
   return (
-    <div className="flex flex-col gap-3 fixed bottom-[6.25rem] right-3">
+    <div className="flex flex-col gap-3 fixed top-16 left-1/2 -translate-x-1/2 md:top-auto md:left-auto md:translate-x-0 md:bottom-[6.25rem] md:right-3">
       <AnimatePresence>
         {toasts.map(toast => (
           <ToastItem key={toast.id} toast={toast} />
@@ -22,6 +22,8 @@ export const Toast = () => {
 const ToastItem = ({ toast }: { toast: ToastType }) => {
   const hideToast = useToastStore(state => state.removeToast);
   useTimeout(() => hideToast(toast), toast.duration ?? 5000);
+
+  const isMobile = window.innerWidth < 768;
 
   const icon =
     toast.mode == 'error' ? (
@@ -42,10 +44,10 @@ const ToastItem = ({ toast }: { toast: ToastType }) => {
     <motion.div
       key={toast.id}
       layout
-      initial={{ opacity: 0, y: 50, scale: 0.3 }}
+      initial={{ opacity: 0, y: isMobile ? -50 : 50, scale: 0.3 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 20, scale: 0.5 }}
-      className={`text-slate-200 p-4 rounded-md shadow-md flex gap-4 w-80 items-center ${
+      exit={{ opacity: 0, y: isMobile ? -20 : 20, scale: 0.5 }}
+      className={`text-slate-200 p-4 rounded-md shadow-md flex gap-4 w-[calc(100vw-24px)] md:w-80 items-center ${
         toast.mode == 'error'
           ? 'bg-red-600'
           : toast.mode == 'warning'

@@ -130,7 +130,7 @@ const getSongMenuItems = ({
 
   return [
     {
-      label: isCurrentSong ? (isPlaying ? 'Pause' : 'Play') : 'Play',
+      label: isCurrentSong && isPlaying ? 'Pause' : 'Play',
       onClick: () => {
         if (isCurrentSong) {
           return setIsPlaying(!isPlaying);
@@ -138,7 +138,7 @@ const getSongMenuItems = ({
         playSong();
       },
       divider: true,
-      icon: isPlaying ? Pause : Play,
+      icon: isPlaying && isCurrentSong ? Pause : Play,
     },
     {
       label: 'Play Next',

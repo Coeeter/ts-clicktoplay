@@ -25,23 +25,9 @@ export const ContextMenu = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  if (isMobile && isOpen) {
-    return (
-      <AnimatePresence>
-        <motion.div
-          className="absolute top-0 left-0 right-0 bottom-0 bg-slate-700/80 z-[999]"
-          initial={{ y: 10 }}
-          animate={{ y: 0 }}
-          exit={{ y: 10 }}
-          layout
-        >
-          <button onClick={closeMenu}>Close</button>
-        </motion.div>
-      </AnimatePresence>
-    );
-  }
-
-  return (
+  return isMobile ? (
+    <MobileMenu isOpen={isOpen} menuItems={menuItems} closeMenu={closeMenu} />
+  ) : (
     <Menu
       isOpen={isOpen}
       position={position}
@@ -49,6 +35,81 @@ export const ContextMenu = () => {
       closeMenu={closeMenu}
       transformOrigin={transformOrigin}
     />
+  );
+};
+
+const MobileMenu = ({
+  isOpen,
+  closeMenu,
+  menuItems,
+}: {
+  isOpen: boolean;
+  closeMenu: () => void;
+  menuItems: ContextMenuItem[];
+}) => {
+  const [isRoot, setIsRoot] = useState(true);
+  const [menuBeingShown, setMenuBeingShown] = useState(menuItems);
+
+  useEffect(() => {
+    setMenuBeingShown(menuItems);
+  }, [menuItems]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          key="mobile-menu"
+          className="absolute top-0 left-0 right-0 bottom-0 bg-slate-900/80 z-[999] flex flex-col px-6 pt-24 pb-6 justify-between backdrop-blur-md"
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 30, opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          layout={true}
+        >
+          <div className="relative">
+            {!isRoot && (
+              <button>
+                <MdNavigateNext
+                  className="absolute left-0 bottom-full rotate-180 text-slate-200 text-4xl font-bold active:text-slate-300/75 active:scale-90 transition duration-75 ease-in-out"
+                  onClick={() => {
+                    setMenuBeingShown(menuItems);
+                    setIsRoot(true);
+                  }}
+                />
+              </button>
+            )}
+            {menuBeingShown.map((item, i) => {
+              const Parent = item.href ? NavigationLink : 'button';
+              return (
+                <Parent
+                  key={item.label + i}
+                  href={item.href ?? '/'}
+                  onClick={() => {
+                    item.onClick?.();
+                    if (item.subMenu) {
+                      setMenuBeingShown(item.subMenu);
+                      setIsRoot(false);
+                    } else {
+                      closeMenu();
+                    }
+                  }}
+                  className="flex items-center gap-2 justify-between text-start text-slate-200 p-3 cursor-pointer text-lg active:text-slate-300/75 active:scale-90 transition duration-75 ease-in-out"
+                >
+                  {item.icon && <item.icon size={18} />}
+                  {item.label}
+                </Parent>
+              );
+            })}
+          </div>
+          <button
+            onClick={closeMenu}
+            className="text-slate-200 text-xl font-bold active:text-slate-300/75 active:scale-90 transition duration-75 ease-in-out"
+          >
+            Close
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -113,6 +174,7 @@ const Menu = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          key="context-menu"
           ref={ref}
           className={`w-56 bg-slate-900 rounded-md shadow-lg shadow-slate-900/80 absolute z-50 p-1 ${
             isSubMenu ? 'overflow-y-auto max-h-72' : ''
