@@ -12,6 +12,34 @@ export const ContextMenu = () => {
   const menuItems = useContextMenuStore(state => state.menuItems);
   const closeMenu = useContextMenuStore(state => state.closeContextMenu);
   const transformOrigin = useContextMenuStore(state => state.transformOrigin);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    onResize();
+
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  if (isMobile && isOpen) {
+    return (
+      <AnimatePresence>
+        <motion.div
+          className="absolute top-0 left-0 right-0 bottom-0 bg-slate-700/80 z-[999]"
+          initial={{ y: 10 }}
+          animate={{ y: 0 }}
+          exit={{ y: 10 }}
+          layout
+        >
+          <button onClick={closeMenu}>Close</button>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
 
   return (
     <Menu

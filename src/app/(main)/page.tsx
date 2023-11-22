@@ -15,7 +15,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="pt-[64px]">
+    <div className="pt-[64px] pb-24 md:pb-6">
       <SongList
         songs={songs}
         playlists={playlists.filter(p => !p.isFavoritePlaylist)}

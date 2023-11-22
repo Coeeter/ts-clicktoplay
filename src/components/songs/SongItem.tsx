@@ -133,15 +133,15 @@ const SongListItem = ({
 
   return (
     <div
-      className={`w-full grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors group ${
-        isContextMenuShowing ? 'bg-slate-700' : 'hover:bg-slate-700'
+      className={`w-full flex gap-2 md:gap-0 md:grid md:grid-cols-3 items-center py-1 md:py-2 md:px-6 rounded-md transition-colors group ${
+        isContextMenuShowing ? 'md:bg-slate-700' : 'md:hover:bg-slate-700'
       }`}
       onContextMenu={e => {
         setIsContextMenuShowing(true);
         contextMenuHandler(e);
       }}
     >
-      <div className="flex items-center gap-2 w-full">
+      <div className="flex items-center gap-2 w-full flex-1 overflow-hidden">
         <div className="w-12 h-12 bg-slate-600 rounded-md shrink-0 group relative">
           <img
             src={song.albumCover ?? '/album-cover.png'}
@@ -180,7 +180,7 @@ const SongListItem = ({
         </div>
         <div className="flex flex-col items-start flex-1 overflow-hidden">
           <NavigationLink
-            className={`text-md font-bold hover:underline truncate overflow-hidden max-w-full ${
+            className={`text-sm md:text-base font-bold hover:underline truncate overflow-hidden max-w-full ${
               isCurrentSong ? 'text-blue-500' : 'text-slate-300'
             }`}
             href={`/songs/${song.id}`}
@@ -195,11 +195,11 @@ const SongListItem = ({
           </NavigationLink>
         </div>
       </div>
-      <span className="text-slate-300/50">{timeAdded}</span>
+      <span className="text-slate-300/50 hidden md:block">{timeAdded}</span>
       <div className="text-slate-300/50 flex items-center justify-end">
         <button
           className={
-            'text-2xl cursor-pointer' +
+            'text-2xl cursor-pointer mr-2 md:mr-0' +
             (session ? '' : ' !opacity-0 pointer-events-none')
           }
           onClick={async () => {
@@ -224,17 +224,17 @@ const SongListItem = ({
           {isFavorite ? (
             <MdFavorite className="text-blue-700 hover:text-blue-600" />
           ) : (
-            <MdFavoriteBorder className="opacity-0 group-hover:opacity-100 hover:text-slate-200" />
+            <MdFavoriteBorder className="md:opacity-0 md:group-hover:opacity-100 md:hover:text-slate-200" />
           )}
         </button>
-        <span className="ml-4 mr-2">
+        <span className="ml-4 mr-2 hidden md:block">
           {new Date(song.duration * 1000).toISOString().substring(14, 19)}
         </span>
         <ContextMenuButton
           className={`w-6 h-6 text-2xl text-slate-300/50 hover:text-slate-300 cursor-pointer ${
             isContextMenuShowing
-              ? 'opacity-100'
-              : 'opacity-0 group-hover:opacity-100'
+              ? 'md:opacity-100'
+              : 'md:opacity-0 md:group-hover:opacity-100'
           } ${session ? '' : '!opacity-0 pointer-events-none'}`}
           contextMenuItems={contextMenuItems}
           onContextMenuOpen={() => setIsContextMenuShowing(true)}
