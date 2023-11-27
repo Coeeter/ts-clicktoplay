@@ -11,9 +11,11 @@ type UseClientSessionReturn = {
     : Key]: Key extends 'data' ? AuthSession | null : UseSessionReturn[Key];
 };
 
-export const useClientSession = <R extends boolean>(
+type UseClientSession = <R extends boolean>(
   options?: UseSessionOptions<R>
-): UseClientSessionReturn => {
+) => UseClientSessionReturn;
+
+export const useClientSession: UseClientSession = options => {
   const { data, status, update } = useSession(options);
   const session = data as AuthSession | null;
 
