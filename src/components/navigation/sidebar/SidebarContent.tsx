@@ -168,7 +168,7 @@ export const SidebarContent = ({
               <SidebarLink key={index} expanded={expanded} {...link} />
             ))}
         </div>
-        <div className="flex-grow bg-slate-800 rounded-md max-h-[calc(100vh-6.25rem-112px)]">
+        <div className="flex-grow bg-slate-800 rounded-md max-h-[calc(100vh-6.25rem-156px)]">
           <div
             className={`flex flex-col max-h-full py-3 ${
               expanded ? 'px-4 gap-3' : 'px-2 gap-6 items-center'
