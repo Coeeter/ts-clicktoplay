@@ -1,21 +1,17 @@
 'use client';
-
 import { Playlist } from '@/actions/playlist';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { useContextMenuItems } from '@/hooks/useContextMenu';
+import { useClientSession } from '@/hooks/useSession';
 import { useToolTip } from '@/hooks/useToolTip';
-import { Session } from 'next-auth';
 import { MdMoreHoriz } from 'react-icons/md';
 
 type MoreOptionsButtonProps = {
-  session: Session | null;
   playlist: Playlist;
 };
 
-export const MoreOptionsButton = ({
-  session,
-  playlist,
-}: MoreOptionsButtonProps) => {
+export const MoreOptionsButton = ({ playlist }: MoreOptionsButtonProps) => {
+  const { session } = useClientSession();
   const contextMenuItems = useContextMenuItems({
     type: 'playlist',
     playlist,

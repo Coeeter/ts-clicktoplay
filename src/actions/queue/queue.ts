@@ -1,5 +1,4 @@
 'use server';
-import { Session } from 'next-auth';
 import { prisma } from '../../lib/database';
 import {
   BadRequestError,
@@ -20,10 +19,10 @@ import {
   UpdateQueueSettingsProps,
 } from './types';
 import { createQueueItems, generateQueueItemId } from './helper';
-import { getServerSession } from '@/lib/auth';
+import { AuthSession, getServerSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
-export const getQueue = async (session: Session) => {
+export const getQueue = async (session: AuthSession) => {
   return await prisma.queue.upsert({
     where: {
       id: session.user.id,
@@ -38,7 +37,7 @@ export const getQueue = async (session: Session) => {
   });
 };
 
-export const addPlayHistory = async ({ session }: { session: Session }) => {
+export const addPlayHistory = async ({ session }: { session: AuthSession }) => {
   const { currentlyPlayingId, items } = await getQueue(session);
   const currentlyPlayingItem = items.find(
     item => item.id === currentlyPlayingId

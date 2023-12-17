@@ -2,23 +2,23 @@ import { SongList } from '@/components/songs/SongList';
 import { getSongs } from '@/actions/songs';
 import { getCreatedPlaylists } from '@/actions/playlist';
 import { getServerSession } from '@/lib/auth';
+import { getFavoriteSongs } from '@/actions/library';
 
 export default async function Home() {
   const songs = await getSongs();
   const session = await getServerSession();
   const playlists = session ? await getCreatedPlaylists(session) : [];
 
-  const favoriteSongs =
-    playlists
-      .find(p => p.isFavoritePlaylist)
-      ?.items.map(i => songs.find(s => s.id === i.songId)!) ?? [];
+  let [err, favoriteSongs] = session ? await getFavoriteSongs() : [null, []];
+  if (err || !favoriteSongs) {
+    favoriteSongs = [];
+  }
 
   return (
-    <div className='pt-[64px]'>
+    <div className="pt-[64px] pb-24 md:pb-6">
       <SongList
         songs={songs}
         playlists={playlists.filter(p => !p.isFavoritePlaylist)}
-        session={session}
         favoriteSongs={favoriteSongs}
       />
     </div>

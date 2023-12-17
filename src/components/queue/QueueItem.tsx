@@ -1,3 +1,5 @@
+'use client';
+
 import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
@@ -17,8 +19,8 @@ import { MdFavorite, MdFavoriteBorder, MdMoreHoriz } from 'react-icons/md';
 import { useEffect, useState } from 'react';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
-import { Session } from 'next-auth';
 import { NavigationLink } from '@/hooks/useNavigation';
+import { useClientSession } from '@/hooks/useSession';
 
 type QueuItemProps = {
   queueItem: QueueItemType;
@@ -28,7 +30,6 @@ type QueuItemProps = {
   isFavorite: boolean;
   playlists: Playlist[];
   isDragging: boolean;
-  session: Session | null;
 };
 
 export const QueueItem = ({
@@ -39,8 +40,8 @@ export const QueueItem = ({
   isFavorite,
   playlists,
   isDragging,
-  session,
 }: QueuItemProps) => {
+  const { session } = useClientSession();
   const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
   const pathname = usePathname();
   const isPlaying = useQueueStore(state => state.isPlaying && isCurrentItem);
@@ -256,7 +257,7 @@ function getContextMenuItems(
     },
     isFavorite
       ? {
-          label: 'Remove from Favorites',
+          label: 'Unfavorite',
           onClick: async () => {
             const [error] = await removeFavoriteSongFromLibrary({
               songId: song.id,
@@ -267,7 +268,7 @@ function getContextMenuItems(
           },
         }
       : {
-          label: 'Add to Favorites',
+          label: 'Favorite',
           onClick: async () => {
             const [error] = await addFavoriteSongToLibrary({
               songId: song.id,

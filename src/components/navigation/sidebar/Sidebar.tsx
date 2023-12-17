@@ -54,7 +54,6 @@ export const Sidebar = async () => {
 
   return (
     <SidebarContent
-      session={session}
       playlists={playlists}
       playHistory={playHistory}
       sideBarMoreDetails={settings.sideBarMoreDetailsShown}

@@ -1,5 +1,4 @@
 'use client';
-
 import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
 import { Song } from '@prisma/client';
@@ -15,14 +14,14 @@ import { TbRepeat, TbRepeatOnce } from 'react-icons/tb';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { addPlayHistory } from '@/actions/queue';
-import { Session } from 'next-auth';
+import { useClientSession } from '@/hooks/useSession';
 
 type SongPlayerProps = {
   songs: Song[];
-  session: Session | null;
 };
 
-export const SongPlayer = ({ songs, session }: SongPlayerProps) => {
+export const SongPlayer = ({ songs }: SongPlayerProps) => {
+  const { session } = useClientSession();
   const isMounted = useMounted();
   const [userSeeking, setUserSeeking] = useState(false);
   const [isUserDragging, setIsUserDragging] = useState(false);
@@ -150,10 +149,10 @@ export const SongPlayer = ({ songs, session }: SongPlayerProps) => {
   }, [currentSong]);
 
   return (
-    <div className="flex-1 flex flex-col justify-center items-center">
+    <div className="md:flex-1 flex flex-col justify-center items-center">
       <div className="flex gap-3">
         <button
-          className={`text-lg transition-colors disabled:text-slate-300/30 relative ${
+          className={`hidden md:block text-lg transition-colors disabled:text-slate-300/30 relative ${
             repeatMode === 'NONE'
               ? 'text-slate-300/70 hover:text-slate-100'
               : 'text-blue-500'
@@ -179,7 +178,7 @@ export const SongPlayer = ({ songs, session }: SongPlayerProps) => {
           )}
         </button>
         <button
-          className="text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
+          className="hidden md:block text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
           disabled={!hasPrevSong || disabled}
           onClick={() => {
             setUserSeeking(true);
@@ -189,21 +188,21 @@ export const SongPlayer = ({ songs, session }: SongPlayerProps) => {
           <MdSkipPrevious />
         </button>
         <button
-          className="text-slate-300 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
+          className="text-4xl text-slate-300 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
           onClick={() => setIsPlaying(!isPlaying)}
           disabled={disabled}
         >
-          {isPlaying ? <MdPauseCircle size={40} /> : <MdPlayCircle size={40} />}
+          {isPlaying ? <MdPauseCircle /> : <MdPlayCircle />}
         </button>
         <button
-          className="text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
+          className="hidden md:block text-2xl text-slate-300/70 hover:text-slate-100 transition-colors disabled:text-slate-300/30"
           disabled={!hasNextSong || disabled}
           onClick={() => playNext(true)}
         >
           <MdSkipNext />
         </button>
         <button
-          className={`text-lg transition-colors disabled:text-slate-300/30 relative ${
+          className={`hidden md:block text-lg transition-colors disabled:text-slate-300/30 relative ${
             shuffle ? 'text-blue-500' : 'text-slate-300/70 hover:text-slate-100'
           }`}
           onClick={() => setShuffle(!shuffle)}
@@ -215,8 +214,8 @@ export const SongPlayer = ({ songs, session }: SongPlayerProps) => {
           )}
         </button>
       </div>
-      <div className="w-full flex items-center gap-3">
-        <div className="text-sm text-slate-300/50 text-center">
+      <div className="absolute bottom-0 left-0 right-0 md:static flex w-full items-center gap-3">
+        <div className="text-sm text-slate-300/50 text-center hidden md:block">
           {new Date(currentTime * 1000).toISOString().substring(14, 19)}
         </div>
         <input
@@ -236,12 +235,12 @@ export const SongPlayer = ({ songs, session }: SongPlayerProps) => {
             setUserSeeking(true);
             setIsUserDragging(false);
           }}
-          className={`w-full cursor-pointer appearance-none h-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:accent-current rounded-lg focus:outline-none disabled:cursor-default`}
+          className={`w-full [&::-webkit-slider-runnable-track]:opacity-0 md:[&::-webkit-slider-runnable-track]:opacity-100 cursor-pointer appearance-none h-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:accent-current rounded-lg focus:outline-none disabled:cursor-default`}
           style={{
             background: `linear-gradient(to right, #1D4ED8 ${percent}%, #374047 ${percent}%)`,
           }}
         />
-        <div className="text-sm text-slate-300/50 text-center">
+        <div className="text-sm text-slate-300/50 text-center hidden md:block">
           {disabled
             ? '00:00'
             : new Date(currentSong.duration * 1000)

@@ -64,7 +64,6 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
   return (
     <div className="flex flex-col min-h-full">
       <NavbarMetadata
-        session={session}
         type="song"
         colors={primaryColor}
         song={song}
@@ -76,15 +75,15 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
             backgroundImage: `linear-gradient(${primaryColor.vibrant}, ${primaryColor.darkVibrant})`,
           }}
         >
-          <header className="flex gap-4">
+          <header className="flex gap-4 flex-col items-center md:items-end md:flex-row">
             <img
               src={song?.albumCover ?? '/album-cover.png'}
               alt={song.title}
-              className={`w-48 shadow-2xl h-48 rounded-xl object-cover bg-slate-100`}
+              className={`w-[60%] md:w-48 shadow-2xl aspect-square rounded-xl object-cover bg-slate-100`}
             />
-            <div className="flex flex-col justify-end">
-              <span className="text-lg text-slate-200">Song</span>
-              <div className="text-6xl text-slate-200 font-bold mb-6">
+            <div className="hidden md:flex flex-col md:justify-end w-full">
+              <span className="text-base md:text-lg text-slate-200">Song</span>
+              <div className="text-xl md:text-6xl text-slate-200 font-bold mb-6">
                 {song.title}
               </div>
               <span className="text-md truncate mb-3">
@@ -118,20 +117,47 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
         </div>
       </NavbarMetadata>
       <div
-        className="pt-4 px-6 h-full gap-4 flex flex-col min-h-[500px]"
+        className="pt-4 px-6 h-full gap-4 flex flex-col min-h-[500px] pb-24 md:pb-6"
         style={{
           background: `linear-gradient(${primaryColor.darkVibrant} , rgb(30 41 59 / 1) 300px)`,
         }}
       >
+        <section className="flex md:hidden flex-col md:justify-end w-full">
+          <span className="text-sm md:text-lg text-slate-200">Song</span>
+          <div className="text-2xl text-slate-200 font-bold mb-2">
+            {song.title}
+          </div>
+          <span className="text-md truncate mb-3 text-sm">
+            <NavigationLink
+              href={`/artist/${song.artistIds[0]}`}
+              className="text-slate-200 font-semibold hover:underline"
+            >
+              {song.artist?.length ? song.artist : 'Unknown artist'}
+            </NavigationLink>
+            {' • ' +
+              duration +
+              ' • ' +
+              song.playhistories.length.toLocaleString() +
+              ' plays'}
+          </span>
+          <span className='text-sm'>
+            {'Uploaded by '}
+            <NavigationLink
+              href={`/profile/${song.uploaderId}`}
+              className="text-slate-200 font-semibold hover:underline"
+            >
+              {song.uploader.name}
+            </NavigationLink>
+            {', ' +
+              formatDistanceToNow(new Date(song.createdAt), {
+                addSuffix: true,
+              }).toString()}
+          </span>
+        </section>
         <section className="flex gap-6 mt-3">
-          <PlayButton
-            song={song}
-            songs={[song, ...allSongs]}
-            session={session}
-          />
+          <PlayButton song={song} songs={[song, ...allSongs]} />
           <FavoriteButton
             song={song}
-            session={session}
             isFavorite={
               favoriteSongs?.find(s => s.id === song.id) !== undefined
             }
@@ -139,7 +165,6 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
           {session && (
             <MoreOptionsButton
               song={song}
-              session={session}
               songs={[song, ...allSongs]}
               isFavorite={
                 favoriteSongs?.find(s => s.id === song.id) !== undefined
@@ -162,7 +187,6 @@ const SongPage = async ({ params: { songId } }: SongPageProps) => {
             songs={allSongs}
             favoriteSongs={favoriteSongs ?? []}
             playlists={createdPlaylists}
-            session={session}
             type="list"
           />
         </section>

@@ -4,21 +4,21 @@ import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
 } from '@/actions/library';
+import { useClientSession } from '@/hooks/useSession';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
-import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { MdFavorite, MdFavoriteBorder } from 'react-icons/md';
 
 type FavoriteButtonProps = {
   isFavorite: boolean;
   song: Song;
-  session: Session | null;
 };
 
-export const FavoriteButton = ({ isFavorite, song, session }: FavoriteButtonProps) => {
+export const FavoriteButton = ({ isFavorite, song }: FavoriteButtonProps) => {
   const pathname = usePathname();
   const createToast = useToastStore(state => state.createToast);
+  const { session } = useClientSession();
 
   return (
     <button

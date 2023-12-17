@@ -10,7 +10,6 @@ import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
 import { format, formatDistanceToNow, isThisWeek } from 'date-fns';
-import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { FaPause, FaPlay } from 'react-icons/fa';
@@ -19,12 +18,12 @@ import { ContextMenuButton } from '@/components/menu/ContextMenuButton';
 import { ContextMenuItem, useContextMenuStore } from '@/store/ContextMenuStore';
 import { NavigationLink } from '@/hooks/useNavigation';
 import { HiPause, HiPlay } from 'react-icons/hi2';
+import { useClientSession } from '@/hooks/useSession';
 
 type SongItemProps = {
   song: Song;
   playlists: Playlist[];
   playSong: () => void;
-  session: Session | null;
   isFavorite: boolean;
   type: 'list' | 'grid';
   highlight?: boolean;
@@ -34,11 +33,11 @@ export const SongItem = ({
   song,
   playlists,
   playSong,
-  session,
   isFavorite,
   type = 'grid',
   highlight = false,
 }: SongItemProps) => {
+  const { session } = useClientSession();
   const isPlaying = useQueueStore(state => state.isPlaying);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const currentlyPlayingQueueItem = useQueueStore(state =>
@@ -73,7 +72,6 @@ export const SongItem = ({
         isCurrentSong={isCurrentSong}
         isFavorite={isFavorite}
         contextMenuItems={contextMenuItems}
-        session={session}
       />
     );
   }
@@ -102,7 +100,6 @@ const SongListItem = ({
   isCurrentSong,
   isFavorite,
   contextMenuItems,
-  session,
 }: {
   song: Song;
   playSong: () => void;
@@ -111,8 +108,8 @@ const SongListItem = ({
   isCurrentSong: boolean;
   isFavorite: boolean;
   contextMenuItems: ContextMenuItem[];
-  session: Session | null;
 }) => {
+  const { session } = useClientSession();
   const [isContextMenuShowing, setIsContextMenuShowing] = useState(false);
   const createToast = useToastStore(state => state.createToast);
   const pathname = usePathname();
@@ -136,15 +133,15 @@ const SongListItem = ({
 
   return (
     <div
-      className={`w-full grid grid-cols-3 items-center py-2 px-6 rounded-md transition-colors group ${
-        isContextMenuShowing ? 'bg-slate-700' : 'hover:bg-slate-700'
+      className={`w-full flex gap-2 md:gap-0 md:grid md:grid-cols-3 items-center py-1 md:py-2 md:px-6 rounded-md transition-colors group ${
+        isContextMenuShowing ? 'md:bg-slate-700' : 'md:hover:bg-slate-700'
       }`}
       onContextMenu={e => {
         setIsContextMenuShowing(true);
         contextMenuHandler(e);
       }}
     >
-      <div className="flex items-center gap-2 w-full">
+      <div className="flex items-center gap-2 w-full flex-1 overflow-hidden">
         <div className="w-12 h-12 bg-slate-600 rounded-md shrink-0 group relative">
           <img
             src={song.albumCover ?? '/album-cover.png'}
@@ -183,7 +180,7 @@ const SongListItem = ({
         </div>
         <div className="flex flex-col items-start flex-1 overflow-hidden">
           <NavigationLink
-            className={`text-md font-bold hover:underline truncate overflow-hidden max-w-full ${
+            className={`text-sm md:text-base font-bold hover:underline truncate overflow-hidden max-w-full ${
               isCurrentSong ? 'text-blue-500' : 'text-slate-300'
             }`}
             href={`/songs/${song.id}`}
@@ -198,11 +195,11 @@ const SongListItem = ({
           </NavigationLink>
         </div>
       </div>
-      <span className="text-slate-300/50">{timeAdded}</span>
+      <span className="text-slate-300/50 hidden md:block">{timeAdded}</span>
       <div className="text-slate-300/50 flex items-center justify-end">
         <button
           className={
-            'text-2xl cursor-pointer' +
+            'text-2xl cursor-pointer mr-2 md:mr-0' +
             (session ? '' : ' !opacity-0 pointer-events-none')
           }
           onClick={async () => {
@@ -227,17 +224,17 @@ const SongListItem = ({
           {isFavorite ? (
             <MdFavorite className="text-blue-700 hover:text-blue-600" />
           ) : (
-            <MdFavoriteBorder className="opacity-0 group-hover:opacity-100 hover:text-slate-200" />
+            <MdFavoriteBorder className="md:opacity-0 md:group-hover:opacity-100 md:hover:text-slate-200" />
           )}
         </button>
-        <span className="ml-4 mr-2">
+        <span className="ml-4 mr-2 hidden md:block">
           {new Date(song.duration * 1000).toISOString().substring(14, 19)}
         </span>
         <ContextMenuButton
           className={`w-6 h-6 text-2xl text-slate-300/50 hover:text-slate-300 cursor-pointer ${
             isContextMenuShowing
-              ? 'opacity-100'
-              : 'opacity-0 group-hover:opacity-100'
+              ? 'md:opacity-100'
+              : 'md:opacity-0 md:group-hover:opacity-100'
           } ${session ? '' : '!opacity-0 pointer-events-none'}`}
           contextMenuItems={contextMenuItems}
           onContextMenuOpen={() => setIsContextMenuShowing(true)}
@@ -290,7 +287,7 @@ const SongGridItem = ({
         className={`flex flex-col gap-2 p-3 rounded-md group cursor-pointer transition-colors duration-300 ${
           highlight
             ? 'w-full min-w-[24rem] bg-slate-100/5 hover:bg-slate-600 relative'
-            : 'w-48 bg-gradient-to-b from-slate-800 to-slate-100/5 hover:bg-slate-600'
+            : 'md:w-48 md:bg-gradient-to-b from-slate-800 to-slate-100/5 md:hover:bg-slate-600'
         }`}
       >
         <div className={highlight ? '' : 'relative'}>
@@ -298,15 +295,15 @@ const SongGridItem = ({
             src={albumCover}
             alt="Album Cover"
             className={`aspect-square rounded-md box-border object-cover group-hover:shadow-xl transition-shadow duration-300 group-hover:shadow-slate-800 ${
-              highlight ? 'w-48' : 'w-full'
+              highlight ? 'md:w-48' : 'w-full'
             }`}
           />
           <button
             ref={ref}
-            className={`absolute p-4 rounded-full hover:scale-110 bg-blue-700 duration-300 transition-all ${
+            className={`pointer-events-none md:pointer-events-auto absolute p-4 rounded-full hover:scale-110 bg-blue-700 duration-300 transition-all ${
               isPlaying && isCurrentSong
                 ? 'opacity-100'
-                : 'opacity-0 translate-y-5 group-hover:translate-y-0 group-hover:opacity-100'
+                : 'opacity-0 translate-y-5 md:group-hover:translate-y-0 md:group-hover:opacity-100'
             } ${
               highlight
                 ? 'right-0 bottom-0 m-4 !opacity-100 !translate-y-0'
@@ -329,7 +326,7 @@ const SongGridItem = ({
             )}
           </button>
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 text-~ md:text-base ">
           <span
             className={`text-white font-bold truncate ${
               highlight ? 'text-3xl mt-3' : ''

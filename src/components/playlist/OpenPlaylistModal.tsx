@@ -1,22 +1,20 @@
 'use client';
-
 import { Playlist } from '@/actions/playlist';
+import { useClientSession } from '@/hooks/useSession';
 import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
-import { Session } from 'next-auth';
 
 type OpenEditModalProps = {
-  session: Session | null;
   playlist: Playlist;
   type: 'edit' | 'delete';
   children: React.ReactNode;
 };
 
 export const OpenPlaylistModal = ({
-  session,
   playlist,
   type,
   children,
 }: OpenEditModalProps) => {
+  const { session } = useClientSession();
   const open = usePlaylistModalStore(state => state.open);
 
   if (
@@ -24,7 +22,7 @@ export const OpenPlaylistModal = ({
     playlist.creator.id !== session.user.id ||
     playlist.isFavoritePlaylist
   ) {
-    return <div className='cursor-default'>{children}</div>;
+    return <div className="cursor-default">{children}</div>;
   }
 
   return (

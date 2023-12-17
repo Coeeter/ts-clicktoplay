@@ -1,4 +1,5 @@
 'use client';
+
 import {
   addFavoriteSongToLibrary,
   removeFavoriteSongFromLibrary,
@@ -20,7 +21,6 @@ import { usePlaylistModalStore } from '@/store/PlaylistModalStore';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Artist, Song } from '@prisma/client';
-import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { MouseEventHandler } from 'react';
 import {
@@ -36,6 +36,7 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
+import { AuthSession } from '@/lib/auth';
 
 export const useContextMenu = (
   menuItems: ContextMenuItem[] | (() => ContextMenuItem[])
@@ -56,7 +57,7 @@ export const useContextMenu = (
 };
 
 export type ContextMenuItemProps = {
-  session: Session | null;
+  session: AuthSession | null;
 } & (
   | ({
       type: 'song';
@@ -108,7 +109,7 @@ const getSongMenuItems = ({
   playlists,
   playSong,
 }: {
-  session: Session | null;
+  session: AuthSession | null;
   song: Song;
   isFavorite: boolean;
   playlists: Playlist[];
@@ -129,7 +130,7 @@ const getSongMenuItems = ({
 
   return [
     {
-      label: isCurrentSong ? (isPlaying ? 'Pause' : 'Play') : 'Play',
+      label: isCurrentSong && isPlaying ? 'Pause' : 'Play',
       onClick: () => {
         if (isCurrentSong) {
           return setIsPlaying(!isPlaying);
@@ -137,7 +138,7 @@ const getSongMenuItems = ({
         playSong();
       },
       divider: true,
-      icon: isPlaying ? Pause : Play,
+      icon: isPlaying && isCurrentSong ? Pause : Play,
     },
     {
       label: 'Play Next',
@@ -198,7 +199,7 @@ const getSongMenuItems = ({
     },
     !isFavorite
       ? {
-          label: 'Add to Favorites',
+          label: 'Favorite',
           divider: session.user.id === song.uploaderId,
           icon: Heart,
           onClick: async () => {
@@ -211,7 +212,7 @@ const getSongMenuItems = ({
           },
         }
       : {
-          label: 'Remove from Favorites',
+          label: 'Unfavorite',
           icon: HeartOff,
           divider: session.user.id === song.uploaderId,
           onClick: async () => {
@@ -247,15 +248,15 @@ const getPlaylistSongMenuItems = ({
 
   if (playlist.isFavoritePlaylist) {
     if (
-      items[items.length - 1].label === 'Add to Favorites' ||
-      items[items.length - 1].label === 'Remove from Favorites'
+      items[items.length - 1].label === 'Favorite' ||
+      items[items.length - 1].label === 'Unfavorite'
     ) {
       items.pop();
     }
 
     if (
-      items[items.length - 2].label === 'Add to Favorites' ||
-      items[items.length - 2].label === 'Remove from Favorites'
+      items[items.length - 2].label === 'Favorite' ||
+      items[items.length - 2].label === 'Unfavorite'
     ) {
       items.splice(items.length - 2, 1);
       items[items.length - 2].divider = true;
@@ -263,9 +264,7 @@ const getPlaylistSongMenuItems = ({
   }
 
   const favoriteItem = {
-    label: playlist.isFavoritePlaylist
-      ? 'Remove from Favorites'
-      : 'Remove from Playlist',
+    label: playlist.isFavoritePlaylist ? 'Unfavorite' : 'Remove from Playlist',
     icon: playlist.isFavoritePlaylist ? HeartOff : ListX,
     onClick: async () => {
       const [error] = await removeSongFromPlaylist({
@@ -296,7 +295,7 @@ const getPlaylistMenuItems = ({
   session,
   playlist,
 }: {
-  session: Session | null;
+  session: AuthSession | null;
   playlist: Playlist;
 }): ContextMenuItem[] => {
   const isPlaying = useQueueStore(state => state.isPlaying);
@@ -383,7 +382,7 @@ const getQueueMenuItems = ({
   song: Song;
   playlists: Playlist[];
   isFavorite: boolean;
-  session: Session | null;
+  session: AuthSession | null;
 }): ContextMenuItem[] => {
   const pathname = usePathname();
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
@@ -454,7 +453,7 @@ const getQueueMenuItems = ({
 
   if (isFavorite) {
     items.push({
-      label: 'Remove from Favorites',
+      label: 'Unfavorite',
       icon: HeartOff,
       onClick: async () => {
         const [error] = await removeFavoriteSongFromLibrary({
@@ -469,7 +468,7 @@ const getQueueMenuItems = ({
 
   if (!isFavorite) {
     items.push({
-      label: 'Add to Favorites',
+      label: 'Favorite',
       icon: Heart,
       onClick: async () => {
         const [error] = await addFavoriteSongToLibrary({
@@ -498,7 +497,7 @@ const getArtistMenuItems = ({
   session,
   artist,
 }: {
-  session: Session | null;
+  session: AuthSession | null;
   artist: Artist & {
     songs: Song[];
   };

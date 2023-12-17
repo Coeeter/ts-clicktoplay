@@ -1,16 +1,13 @@
 'use client';
 
 import { useCallbackUrl } from '@/hooks/useCallbackUrl';
+import { useClientSession } from '@/hooks/useSession';
+import { AuthSession } from '@/lib/auth';
 import { useContextMenuStore } from '@/store/ContextMenuStore';
 import { motion } from 'framer-motion';
-import { Session } from 'next-auth';
 import { useRef } from 'react';
 
-type ProfileButtonProps = {
-  session: Session;
-};
-
-const getDropDownItems = (session: Session) => {
+const getDropDownItems = (session: AuthSession) => {
   const callbackUrl = useCallbackUrl({ checkForPathname: '/logout' });
   return [
     {
@@ -28,10 +25,12 @@ const getDropDownItems = (session: Session) => {
   ];
 };
 
-export const ProfileButton = ({ session }: ProfileButtonProps) => {
+export const ProfileButton = () => {
+  const { session } = useClientSession();
   const imgRef = useRef<HTMLImageElement>(null);
-  const dropDownItems = getDropDownItems(session);
   const showContextMenu = useContextMenuStore(state => state.openContextMenu);
+  if (!session) return null;
+  const dropDownItems = getDropDownItems(session);
 
   return (
     <div className="relative">

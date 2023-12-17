@@ -2,20 +2,18 @@
 import { Playlist } from '@/actions/playlist';
 import { useContextMenu, useContextMenuItems } from '@/hooks/useContextMenu';
 import { NavigationLink } from '@/hooks/useNavigation';
+import { useClientSession } from '@/hooks/useSession';
 import { useQueueStore } from '@/store/QueueStore';
-import { Session } from 'next-auth';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaPause, FaPlay } from 'react-icons/fa';
 
 type PlaylistItemProps = {
   playlists: Playlist[];
-  session: Session | null;
   justify?: 'start' | 'between';
 };
 
 export const PlaylistList = ({
   playlists,
-  session,
   justify = 'between',
 }: PlaylistItemProps) => {
   const [cols, setCols] = useState(3);
@@ -40,7 +38,7 @@ export const PlaylistList = ({
       }`}
     >
       {playlists.slice(0, cols).map(playlist => (
-        <PlaylistCard key={playlist.id} playlist={playlist} session={session} />
+        <PlaylistCard key={playlist.id} playlist={playlist} />
       ))}
     </div>
   );
@@ -48,10 +46,10 @@ export const PlaylistList = ({
 
 type PlaylistCardProps = {
   playlist: Playlist;
-  session: Session | null;
 };
 
-const PlaylistCard = ({ playlist, session }: PlaylistCardProps) => {
+const PlaylistCard = ({ playlist }: PlaylistCardProps) => {
+  const { session } = useClientSession();
   const currentlyPlayingSong = useQueueStore(state => state.currentlyPlayingId);
   const queueItems = useQueueStore(state => state.items);
   const isPlaying = useQueueStore(state => state.isPlaying);

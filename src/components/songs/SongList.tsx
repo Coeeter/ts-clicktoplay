@@ -4,13 +4,11 @@ import { SongItem } from './SongItem';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
 import { Playlist } from '@/actions/playlist';
-import { Session } from 'next-auth';
 import { useEffect, useState } from 'react';
 
 type SongListProps = {
   songs: Song[];
   playlists: Playlist[];
-  session: Session | null;
   favoriteSongs: Song[];
   type?: 'list' | 'grid';
   highlight?: boolean;
@@ -20,7 +18,6 @@ type SongListProps = {
 export const SongList = ({
   songs,
   playlists,
-  session,
   favoriteSongs,
   type = 'grid',
   highlight = false,
@@ -48,14 +45,13 @@ export const SongList = ({
     <div
       className={
         type === 'grid'
-          ? `flex flex-wrap gap-3 justify-center`
+          ? `grid grid-cols-2 p-3 md:p-0 md:flex md:flex-wrap gap-3 justify-center`
           : 'flex flex-col gap-3 w-full'
       }
     >
       {displayedSongs.map(song => (
         <SongItem
           key={song.id}
-          session={session}
           song={song}
           playlists={playlists}
           isFavorite={favoriteSongs.find(s => s.id === song.id) !== undefined}
@@ -90,7 +86,6 @@ export const SongList = ({
           <h2 className="text-2xl font-bold text-slate-200 mb-5">{title}</h2>
           <SongItem
             key={song.id}
-            session={session}
             song={song}
             playlists={playlists}
             isFavorite={favoriteSongs.find(s => s.id === song.id) !== undefined}

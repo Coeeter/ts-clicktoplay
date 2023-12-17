@@ -2,8 +2,8 @@ import { getFavoriteSongs } from '@/actions/library';
 import { ArtistList } from '@/components/artists/ArtistList';
 import { PlaylistList } from '@/components/playlist/search/PlaylistList';
 import { SongList } from '@/components/songs/SongList';
+import { getServerSession } from '@/lib/auth';
 import { prisma } from '@/lib/database';
-import { getServerSession } from 'next-auth';
 import Link from 'next/link';
 
 const badges = [
@@ -131,7 +131,6 @@ export default async function SearchResultsPage({
         songs={songsResult}
         playlists={createdPlaylists}
         favoriteSongs={favoriteSongs ?? []}
-        session={session}
         highlight={true}
         type="list"
         title={'Songs'}
@@ -139,17 +138,13 @@ export default async function SearchResultsPage({
       {artistResult.length > 0 && (
         <h2 className="text-2xl font-bold text-slate-200 mb-2 mt-3">Artists</h2>
       )}
-      <ArtistList artists={artistResult} session={session} justify="start" />
+      <ArtistList artists={artistResult} justify="start" />
       {playlistResult.length > 0 && (
         <h2 className="text-2xl font-bold text-slate-200 mb-2 mt-3">
           Playlists
         </h2>
       )}
-      <PlaylistList
-        playlists={playlistResult}
-        session={session}
-        justify="start"
-      />
+      <PlaylistList playlists={playlistResult} justify="start" />
       {profileResult.length > 0 && (
         <h2 className="text-2xl font-bold text-slate-200 mb-2 mt-3">
           Profiles

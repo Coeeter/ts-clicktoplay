@@ -1,22 +1,20 @@
 'use client';
-
 import { Playlist } from '@/actions/playlist';
+import { useClientSession } from '@/hooks/useSession';
 import { useQueueStore } from '@/store/QueueStore';
 import { useToastStore } from '@/store/ToastStore';
-import { Session } from 'next-auth';
 import { MdPause, MdPlayArrow } from 'react-icons/md';
 
 type PlaylistPlayButtonProps = {
   playlist: Playlist;
-  session: Session | null;
   size?: 'normal' | 'small';
 };
 
 export const PlaylistPlayButton = ({
   playlist,
-  session,
   size = 'normal',
 }: PlaylistPlayButtonProps) => {
+  const { session } = useClientSession();
   const playPlaylist = useQueueStore(state => state.playPlaylist);
   const setIsPlaying = useQueueStore(state => state.setIsPlaying);
   const isPlaying = useQueueStore(state => state.isPlaying);

@@ -2,18 +2,17 @@
 import { Playlist, moveSongsInPlaylist } from '@/actions/playlist';
 import { useToastStore } from '@/store/ToastStore';
 import { Song } from '@prisma/client';
-import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { DraggableList } from '../draggable/DraggableList';
 import { PlaylistItem } from './PlaylistItem';
+import { useClientSession } from '@/hooks/useSession';
 
 type PlaylistItemListProps = {
   songs: Song[];
   playlist: Playlist;
   createdPlaylists: Playlist[];
   favoriteSongs: (Song | undefined)[];
-  session: Session | null;
 };
 
 export const PlaylistItemList = ({
@@ -21,8 +20,8 @@ export const PlaylistItemList = ({
   playlist,
   createdPlaylists,
   favoriteSongs,
-  session,
 }: PlaylistItemListProps) => {
+  const { session } = useClientSession();
   const pathname = usePathname();
   const [playlistItems, setPlaylistItems] = useState(songs);
   const showToast = useToastStore(state => state.createToast);
@@ -88,7 +87,6 @@ export const PlaylistItemList = ({
           itemBuilder={(index, isDragging) => (
             <PlaylistItem
               song={playlistItems[index]}
-              session={session}
               key={playlistItems[index].id}
               playlist={playlist}
               playlists={createdPlaylists}

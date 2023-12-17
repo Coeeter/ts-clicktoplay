@@ -1,4 +1,4 @@
-import { WithAuth } from '@/components/server/WithAuth';
+import { withAuth } from '@/components/auth/WithAuth';
 import UploadSongForm from './UploadSongForm';
 import { Metadata } from 'next';
 
@@ -6,14 +6,12 @@ export const metadata: Metadata = {
   title: 'Upload Song | ClickToPlay',
 };
 
-const SongUploader = () => {
+const SongUploader = withAuth(() => {
   return (
-    <WithAuth>
-      <div className="pb-6">
-        <UploadSongForm />
-      </div>
-    </WithAuth>
+    <div className="pb-6">
+      <UploadSongForm />
+    </div>
   );
-};
+});
 
 export default SongUploader;

@@ -65,7 +65,6 @@ export default async function SearchPage() {
       <SongList
         favoriteSongs={favoriteSongs}
         playlists={createdPlaylists}
-        session={session}
         songs={mostPlayedSongs}
         type="list"
         highlight
@@ -73,11 +72,11 @@ export default async function SearchPage() {
       <h2 className="text-2xl font-bold mt-3 mb-2 text-slate-200">
         Featured Playlists <TbPlaylist className="inline" />
       </h2>
-      <PlaylistList playlists={mostPlayedPlayists} session={session} />
+      <PlaylistList playlists={mostPlayedPlayists} />
       <h2 className="text-2xl font-bold my-3 text-slate-200">
         Popular Artists
       </h2>
-      <ArtistList artists={mostPlayedArtists} session={session} />
+      <ArtistList artists={mostPlayedArtists} />
     </div>
   );
 }

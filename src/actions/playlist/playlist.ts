@@ -1,6 +1,4 @@
 'use server';
-
-import { Session } from 'next-auth';
 import { prisma } from '../../lib/database';
 import {
   AddSongsToPlaylistProps,
@@ -19,11 +17,11 @@ import {
 } from '@/utils';
 import { createPlaylistItems } from './helper';
 import { revalidatePath } from 'next/cache';
-import { getServerSession } from '@/lib/auth';
+import { AuthSession, getServerSession } from '@/lib/auth';
 import { getPresignedUploadUrl } from '@/lib/s3';
 import { randomUUID } from 'crypto';
 
-export const getCreatedPlaylists = async (session: Session) => {
+export const getCreatedPlaylists = async (session: AuthSession) => {
   const playlists = await prisma.playlist.findMany({
     where: {
       creatorId: session.user.id,

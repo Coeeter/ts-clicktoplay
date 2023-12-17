@@ -60,7 +60,7 @@ export const VolumeTrackbar = () => {
   if (!mounted || !currentQueueItemId) return <div className="flex-1" />;
 
   return (
-    <div className="flex items-center justify-end flex-1 gap-3">
+    <div className="hidden md:flex items-center justify-end flex-1 gap-3">
       <NavigationLink
         href={
           pathname !== '/queue'

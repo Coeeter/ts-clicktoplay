@@ -1,10 +1,10 @@
 'use client';
+
 import { Playlist } from '@/actions/playlist';
 import { useMounted } from '@/hooks/useMounted';
 import { useQueueStore } from '@/store/QueueStore';
 import { sortLinkedList } from '@/utils/linkedList';
 import { Song } from '@prisma/client';
-import { Session } from 'next-auth';
 import { useEffect, useState } from 'react';
 import { DraggableList } from '../draggable/DraggableList';
 import { QueueItem } from './QueueItem';
@@ -13,14 +13,12 @@ type QueueListProps = {
   songs: Song[];
   favoriteSongs: (Song | undefined)[];
   playlists: Playlist[];
-  session: Session | null;
 };
 
 export const QueueList = ({
   songs,
   favoriteSongs,
   playlists,
-  session,
 }: QueueListProps) => {
   const isMounted = useMounted();
   const items = useQueueStore(state => state.items);
@@ -89,7 +87,6 @@ export const QueueList = ({
               listOrder={1}
               isDragging={false}
               playlists={playlists}
-              session={session}
               isFavorite={favoriteSongs.some(
                 favSong => favSong?.id === currentlyPlayingSong.id
               )}
@@ -117,7 +114,6 @@ export const QueueList = ({
                   song={song}
                   isDragging={isDragging}
                   listOrder={index + 2}
-                  session={session}
                   isFavorite={favoriteSongs.some(
                     favSong => favSong?.id === song.id
                   )}

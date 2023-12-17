@@ -1,4 +1,5 @@
 'use client';
+
 import { Playlist } from '@/actions/playlist';
 import {
   setSideBarMoreDetails,
@@ -7,7 +8,6 @@ import {
 } from '@/actions/settings/settings';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToolTip } from '@/hooks/useToolTip';
-import { Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BiSolidCloudUpload } from 'react-icons/bi';
@@ -16,8 +16,9 @@ import { MdArrowBack, MdArrowForward, MdHome, MdSearch } from 'react-icons/md';
 import { SidebarItemList } from './SidebarItemList';
 import { SidebarNewPlaylistButton } from './SidebarNewPlaylistButton';
 import { NavigationLink } from '@/hooks/useNavigation';
+import { useClientSession } from '@/hooks/useSession';
 
-const sidebarItems = [
+export const sidebarItems = [
   {
     name: 'Home',
     href: '/',
@@ -36,7 +37,6 @@ const sidebarItems = [
 ] as const;
 
 type SidebarContentProps = {
-  session: Session | null;
   playlists: Playlist[];
   playHistory: { id: string; lastPlayedAt: Date | null }[];
   sideBarOpen: boolean;
@@ -45,13 +45,13 @@ type SidebarContentProps = {
 };
 
 export const SidebarContent = ({
-  session,
   playlists,
   playHistory,
   sideBarOpen,
   sideBarMoreDetails,
   sideBarWidth,
 }: SidebarContentProps) => {
+  const { session } = useClientSession();
   const [expanded, setExpanded] = useState(sideBarOpen);
   const [showMoreDetails, setshowMoreDetails] = useState(sideBarMoreDetails);
   const [widthPx, setWidthPx] = useState(sideBarWidth);
@@ -146,7 +146,7 @@ export const SidebarContent = ({
   return (
     <aside
       ref={sidebarRef}
-      className={`sticky top-3 bottom-0 max-h-[calc(100vh-6.25rem)] flex flex-row-reverse grow-0 shrink-0`}
+      className={`hidden sticky top-3 bottom-0 max-h-[calc(100vh-6.25rem)] md:flex flex-row-reverse grow-0 shrink-0`}
       style={{ width, minWidth, maxWidth }}
       onMouseDown={e => e.preventDefault()}
     >
@@ -168,7 +168,7 @@ export const SidebarContent = ({
               <SidebarLink key={index} expanded={expanded} {...link} />
             ))}
         </div>
-        <div className="flex-grow bg-slate-800 rounded-md max-h-[calc(100vh-6.25rem-112px)]">
+        <div className="flex-grow bg-slate-800 rounded-md max-h-[calc(100vh-6.25rem-156px)]">
           <div
             className={`flex flex-col max-h-full py-3 ${
               expanded ? 'px-4 gap-3' : 'px-2 gap-6 items-center'
@@ -220,7 +220,6 @@ export const SidebarContent = ({
                 <div className="overflow-y-auto max-h-full no-scrollbar">
                   <SidebarItemList
                     playlists={playlists}
-                    session={session}
                     history={playHistory}
                     expanded={expanded!}
                     showMoreDetails={showMoreDetails}

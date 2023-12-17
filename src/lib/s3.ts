@@ -1,12 +1,13 @@
 import { PutObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { env } from './env';
 
 const s3 = new S3({
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: env.awsAccessKeyId,
+    secretAccessKey: env.awsSecretAccessKey,
   },
-  region: 'ap-southeast-1'
+  region: 'ap-southeast-1',
 });
 
 const deleteFileFromS3 = async ({
@@ -29,7 +30,7 @@ const deleteFileFromS3 = async ({
   }
 
   return await s3.deleteObject({
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Bucket: env.awsS3BucketName,
     Key: key!,
   });
 };
@@ -42,7 +43,7 @@ export const getPresignedUploadUrl = async ({
   contentType: string;
 }) => {
   const command = new PutObjectCommand({
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Bucket: env.awsS3BucketName,
     Key: key,
     ContentType: contentType,
   });
@@ -59,7 +60,7 @@ const uploadBufferToS3 = async ({
   contentType: string;
 }) => {
   return await s3.putObject({
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Bucket: env.awsS3BucketName,
     Key: key,
     Body: buffer,
     ContentType: contentType,

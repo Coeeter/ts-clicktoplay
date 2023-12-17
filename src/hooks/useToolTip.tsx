@@ -41,10 +41,11 @@ export const useToolTip = ({ content }: UseToolTipProps): UseToolTipReturn => {
     onMouseEnter,
     onMouseLeave,
     place,
+    ref: _ref,
   }: {
     onMouseEnter?: MouseEventHandler<T>;
     onMouseLeave?: MouseEventHandler<T>;
-    ref?: React.RefObject<T>;
+    ref?: React.MutableRefObject<T>;
     place?: ToolTipPlace;
   }) => {
     const onMouseEnterHandler: MouseEventHandler<T> = e => {
@@ -63,6 +64,7 @@ export const useToolTip = ({ content }: UseToolTipProps): UseToolTipReturn => {
       onMouseLeave: onMouseLeaveHandler,
       ref: instance => {
         ref.current = instance;
+        if (_ref) _ref.current = instance;
       },
     };
   };

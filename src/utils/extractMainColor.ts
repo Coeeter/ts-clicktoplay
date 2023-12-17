@@ -1,3 +1,5 @@
+'use server';
+
 import Vibrant from 'node-vibrant';
 
 function isLightColor(color: string | undefined) {

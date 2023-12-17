@@ -113,12 +113,14 @@ export const UpdateArtistForm = ({ artist }: UpdateArtistFormProps) => {
         label="Name"
         {...register('name')}
         error={errors.name?.message}
+        defaultValue={artist.name}
       />
       <TextField
         label="Description"
         {...register('description')}
         error={errors.description?.message}
         variant="textarea"
+        defaultValue={artist.description}
       />
       <Button type="submit" isLoading={isSubmitting}>
         Update Artist

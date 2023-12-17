@@ -2,7 +2,7 @@ import { getCreatedPlaylists, getPlaylistById } from '@/actions/playlist';
 import { getSongs } from '@/actions/songs';
 import { NavbarMetadata } from '@/components/navigation/navbar/NavbarMetadata';
 import { MoreOptionsButton } from '@/components/playlist/MoreOptionsButton';
-import { OpenPlaylistModal } from '@/components/playlist/OpenEditModal';
+import { OpenPlaylistModal } from '@/components/playlist/OpenPlaylistModal';
 import { PlaylistPlayButton } from '@/components/playlist/PlayButton';
 import { PlaylistItemList } from '@/components/playlist/PlaylistItemList';
 import { NavigationLink } from '@/hooks/useNavigation';
@@ -58,12 +58,7 @@ export default async function PlaylistScreen({
 
   return (
     <div className="flex flex-col min-h-full">
-      <NavbarMetadata
-        session={session}
-        type="playlist"
-        colors={primaryColor}
-        playlist={playlist}
-      >
+      <NavbarMetadata type="playlist" colors={primaryColor} playlist={playlist}>
         <div
           className="p-6 pb-0 rounded-t-lg pt-[76px]"
           style={{
@@ -71,11 +66,7 @@ export default async function PlaylistScreen({
           }}
         >
           <header className="flex gap-4">
-            <OpenPlaylistModal
-              session={session}
-              playlist={playlist}
-              type="edit"
-            >
+            <OpenPlaylistModal playlist={playlist} type="edit">
               <img
                 src={
                   playlist.isFavoritePlaylist
@@ -92,11 +83,7 @@ export default async function PlaylistScreen({
             </OpenPlaylistModal>
             <div className="flex flex-col justify-end">
               <span className="text-lg text-slate-200">Playlist</span>
-              <OpenPlaylistModal
-                session={session}
-                playlist={playlist}
-                type="edit"
-              >
+              <OpenPlaylistModal playlist={playlist} type="edit">
                 <div className="text-6xl text-slate-200 font-bold mb-6">
                   {playlist.title}
                 </div>
@@ -129,20 +116,17 @@ export default async function PlaylistScreen({
         }}
       >
         <section className="flex gap-4 mt-3 items-center px-6">
-          <PlaylistPlayButton playlist={playlist} session={session} />
+          <PlaylistPlayButton playlist={playlist} />
           {playlist.creatorId !== session?.user.id && (
             <button className="text-blue-500 p-3 rounded-full transition hover:scale-[1.1]">
               <MdFavorite className="w-8 h-8" />
             </button>
           )}
-          {session && (
-            <MoreOptionsButton playlist={playlist} session={session} />
-          )}
+          {session && <MoreOptionsButton playlist={playlist} />}
         </section>
         <PlaylistItemList
           songs={songsInPlaylist}
           playlist={playlist}
-          session={session}
           createdPlaylists={playlists.filter(p => !p.isFavoritePlaylist)}
           favoriteSongs={
             playlists
